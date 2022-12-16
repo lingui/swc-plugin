@@ -38,7 +38,7 @@ fn matchCalleeName(call: &CallExpr, fnName: &str) -> bool {
     match &call.callee {
         Callee::Expr(expr) => {
             if let Expr::Ident(ident) = expr.as_ref() {
-                return ident.sym.to_string() == fnName;
+                return &ident.sym == fnName;
             }
         }
         _ => {}
@@ -81,7 +81,7 @@ impl TransformVisitor {
             // `text {foo} bar`
             Expr::Ident(ident) => {
                 ValueWithPlaceholder {
-                    placeholder: ident.sym.clone().to_string(),
+                    placeholder: ident.sym.to_string(),
                     value: None,
                 }
             }
@@ -90,7 +90,7 @@ impl TransformVisitor {
             // `text {bar.baz} bar`
             _ => {
                 // would be a positional argument
-                let index_str = &i.to_string()[..];
+                let index_str = &i.to_string();
 
                 ValueWithPlaceholder {
                     placeholder: index_str.into(),
@@ -153,14 +153,14 @@ impl TransformVisitor {
                 if let Prop::KeyValue(prop) = prop.as_ref() {
                     if let PropName::Ident(ident) = &prop.key {
                         let mut push_part = |msg: &str| {
-                            icuParts.push(format!("{} {{{}}}", ident.sym.to_string(), msg));
+                            icuParts.push(format!("{} {{{}}}", &ident.sym, msg));
                         };
 
                         // String Literal: "has # friend"
                         if let Expr::Lit(lit) = prop.value.as_ref() {
                             if let Lit::Str(str) = lit {
                                 // one {has # friend}
-                                push_part(&str.value.to_string());
+                                push_part(&str.value);
                             }
                         }
 
@@ -184,8 +184,6 @@ impl TransformVisitor {
 
         let msg = format!("{{{}, {}, {}}}", icu_value_ident, icu_method, icuParts.join(" "));
 
-        println!("{}", msg);
-
         (msg, all_values)
     }
 }
@@ -197,7 +195,6 @@ impl Fold for TransformVisitor {
         // if self.import_packages.is_empty() {
         //     return expr;
         // }
-
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
             match tagged_tpl.tag.as_ref() {
                 // t(i18n)``
@@ -213,7 +210,7 @@ impl Fold for TransformVisitor {
                     }
                 }
                 // t``
-                Expr::Ident(ident) if ident.sym.to_string() == LINGUI_T => {
+                Expr::Ident(ident) if &ident.sym == LINGUI_T => {
                     let (message, values)
                         = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
 
@@ -242,7 +239,7 @@ impl Fold for TransformVisitor {
             match e.as_ref() {
                 // (plural | select | selectOrdinal)()
                 Expr::Ident(ident) => {
-                    if !isLinguiFn(&ident.sym.to_string()) {
+                    if !isLinguiFn(&ident.sym) {
                         return expr;
                     }
 
@@ -287,7 +284,7 @@ impl Fold for TransformVisitor {
         let mut msg: Option<&Atom> = None;
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
-            if ident.sym.to_string() != "Trans" {
+            if &ident.sym != "Trans" {
                 return el;
             }
         }
@@ -297,7 +294,7 @@ impl Fold for TransformVisitor {
         for el in &el.opening.attrs {
             if let JSXAttrOrSpread::JSXAttr(attr) = el {
                 if let JSXAttrName::Ident(ident) = &attr.name {
-                    if ident.sym.to_string() == "id" {
+                    if &ident.sym == "id" {
                         id = Some(&ident.sym)
                     }
                 }
