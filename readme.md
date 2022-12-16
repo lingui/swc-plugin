@@ -34,6 +34,7 @@ cargo test
   - [x] ``plural(expression(), {one: `${variable} # item`, few: '# items'})`` - expression as parameter
   - [ ] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}` 
   - [ ] nested icu as described here https://lingui.js.org/ref/macro.html#plural - WONT DO, due to very high complexity and low priority
+- [ ] Passing macro as `t()` arguments eq: `t({message: plural(...)})`
 - [ ] Support JSX transformation TODO - describe more cases
   - [ ] `<Trans>`
   - [ ] Simple cases and cases with inner JSX elements
