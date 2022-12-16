@@ -25,8 +25,8 @@ cargo test
   - [x] ``t`Some ${variable} string` ``
   - [x] ``t`Some ${expression} string` ``
   - [x] ``t(i18n)`Some string` `` - custom i18n instance
+  - [x] check name of tag === 't' before transformation
   - [ ] `t({ message descriptor })` call with message descriptor object
-  - [ ] check name of tag === 't' before transformation
 - [ ] `defineMessage`
 - [ ] ICU calls (plural, select, selectOrdinal)
   - [x] ``plural(count, {one: '# item', few: '# items'})`` - simple strings

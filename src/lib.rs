@@ -23,6 +23,8 @@ use swc_core::{
 use swc_core::ecma::utils::ExprExt;
 // use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
+const LINGUI_T: &str = &"t";
+
 fn isLinguiFn(name: &str) -> bool {
     // todo: i didn't find a better way to create a constant hashmap
     match name {
@@ -31,12 +33,26 @@ fn isLinguiFn(name: &str) -> bool {
     }
 }
 
+fn matchCalleeName(call: &CallExpr, fnName: &str) -> bool {
+    match &call.callee {
+        Callee::Expr(expr) => {
+            if let Expr::Ident(ident) = expr.as_ref()  {
+                return ident.sym.to_string() == fnName
+            }
+        },
+        _ => {}
+    }
+
+    false
+}
+
 struct ValueWithPlaceholder {
     placeholder: String,
     value: Option<Box<Expr>>,
 }
 
 impl ValueWithPlaceholder {
+    // Depending on whether value is presented it would produce or KeyValue or Shorthand exp
     fn to_prop(&self) -> PropOrSpread {
         let ident = Ident::new(self.placeholder.clone().into(), DUMMY_SP);
 
@@ -56,6 +72,9 @@ impl ValueWithPlaceholder {
 pub struct TransformVisitor;
 
 impl TransformVisitor {
+    // Receive an expression which expected to be either simple variable (ident) or expression
+    // If simple variable is detected os literal used as placeholder
+    // If expression detected we use index as placeholder.
     fn get_value_with_placeholder(&self, expr: Box<Expr>, i: &usize) -> ValueWithPlaceholder {
         match expr.as_ref() {
             // `text {foo} bar`
@@ -80,6 +99,9 @@ impl TransformVisitor {
         }
     }
 
+    // Receive TemplateLiteral with variables and return plane string where
+    // substitutions replaced to placeholders and variables extracted as separate Vec
+    // `Hello ${username}!` ->  (msg: `Hello {username}!`, variables: {username})
     fn transform_tpl_to_msg_and_values(&self, tpl: &Tpl) -> (String, Vec<PropOrSpread>) {
         let mut message = String::new();
         let mut values: Vec<&ValueWithPlaceholder> = Vec::with_capacity(tpl.exprs.len());
@@ -88,7 +110,7 @@ impl TransformVisitor {
         for (i, tplElement) in tpl.quasis.iter().enumerate() {
             message.push_str(&tplElement.raw);
 
-            if let Some(exp) = (tpl.exprs.get(i)) {
+            if let Some(exp) = tpl.exprs.get(i) {
                 let val = self.get_value_with_placeholder(exp.clone(), &i);
                 props.push(val.to_prop());
                 message.push_str(&format!("{{{}}}", &val.placeholder));
@@ -117,7 +139,10 @@ impl TransformVisitor {
         };
     }
 
-    // {count, plural, one {has # friend} other {has # friends}}
+    // receive ObjectLiteral {few: "..", many: "..", other: ".."} and create ICU string in form:
+    // {count, plural, few {..} many {..} other {..}}
+    // If messages passed as TemplateLiterals with variables, it extracts variables into Vec
+    // (msg: {count, plural, one `{name} has # friend` other `{name} has # friends`}, variables: {name})
     fn get_icu_from_choices_obj(&self, props: &Vec<PropOrSpread>, icu_value_ident: &JsWord, icu_method: &JsWord) -> (String, Vec<PropOrSpread>) {
         let mut icuParts: Vec<String> = Vec::with_capacity(props.len());
         let mut all_values: Vec<PropOrSpread> = Vec::new();
@@ -172,11 +197,10 @@ impl Fold for TransformVisitor {
         //     return expr;
         // }
 
-        if let Expr::TaggedTpl(tagged_tpl) = &mut expr {
-            match tagged_tpl.tag.as_mut() {
+        if let Expr::TaggedTpl(tagged_tpl) = &expr {
+            match tagged_tpl.tag.as_ref() {
                 // t(i18n)``
-                Expr::Call(call) => {
-                    // todo compare callee name to t``
+                Expr::Call(call) if matchCalleeName(call, LINGUI_T) => {
                     if let Some(v) = call.args.get(0) {
                         let (message, values)
                             = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
@@ -188,8 +212,7 @@ impl Fold for TransformVisitor {
                     }
                 }
                 // t``
-                Expr::Ident(_) => {
-                    // todo compare callee name to t``
+                Expr::Ident(ident) if ident.sym.to_string() == LINGUI_T => {
                     let (message, values)
                         = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
 
@@ -214,9 +237,9 @@ impl Fold for TransformVisitor {
         //     return expr;
         // }
 
-        if let Callee::Expr(e) = &mut expr.callee {
-            match e.as_mut() {
-                // plural()
+        if let Callee::Expr(e) = &expr.callee {
+            match e.as_ref() {
+                // (plural | select | selectOrdinal)()
                 Expr::Ident(ident) => {
                     if !isLinguiFn(&ident.sym.to_string()) {
                         return expr;
@@ -281,10 +304,21 @@ pub fn process_transform(program: Program, _metadata: TransformPluginProgramMeta
     program.fold_with(&mut TransformVisitor)
 }
 
-// An example to test plugin transform.
-// Recommended strategy to test plugin's transform is verify
-// the Visitor's behavior, instead of trying to run `process_transform` with mocks
-// unless explicitly required to do so.
+test!(
+    Default::default(),
+    |_| TransformVisitor,
+    should_not_touch_not_related_tagget_tpls,
+    // input
+     r#"
+     b`Refresh inbox`;
+     b(i18n)`Refresh inbox`;
+     "#,
+    // output after transform
+    r#"
+    b`Refresh inbox`;
+    b(i18n)`Refresh inbox`;
+    "#
+);
 
 test!(
     Default::default(),
@@ -329,16 +363,51 @@ test!(
 test!(
     Default::default(),
     |_| TransformVisitor,
-    plural,
+    icu_functions,
      r#"
-    const message = plural(count, {
+    const messagePlural = plural(count, {
+       one: '# Book',
+       other: '# Books'
+    })
+    const messageSelect = select(gender, {
+       male: 'he',
+       female: 'she',
+       other: 'they'
+    })
+    const messageSelectOrdinal = selectOrdinal(count, {
+       one: '#st',
+       two: '#nd',
+       few: '#rd',
+       other: '#th',
+    })
+     "#,
+    r#"
+    const messagePlural = i18n._("{count, plural, one {# Book} other {# Books}}", {
+      count
+    });
+    const messageSelect = i18n._("{gender, select, male {he} female {she} other {they}}", {
+      gender
+    });
+    const messageSelectOrdinal = i18n._("{count, selectOrdinal, one {#st} two {#nd} few {#rd} other {#th}}", {
+      count
+    });
+    "#
+);
+
+test!(
+    Default::default(),
+    |_| TransformVisitor,
+    should_not_touch_non_lungui_fns,
+     r#"
+    const messagePlural = customName(count, {
        one: '# Book',
        other: '# Books'
     })
      "#,
     r#"
-    const message = i18n._("{count, plural, one {# Book} other {# Books}}", {
-      count
+   const messagePlural = customName(count, {
+       one: '# Book',
+       other: '# Books'
     })
     "#
 );
