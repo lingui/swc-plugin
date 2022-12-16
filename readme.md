@@ -37,14 +37,19 @@ cargo test
 - [ ] Passing macro as `t()` arguments eq: `t({message: plural(...)})`
 - [ ] Support JSX transformation TODO - describe more cases
   - [ ] `<Trans>`
-  - [ ] Simple cases and cases with inner JSX elements
+    - [x] Simple cases `<Trans>Hello World</Trans>` -> `<Trans message="Hello World" />`
+    - [ ] Variables interpolation  `<Trans>Hello {name} and {getName()}</Trans>` -> `<Trans variables={name, 1: getName()} msg="Hello {name} and {1}"/>`
+    - [ ] Recursive Components interpolation `<Trans>Hello <strong>World!</strong></Trans>`
+    - [ ] Stripping non-essential props in production
+    - [ ] Support edge cases `<Trans>{'Hello World'}</Trans>` and ``<Trans>{`How much is ${expression}? ${count}`}</Trans>``
+    - [ ] Whitespaces management: stripping, but keeping "forced"
   - [ ] ICU: `<Plural>` `<SelectOrdinal>` `<Select>`
 - [ ] Support narrowing transformation to only function exported from `@lingui/macro` 
 - [ ] Automatic adding  `import { i18n } from @lingui/core`
 - [ ] Different behavior for all macros for Production build as stated [here](https://lingui.js.org/ref/macro.html#plural:~:text=In%20production%20build%2C%20the%20whole%20macro%20is%20replaced) 
 - [ ] Investigate in testing fixtures and create a comprehensive test suite
 - [ ] Splitting into modules and crates, clean up code
-- [ ] Error handling: how to properly behave to do if user passed something not expected
+- [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
 - [ ] Investigate patterns how to effectively change something in the root of the tree based on the leafs using visitor / folder
 - [ ] Building binary and publishing
 

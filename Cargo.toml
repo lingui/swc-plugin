@@ -17,6 +17,7 @@ swc_core = { version = "0.47.0", features = [
     "ecma_utils",
     "ecma_visit",
     "ecma_ast",
+    "ecma_parser",
     "common",
 ] }
 # .cargo/config defines few alias to build plugin.

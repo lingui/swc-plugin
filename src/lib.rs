@@ -1,15 +1,15 @@
 use std::any::Any;
 use swc_core::common::Spanned;
 use swc_core::ecma::{
-    // ast::Program,
-    ast::*,
     transforms::testing::test,
     visit::{as_folder, VisitMut, VisitMutWith},
 };
+
 use std::path::{Path, PathBuf};
 use swc_core::{
     common::{FileName, DUMMY_SP, util::take::Take},
     ecma::{
+        parser::{Syntax, TsConfig},
         ast::*,
         atoms::JsWord,
         utils::{quote_ident, ExprFactory},
@@ -20,6 +20,7 @@ use swc_core::{
         proxies::TransformPluginProgramMetadata,
     },
 };
+use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::ExprExt;
 // use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
@@ -36,10 +37,10 @@ fn isLinguiFn(name: &str) -> bool {
 fn matchCalleeName(call: &CallExpr, fnName: &str) -> bool {
     match &call.callee {
         Callee::Expr(expr) => {
-            if let Expr::Ident(ident) = expr.as_ref()  {
-                return ident.sym.to_string() == fnName
+            if let Expr::Ident(ident) = expr.as_ref() {
+                return ident.sym.to_string() == fnName;
             }
-        },
+        }
         _ => {}
     }
 
@@ -281,6 +282,69 @@ impl Fold for TransformVisitor {
 
         expr
     }
+
+    fn fold_jsx_element(&mut self, el: JSXElement) -> JSXElement {
+        let mut msg: Option<&Atom> = None;
+
+        if let JSXElementName::Ident(ident) = &el.opening.name {
+            if ident.sym.to_string() != "Trans" {
+                return el;
+            }
+        }
+
+        let mut id: Option<&JsWord> = None;
+
+        for el in &el.opening.attrs {
+            if let JSXAttrOrSpread::JSXAttr(attr) = el {
+                if let JSXAttrName::Ident(ident) = &attr.name {
+                    if ident.sym.to_string() == "id" {
+                        id = Some(&ident.sym)
+                    }
+                }
+            } else {
+                // todo panic unsupported syntax
+            }
+        }
+
+        for el in &el.children {
+            if let JSXElementChild::JSXText(text) = el {
+                msg = Some(&text.value);
+            }
+        }
+
+        // todo pass render prop to trans
+        if let Some(msg) = msg {
+            let mut attrs = vec![
+                JSXAttrOrSpread::JSXAttr(JSXAttr {
+                    // todo: probably we can use span from el.children[0].value for better sourcemap
+                    span: DUMMY_SP,
+                    name: JSXAttrName::Ident(Ident {
+                        span: DUMMY_SP,
+                        sym: if let Some(_) = id { "message" } else { "id" }.into(),
+                        optional: false,
+                    }),
+                    value: Some(JSXAttrValue::Lit(Lit::Str(msg.clone().into()))),
+                }),
+            ];
+
+            attrs.extend(el.opening.attrs);
+
+            return JSXElement {
+                span: el.span,
+                children: vec![],
+                closing: None,
+                opening: JSXOpeningElement {
+                    self_closing: true,
+                    span: el.opening.span,
+                    name: el.opening.name,
+                    type_args: None,
+                    attrs,
+                },
+            };
+        }
+
+        el
+    }
 }
 
 
@@ -428,3 +492,109 @@ test!(
     })
     "#
 );
+
+// test!(
+//     Default::default(),
+//     |_| TransformVisitor,
+//     plural_with_placeholders,
+//      r#"
+//       import { Trans } from "@lingui/macro"
+//         <Trans>Refresh inbox</Trans>;
+//      "#,
+//     r#"
+//    import { Trans } from "@lingui/react"
+//     <Trans id="Refresh inbox" />
+//     "#
+// );
+
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor,
+    simple_jsx,
+     r#"
+       const exp1 = <Custom>Refresh inbox</Custom>;
+       const exp2 = <Trans>Refresh inbox</Trans>;
+     "#,
+    r#"
+       const exp1 = <Custom>Refresh inbox</Custom>;
+       const exp2 = <Trans id="Refresh inbox" />
+    "#
+);
+
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor,
+    preserve_id_in_trans,
+     r#"
+       const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
+     "#,
+    r#"
+       const exp2 = <Trans message="Refresh inbox" id="custom.id"/>
+    "#
+);
+
+// todo:
+// test!(
+//        Syntax::Typescript(TsConfig {
+//         tsx: true,
+//         ..Default::default()
+//     }),
+//     |_| TransformVisitor,
+//     jsx_interpolation,
+//      r#"
+//        <Trans>
+//           Property {props.name},
+//           function {random()},
+//           array {array[index]},
+//           constant {42},
+//           object {new Date()},
+//           everything {props.messages[index].value()}
+//         </Trans>;
+//      "#,
+//     r#"
+//        <Trans id={"Property {0}, function {1}, array {2}, constant {3}, object {4}, everything {5}"} values={{
+//           0: props.name,
+//           1: random(),
+//           2: array[index],
+//           3: 42,
+//           4: new Date(),
+//           5: props.messages[index].value()
+//         }} />;
+//     "#
+// );
+
+// todo:
+// test!(
+//        Syntax::Typescript(TsConfig {
+//         tsx: true,
+//         ..Default::default()
+//     }),
+//     |_| TransformVisitor,
+//     jsx_components_interpolation,
+//      r#"
+//        <Trans>
+//           Hello <strong>World!</strong><br />
+//           <p>
+//             My name is <a href="/about">{" "}
+//             <em>{name}</em></a>
+//           </p>
+//         </Trans>
+//      "#,
+//     r#"
+//        <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
+//           name: name
+//         }} components={{
+//           0: <strong />,
+//           1: <br />,
+//           2: <p />,
+//           3: <a href="/about" />,
+//           4: <em />
+//         }} />;
+//     "#
+// );
