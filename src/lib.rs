@@ -679,35 +679,34 @@ test!(
     "#
 );
 
-// todo whitespace management
-// test!(
-//        Syntax::Typescript(TsConfig {
-//         tsx: true,
-//         ..Default::default()
-//     }),
-//     |_| TransformVisitor,
-//     jsx_interpolation,
-//      r#"
-//        <Trans>
-//           Property {props.name},
-//           function {random()},
-//           array {array[index]},
-//           constant {42},
-//           object {new Date()},
-//           everything {props.messages[index].value()}
-//         </Trans>;
-//      "#,
-//     r#"
-//        <Trans id={"Property {0}, function {1}, array {2}, constant {3}, object {4}, everything {5}"} values={{
-//           0: props.name,
-//           1: random(),
-//           2: array[index],
-//           3: 42,
-//           4: new Date(),
-//           5: props.messages[index].value()
-//         }} />;
-//     "#
-// );
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor,
+    jsx_interpolation,
+     r#"
+       <Trans>
+          Property {props.name},
+          function {random()},
+          array {array[index]},
+          constant {42},
+          object {new Date()},
+          everything {props.messages[index].value()}
+        </Trans>;
+     "#,
+    r#"
+       <Trans id={"Property {0}, function {1}, array {2}, constant {3}, object {4}, everything {5}"} values={{
+          0: props.name,
+          1: random(),
+          2: array[index],
+          3: 42,
+          4: new Date(),
+          5: props.messages[index].value()
+        }} />;
+    "#
+);
 
 test!(
        Syntax::Typescript(TsConfig {
