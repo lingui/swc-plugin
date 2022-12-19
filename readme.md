@@ -65,3 +65,6 @@ cargo test
 ### Useful links:
 - AST Playground https://play.swc.rs/
 - SWC Plugin Docs https://swc.rs/docs/plugin/ecmascript/getting-started
+- SWC Plugin FormatJs https://github.com/kwonoj/swc-plugin-formatjs
+- Collection of plugins https://github.com/swc-project/plugins
+- SWC Folder [Docs](https://rustdoc.swc.rs/swc_ecma_visit/fn.fold_jsx_element.html) 
