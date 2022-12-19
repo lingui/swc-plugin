@@ -1,6 +1,10 @@
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use swc_core::ecma::{
     transforms::testing::test,
+    visit::{as_folder, VisitMut, Visit, VisitMutWith, VisitWith},
 };
+use std::collections::hash_map::DefaultHasher;
 
 use swc_core::{
     common::{DUMMY_SP},
@@ -17,7 +21,10 @@ use swc_core::{
     },
 };
 use swc_core::ecma::atoms::Atom;
+use swc_core::ecma::parser::lexer::util::CharExt;
 // use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
+
+mod utils;
 
 const LINGUI_T: &str = &"t";
 
@@ -177,6 +184,130 @@ impl TransformVisitor {
     }
 }
 
+// fn get_jsx_element_id(name: &JSXElementName) -> &str {
+//     match name {
+//         JSXElementName::Ident(ident) => {
+//
+//         }
+//
+//         JSXElementName::JSXMemberExpr(member) => {
+//             member.obj
+//         }
+//
+//         JSXElementName::JSXNamespacedName(exp) => {
+//             return &format!("{}:{}", exp.ns, exp.name);
+//         }
+// }
+
+struct TransJSXVisitor /*<'a>*/ {
+    message: String,
+    components: Vec<ValueWithPlaceholder>,
+    components_stack: Vec<usize>,
+    values: Vec<ValueWithPlaceholder>,
+    cmp_index: usize,
+    value_index: usize,
+}
+
+impl TransJSXVisitor {
+    fn new() -> TransJSXVisitor {
+        TransJSXVisitor {
+            message: String::new(),
+            components: Vec::new(),
+            components_stack: Vec::new(),
+            values: Vec::new(),
+            cmp_index: 0,
+            value_index: 0,
+        }
+    }
+}
+
+impl Visit for TransJSXVisitor {
+    // todo: how to handle fragments?
+    fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
+        if el.self_closing {
+            self.message.push_str(&format!("<{}/>", self.cmp_index));
+        } else {
+            self.components_stack.push(self.cmp_index);
+            self.message.push_str(&format!("<{}>", self.cmp_index));
+        }
+
+        // todo: it looks very dirty and bad to cloning this jsx values
+        self.components.push(ValueWithPlaceholder {
+            placeholder: self.cmp_index.to_string(),
+            value: Box::new(Expr::JSXElement(
+                Box::new(
+                    JSXElement {
+                        opening: JSXOpeningElement {
+                            self_closing: true,
+                            name: el.name.clone(),
+                            attrs: el.attrs.clone(),
+                            span: el.span.clone(),
+                            type_args: el.type_args.clone(),
+                        },
+                        closing: None,
+                        children: vec![],
+                        span: DUMMY_SP,
+                    }
+                )
+            )),
+        });
+        self.cmp_index = self.cmp_index + 1;
+    }
+
+    fn visit_jsx_closing_element(&mut self, el: &JSXClosingElement) {
+        if let Some(index) = self.components_stack.pop() {
+            self.message.push_str(&format!("</{index}>"));
+        } else {
+            // todo JSX tags mismatch. write tests for tags mismatch, swc should not crash in that case
+        }
+    }
+
+    fn visit_jsx_text(&mut self, el: &JSXText) {
+        self.message.push_str(&el.value);
+    }
+
+    fn visit_jsx_expr_container(&mut self, cont: &JSXExprContainer) {
+        if let JSXExpr::Expr(exp) = &cont.expr {
+            match exp.as_ref() {
+                Expr::Ident(ident) => {
+                    self.message.push_str(&format!("{{{}}}", ident.sym));
+                    self.values.push(ValueWithPlaceholder {
+                        placeholder: ident.sym.to_string(),
+                        value: exp.clone(),
+                    });
+                }
+                Expr::Lit(Lit::Str(str)) => {
+                    self.message.push_str(&str.value);
+                }
+                _ => {
+                    self.message.push_str(&format!("{{{}}}", self.value_index));
+                    self.values.push(ValueWithPlaceholder {
+                        placeholder: (self.value_index.to_string()),
+                        value: exp.clone(),
+                    });
+
+                    self.value_index = self.value_index + 1;
+                }
+            }
+        }
+    }
+}
+
+fn create_jsx_attribute(name: &str, exp: Expr) -> JSXAttrOrSpread {
+    JSXAttrOrSpread::JSXAttr(JSXAttr {
+        span: DUMMY_SP,
+        name: JSXAttrName::Ident(Ident {
+            span: DUMMY_SP,
+            sym: name.into(),
+            optional: false,
+        }),
+        value: Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
+            span: DUMMY_SP,
+            expr: JSXExpr::Expr(Box::new(exp)),
+        })),
+    })
+}
+
 impl Fold for TransformVisitor {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         // If no package that we care about is imported, skip the following
@@ -268,7 +399,7 @@ impl Fold for TransformVisitor {
         expr
     }
 
-    fn fold_jsx_element(&mut self, el: JSXElement) -> JSXElement {
+    fn fold_jsx_element(&mut self, mut el: JSXElement) -> JSXElement {
         let mut msg: Option<&Atom> = None;
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
@@ -276,6 +407,12 @@ impl Fold for TransformVisitor {
                 return el;
             }
         }
+
+        let mut trans_visitor = TransJSXVisitor::new();
+
+        el.children.visit_children_with(&mut trans_visitor);
+
+        println!("{}", utils::normalize_whitespaces(&trans_visitor.message));
 
         let mut id: Option<&JsWord> = None;
 
@@ -291,44 +428,59 @@ impl Fold for TransformVisitor {
             }
         }
 
-        for el in &el.children {
-            if let JSXElementChild::JSXText(text) = el {
-                msg = Some(&text.value);
-            }
-        }
+        // for el in &el.children {
+        //     if let JSXElementChild::JSXText(text) = el {
+        //         msg = Some(&text.value);
+        //     }
+        // }
 
         // todo pass render prop to trans
-        if let Some(msg) = msg {
-            let mut attrs = vec![
-                JSXAttrOrSpread::JSXAttr(JSXAttr {
-                    // todo: probably we can use span from el.children[0].value for better sourcemap
+
+        let mut attrs = vec![
+            create_jsx_attribute(
+                if let Some(_) = id { "message" } else { "id" }.into(),
+                Expr::Lit(Lit::Str(Str {
                     span: DUMMY_SP,
-                    name: JSXAttrName::Ident(Ident {
-                        span: DUMMY_SP,
-                        sym: if let Some(_) = id { "message" } else { "id" }.into(),
-                        optional: false,
-                    }),
-                    value: Some(JSXAttrValue::Lit(Lit::Str(msg.clone().into()))),
+                    value: utils::normalize_whitespaces(&trans_visitor.message).into(),
+                    raw: None,
+                })),
+            ),
+        ];
+
+        if trans_visitor.values.len() > 0 {
+            attrs.push(create_jsx_attribute(
+                "values",
+                Expr::Object(ObjectLit {
+                    span: DUMMY_SP,
+                    props: trans_visitor.values.into_iter().map(|item| item.to_prop()).collect(),
                 }),
-            ];
-
-            attrs.extend(el.opening.attrs);
-
-            return JSXElement {
-                span: el.span,
-                children: vec![],
-                closing: None,
-                opening: JSXOpeningElement {
-                    self_closing: true,
-                    span: el.opening.span,
-                    name: el.opening.name,
-                    type_args: None,
-                    attrs,
-                },
-            };
+            ))
         }
 
-        el
+        if trans_visitor.components.len() > 0 {
+            attrs.push(create_jsx_attribute(
+                "components",
+                Expr::Object(ObjectLit {
+                    span: DUMMY_SP,
+                    props: trans_visitor.components.into_iter().map(|item| item.to_prop()).collect(),
+                }),
+            ))
+        }
+
+        attrs.extend(el.opening.attrs);
+
+        return JSXElement {
+            span: el.span,
+            children: vec![],
+            closing: None,
+            opening: JSXOpeningElement {
+                self_closing: true,
+                span: el.opening.span,
+                name: el.opening.name,
+                type_args: None,
+                attrs,
+            },
+        };
     }
 }
 
@@ -508,7 +660,7 @@ test!(
      "#,
     r#"
        const exp1 = <Custom>Refresh inbox</Custom>;
-       const exp2 = <Trans id="Refresh inbox" />
+       const exp2 = <Trans id={"Refresh inbox"} />
     "#
 );
 
@@ -523,11 +675,11 @@ test!(
        const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
     r#"
-       const exp2 = <Trans message="Refresh inbox" id="custom.id"/>
+       const exp2 = <Trans message={"Refresh inbox"} id="custom.id"/>
     "#
 );
 
-
+// todo whitespace management
 // test!(
 //        Syntax::Typescript(TsConfig {
 //         tsx: true,
@@ -557,9 +709,7 @@ test!(
 //     "#
 // );
 
-// todo:
 test!(
-    ignore,
        Syntax::Typescript(TsConfig {
         tsx: true,
         ..Default::default()
@@ -571,13 +721,14 @@ test!(
           Hello <strong>World!</strong><br />
           <p>
             My name is <a href="/about">{" "}
-            <em>{name}</em></a>
+            <em>{name} {expression()}</em></a>
           </p>
         </Trans>
      "#,
     r#"
-       <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
-          name: name
+       <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name} {0}</4></3></2>"} values={{
+          name: name,
+          0: expression()
         }} components={{
           0: <strong />,
           1: <br />,

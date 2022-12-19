@@ -555,6 +555,8 @@ checksum = "db6d7e329c562c5dfab7a46a2afabc8b987ab9a4834c9d1ca04dc54c1546cef8"
 name = "lingui-macro-plugin"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
+ "regex",
  "serde",
  "swc_common",
  "swc_core",
