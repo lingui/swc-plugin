@@ -1,32 +1,27 @@
-use std::any::Any;
-use swc_core::common::Spanned;
 use swc_core::ecma::{
     transforms::testing::test,
-    visit::{as_folder, VisitMut, VisitMutWith},
 };
 
-use std::path::{Path, PathBuf};
 use swc_core::{
-    common::{FileName, DUMMY_SP, util::take::Take},
+    common::{DUMMY_SP},
     ecma::{
         parser::{Syntax, TsConfig},
         ast::*,
         atoms::JsWord,
-        utils::{quote_ident, ExprFactory},
+        utils::{ExprFactory},
         visit::{Fold, FoldWith},
     },
     plugin::{
-        metadata::TransformPluginMetadataContextKind, plugin_transform,
+        plugin_transform,
         proxies::TransformPluginProgramMetadata,
     },
 };
 use swc_core::ecma::atoms::Atom;
-use swc_core::ecma::utils::ExprExt;
 // use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
 const LINGUI_T: &str = &"t";
 
-fn isLinguiFn(name: &str) -> bool {
+fn is_lingui_fn(name: &str) -> bool {
     // todo: i didn't find a better way to create a constant hashmap
     match name {
         "plural" | "select" | "selectOrdinal" => true,
@@ -34,11 +29,11 @@ fn isLinguiFn(name: &str) -> bool {
     }
 }
 
-fn matchCalleeName(call: &CallExpr, fnName: &str) -> bool {
+fn match_callee_name(call: &CallExpr, fn_name: &str) -> bool {
     match &call.callee {
         Callee::Expr(expr) => {
             if let Expr::Ident(ident) = expr.as_ref() {
-                return &ident.sym == fnName;
+                return &ident.sym == fn_name;
             }
         }
         _ => {}
@@ -49,23 +44,18 @@ fn matchCalleeName(call: &CallExpr, fnName: &str) -> bool {
 
 struct ValueWithPlaceholder {
     placeholder: String,
-    value: Option<Box<Expr>>,
+    value: Box<Expr>,
 }
 
 impl ValueWithPlaceholder {
-    // Depending on whether value is presented it would produce or KeyValue or Shorthand exp
-    fn to_prop(&self) -> PropOrSpread {
-        let ident = Ident::new(self.placeholder.clone().into(), DUMMY_SP);
+    fn to_prop(self) -> PropOrSpread {
+        let ident = Ident::new(self.placeholder.into(), DUMMY_SP);
 
         PropOrSpread::Prop(Box::new(
-            if let Some(e) = &self.value {
-                Prop::KeyValue(KeyValueProp {
-                    key: PropName::Ident(ident),
-                    value: e.clone(),
-                })
-            } else {
-                Prop::Shorthand(ident)
-            }
+            Prop::KeyValue(KeyValueProp {
+                key: PropName::Ident(ident),
+                value: self.value,
+            })
         ))
     }
 }
@@ -82,7 +72,7 @@ impl TransformVisitor {
             Expr::Ident(ident) => {
                 ValueWithPlaceholder {
                     placeholder: ident.sym.to_string(),
-                    value: None,
+                    value: expr,
                 }
             }
             // everything else, e.q.
@@ -91,10 +81,9 @@ impl TransformVisitor {
             _ => {
                 // would be a positional argument
                 let index_str = &i.to_string();
-
                 ValueWithPlaceholder {
                     placeholder: index_str.into(),
-                    value: Some(expr),
+                    value: expr,
                 }
             }
         }
@@ -105,28 +94,28 @@ impl TransformVisitor {
     // `Hello ${username}!` ->  (msg: `Hello {username}!`, variables: {username})
     fn transform_tpl_to_msg_and_values(&self, tpl: &Tpl) -> (String, Vec<PropOrSpread>) {
         let mut message = String::new();
-        let mut values: Vec<&ValueWithPlaceholder> = Vec::with_capacity(tpl.exprs.len());
+        let values: Vec<&ValueWithPlaceholder> = Vec::with_capacity(tpl.exprs.len());
         let mut props = Vec::with_capacity(values.len());
 
-        for (i, tplElement) in tpl.quasis.iter().enumerate() {
-            message.push_str(&tplElement.raw);
+        for (i, tpl_element) in tpl.quasis.iter().enumerate() {
+            message.push_str(&tpl_element.raw);
 
             if let Some(exp) = tpl.exprs.get(i) {
                 let val = self.get_value_with_placeholder(exp.clone(), &i);
-                props.push(val.to_prop());
                 message.push_str(&format!("{{{}}}", &val.placeholder));
+                props.push(val.to_prop());
             }
         }
 
         (message, props)
     }
 
-    fn create_i18n_fn_call(&self, callee_obj: &Box<Expr>, message: &str, values: Vec<PropOrSpread>) -> CallExpr {
+    fn create_i18n_fn_call(&self, callee_obj: Box<Expr>, message: &str, values: Vec<PropOrSpread>) -> CallExpr {
         return CallExpr {
             span: DUMMY_SP,
             callee: Expr::Member(MemberExpr {
                 span: DUMMY_SP,
-                obj: callee_obj.clone(),
+                obj: callee_obj,
                 prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
             }).as_callee(),
             args: vec![
@@ -145,15 +134,15 @@ impl TransformVisitor {
     // If messages passed as TemplateLiterals with variables, it extracts variables into Vec
     // (msg: {count, plural, one `{name} has # friend` other `{name} has # friends`}, variables: {name})
     fn get_icu_from_choices_obj(&self, props: &Vec<PropOrSpread>, icu_value_ident: &JsWord, icu_method: &JsWord) -> (String, Vec<PropOrSpread>) {
-        let mut icuParts: Vec<String> = Vec::with_capacity(props.len());
+        let mut icu_parts: Vec<String> = Vec::with_capacity(props.len());
         let mut all_values: Vec<PropOrSpread> = Vec::new();
 
-        for propOrSpread in props {
-            if let PropOrSpread::Prop(prop) = propOrSpread {
+        for prop_or_spread in props {
+            if let PropOrSpread::Prop(prop) = prop_or_spread {
                 if let Prop::KeyValue(prop) = prop.as_ref() {
                     if let PropName::Ident(ident) = &prop.key {
                         let mut push_part = |msg: &str| {
-                            icuParts.push(format!("{} {{{}}}", &ident.sym, msg));
+                            icu_parts.push(format!("{} {{{}}}", &ident.sym, msg));
                         };
 
                         // String Literal: "has # friend"
@@ -182,14 +171,14 @@ impl TransformVisitor {
             }
         }
 
-        let msg = format!("{{{}, {}, {}}}", icu_value_ident, icu_method, icuParts.join(" "));
+        let msg = format!("{{{}, {}, {}}}", icu_value_ident, icu_method, icu_parts.join(" "));
 
         (msg, all_values)
     }
 }
 
 impl Fold for TransformVisitor {
-    fn fold_expr(&mut self, mut expr: Expr) -> Expr {
+    fn fold_expr(&mut self, expr: Expr) -> Expr {
         // If no package that we care about is imported, skip the following
         // transformation logic.
         // if self.import_packages.is_empty() {
@@ -198,12 +187,12 @@ impl Fold for TransformVisitor {
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
             match tagged_tpl.tag.as_ref() {
                 // t(i18n)``
-                Expr::Call(call) if matchCalleeName(call, LINGUI_T) => {
+                Expr::Call(call) if match_callee_name(call, LINGUI_T) => {
                     if let Some(v) = call.args.get(0) {
                         let (message, values)
                             = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
                         return Expr::Call(self.create_i18n_fn_call(
-                            &v.expr,
+                            v.expr.clone(),
                             &message,
                             values,
                         ));
@@ -215,7 +204,7 @@ impl Fold for TransformVisitor {
                         = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
 
                     return Expr::Call(self.create_i18n_fn_call(
-                        &Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
+                        Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
                         &message,
                         values,
                     ));
@@ -224,11 +213,10 @@ impl Fold for TransformVisitor {
             }
         }
 
-
         expr.fold_children_with(self)
     }
 
-    fn fold_call_expr(&mut self, mut expr: CallExpr) -> CallExpr {
+    fn fold_call_expr(&mut self, expr: CallExpr) -> CallExpr {
         // If no package that we care about is imported, skip the following
         // transformation logic.
         // if self.import_packages.is_empty() {
@@ -239,7 +227,7 @@ impl Fold for TransformVisitor {
             match e.as_ref() {
                 // (plural | select | selectOrdinal)()
                 Expr::Ident(ident) => {
-                    if !isLinguiFn(&ident.sym) {
+                    if !is_lingui_fn(&ident.sym) {
                         return expr;
                     }
 
@@ -260,13 +248,13 @@ impl Fold for TransformVisitor {
                             &object.props, &icu_value.placeholder.clone().into(), &ident.sym);
 
                         // todo need a function to remove duplicates from arguments
-                        let mut allValues = vec![icu_value.to_prop()];
-                        allValues.extend(values);
+                        let mut all_values = vec![icu_value.to_prop()];
+                        all_values.extend(values);
 
                         return self.create_i18n_fn_call(
-                            &Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
+                            Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
                             &message,
-                            allValues,
+                            all_values,
                         );
                     } else {
                         // todo passed not an ObjectLiteral,
@@ -395,8 +383,8 @@ test!(
     // output after transform
     r#"
     i18n._("Refresh inbox", {})
-    i18n._("Refresh {foo} inbox {bar}", {foo, bar})
-    i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar})
+    i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
+    i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar: bar})
     i18n._("Refresh {0}", {0: expr()})
     "#
 );
@@ -415,8 +403,8 @@ test!(
     // output after transform
     r#"
     custom_i18n._("Refresh inbox", {})
-    custom_i18n._("Refresh {foo} inbox {bar}", {foo, bar})
-    custom_i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar})
+    custom_i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
+    custom_i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar: bar})
     custom_i18n._("Refresh {0}", {0: expr()})
     "#
 );
@@ -444,13 +432,13 @@ test!(
      "#,
     r#"
     const messagePlural = i18n._("{count, plural, one {# Book} other {# Books}}", {
-      count
+      count: count
     });
     const messageSelect = i18n._("{gender, select, male {he} female {she} other {they}}", {
-      gender
+      gender: gender
     });
     const messageSelectOrdinal = i18n._("{count, selectOrdinal, one {#st} two {#nd} few {#rd} other {#th}}", {
-      count
+      count: count
     });
     "#
 );
@@ -473,7 +461,9 @@ test!(
     "#
 );
 
+
 test!(
+    ignore, // todo need to implement dedupe of params
     Default::default(),
     |_| TransformVisitor,
     plural_with_placeholders,
@@ -485,7 +475,8 @@ test!(
      "#,
     r#"
     const message = i18n._("{count, plural, one {{name} has # friend} other {{name} has # friends}}", {
-      count, name
+      count: count,
+      name: name,
     })
     "#
 );
@@ -536,7 +527,7 @@ test!(
     "#
 );
 
-// todo:
+
 // test!(
 //        Syntax::Typescript(TsConfig {
 //         tsx: true,
@@ -567,31 +558,32 @@ test!(
 // );
 
 // todo:
-// test!(
-//        Syntax::Typescript(TsConfig {
-//         tsx: true,
-//         ..Default::default()
-//     }),
-//     |_| TransformVisitor,
-//     jsx_components_interpolation,
-//      r#"
-//        <Trans>
-//           Hello <strong>World!</strong><br />
-//           <p>
-//             My name is <a href="/about">{" "}
-//             <em>{name}</em></a>
-//           </p>
-//         </Trans>
-//      "#,
-//     r#"
-//        <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
-//           name: name
-//         }} components={{
-//           0: <strong />,
-//           1: <br />,
-//           2: <p />,
-//           3: <a href="/about" />,
-//           4: <em />
-//         }} />;
-//     "#
-// );
+test!(
+    ignore,
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor,
+    jsx_components_interpolation,
+     r#"
+       <Trans>
+          Hello <strong>World!</strong><br />
+          <p>
+            My name is <a href="/about">{" "}
+            <em>{name}</em></a>
+          </p>
+        </Trans>
+     "#,
+    r#"
+       <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
+          name: name
+        }} components={{
+          0: <strong />,
+          1: <br />,
+          2: <p />,
+          3: <a href="/about" />,
+          4: <em />
+        }} />;
+    "#
+);
