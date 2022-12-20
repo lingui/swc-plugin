@@ -59,8 +59,10 @@ cargo test
       - [ ] escaping forced `\r`
       - [ ] Port more test cases related to whitespaces from babel version
   - [ ] ICU: `<Plural>` `<SelectOrdinal>` `<Select>`
-- [ ] Support narrowing transformation to only function exported from `@lingui/macro` 
-- [ ] Automatic adding  `import { i18n } from @lingui/core`
+- [x] Support narrowing transformation to only function exported from `@lingui/macro` 
+- [x] Automatic adding  `import { i18n } from @lingui/core`
+- [ ] Injecting uniq variables, avoiding collision with existing variables
+- [ ] NON-ESSENTIAL support renaming `import {t as macroT} from "@lingui/macro"`
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
 - [ ] Investigate patterns how to effectively change something in the root of the tree based on the leafs using visitor / folder
 - [ ] Building binary and publishing

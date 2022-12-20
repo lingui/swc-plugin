@@ -18,6 +18,7 @@ use swc_core::{
         proxies::TransformPluginProgramMetadata,
     },
 };
+use swc_core::ecma::utils::quote_ident;
 
 mod utils;
 
@@ -70,7 +71,12 @@ impl ValueWithPlaceholder {
     }
 }
 
-pub struct TransformVisitor;
+#[derive(Default)]
+pub struct TransformVisitor {
+    has_lingui_macro_imports: bool,
+    should_add_18n_import: bool,
+    should_add_trans_import: bool,
+}
 
 impl TransformVisitor {
     // Receive an expression which expected to be either simple variable (ident) or expression
@@ -296,12 +302,83 @@ fn create_jsx_attribute(name: &str, exp: Expr) -> JSXAttrOrSpread {
 }
 
 impl Fold for TransformVisitor {
+    fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
+        let mut has_i18n_import = false;
+        let mut has_trans_import = false;
+
+        n.retain(|m| {
+            if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
+                // drop macro imports
+                if &imp.src.value == "@lingui/macro" {
+                    self.has_lingui_macro_imports = true;
+                    return false;
+                }
+
+                if &imp.src.value == "@lingui/core" && !imp.type_only {
+                    for spec in &imp.specifiers {
+                        if let ImportSpecifier::Named(spec) = spec {
+                            has_i18n_import = if !has_i18n_import { &spec.local.sym == "i18n" } else { true };
+                            has_trans_import = if !has_trans_import { &spec.local.sym == "Trans" } else { true };
+                        }
+                    }
+                }
+            }
+
+            true
+        });
+
+        println!("{} {}", has_i18n_import, has_trans_import);
+
+        n = n.fold_children_with(self);
+
+        let mut specifiers: Vec<ImportSpecifier> = Vec::new();
+
+        if !has_i18n_import && self.should_add_18n_import {
+            specifiers.push(
+                ImportSpecifier::Named(ImportNamedSpecifier {
+                    span: DUMMY_SP,
+                    local: quote_ident!("i18n"),
+                    imported: None,
+                    is_type_only: false,
+                })
+            )
+        }
+
+        if !has_trans_import && self.should_add_trans_import {
+            specifiers.push(
+                ImportSpecifier::Named(ImportNamedSpecifier {
+                    span: DUMMY_SP,
+                    local: quote_ident!("Trans"),
+                    imported: None,
+                    is_type_only: false,
+                })
+            )
+        }
+
+        if specifiers.len() > 0 {
+            n.insert(0, ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
+                span: DUMMY_SP,
+                specifiers,
+                src: Box::new(Str {
+                    span: DUMMY_SP,
+                    value: "@lingui/core".into(),
+                    raw: None,
+                }),
+                asserts: None,
+                type_only: false,
+            })));
+        }
+
+        n
+    }
+
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         // If no package that we care about is imported, skip the following
         // transformation logic.
-        // if self.import_packages.is_empty() {
-        //     return expr;
-        // }
+        if !self.has_lingui_macro_imports {
+            return expr;
+        }
+
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
             match tagged_tpl.tag.as_ref() {
                 // t(i18n)``
@@ -321,6 +398,7 @@ impl Fold for TransformVisitor {
                     let (message, values)
                         = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
 
+                    self.should_add_18n_import = true;
                     return Expr::Call(self.create_i18n_fn_call(
                         Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
                         &message,
@@ -337,9 +415,9 @@ impl Fold for TransformVisitor {
     fn fold_call_expr(&mut self, expr: CallExpr) -> CallExpr {
         // If no package that we care about is imported, skip the following
         // transformation logic.
-        // if self.import_packages.is_empty() {
-        //     return expr;
-        // }
+        if !self.has_lingui_macro_imports {
+            return expr;
+        }
 
         if let Callee::Expr(e) = &expr.callee {
             match e.as_ref() {
@@ -369,6 +447,8 @@ impl Fold for TransformVisitor {
                         let mut all_values = vec![icu_value];
                         all_values.extend(values);
 
+                        self.should_add_18n_import = true;
+
                         return self.create_i18n_fn_call(
                             Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
                             &message,
@@ -387,6 +467,12 @@ impl Fold for TransformVisitor {
     }
 
     fn fold_jsx_element(&mut self, el: JSXElement) -> JSXElement {
+        // If no package that we care about is imported, skip the following
+        // transformation logic.
+        if !self.has_lingui_macro_imports {
+            return el;
+        }
+
         if let JSXElementName::Ident(ident) = &el.opening.name {
             if &ident.sym != "Trans" {
                 return el;
@@ -447,6 +533,8 @@ impl Fold for TransformVisitor {
 
         attrs.extend(el.opening.attrs);
 
+        self.should_add_trans_import = true;
+
         return JSXElement {
             span: el.span,
             children: vec![],
@@ -480,15 +568,31 @@ impl Fold for TransformVisitor {
 /// Refer swc_plugin_macro to see how does it work internally.
 #[plugin_transform]
 pub fn process_transform(program: Program, _metadata: TransformPluginProgramMetadata) -> Program {
-    program.fold_with(&mut TransformVisitor)
+    program.fold_with(&mut TransformVisitor::default())
 }
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
+    should_not_touch_code_if_no_macro_import,
+    // input
+     r#"
+     t`Refresh inbox`;
+     "#,
+    // output after transform
+    r#"
+    t`Refresh inbox`;
+    "#
+);
+
+test!(
+    Default::default(),
+    |_| TransformVisitor::default(),
     should_not_touch_not_related_tagget_tpls,
     // input
      r#"
+     import { t } from "@lingui/macro";
+
      b`Refresh inbox`;
      b(i18n)`Refresh inbox`;
      "#,
@@ -501,10 +605,12 @@ test!(
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     substitution_in_tpl_literal,
     // input
      r#"
+     import { t } from "@lingui/macro";
+
      t`Refresh inbox`
      t`Refresh ${foo} inbox ${bar}`
      t`Refresh ${foo.bar} inbox ${bar}`
@@ -512,6 +618,8 @@ test!(
      "#,
     // output after transform
     r#"
+    import { i18n } from "@lingui/core";
+
     i18n._("Refresh inbox", {})
     i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
     i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar: bar})
@@ -521,24 +629,29 @@ test!(
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     dedup_values_in_tpl_literal,
     // input
      r#"
+     import { t } from "@lingui/macro";
      t`Refresh ${foo} inbox ${foo}`
      "#,
     // output after transform
     r#"
+    import { i18n } from "@lingui/core";
     i18n._("Refresh {foo} inbox {foo}", {foo: foo})
     "#
 );
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     custom_i18n_passed,
     // input
      r#"
+     import { t } from "@lingui/macro";
+     import { custom_i18n } from "./i18n";
+
      t(custom_i18n)`Refresh inbox`
      t(custom_i18n)`Refresh ${foo} inbox ${bar}`
      t(custom_i18n)`Refresh ${foo.bar} inbox ${bar}`
@@ -546,6 +659,8 @@ test!(
      "#,
     // output after transform
     r#"
+    import { custom_i18n } from "./i18n";
+
     custom_i18n._("Refresh inbox", {})
     custom_i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
     custom_i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar: bar})
@@ -555,9 +670,10 @@ test!(
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     icu_functions,
      r#"
+    import { plural, select, selectOrdinal } from "@lingui/macro";
     const messagePlural = plural(count, {
        one: '# Book',
        other: '# Books'
@@ -575,6 +691,7 @@ test!(
     })
      "#,
     r#"
+    import { i18n } from "@lingui/core";
     const messagePlural = i18n._("{count, plural, one {# Book} other {# Books}}", {
       count: count
     });
@@ -589,9 +706,10 @@ test!(
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     should_not_touch_non_lungui_fns,
      r#"
+    import { plural } from "@lingui/macro";
     const messagePlural = customName(count, {
        one: '# Book',
        other: '# Books'
@@ -608,15 +726,18 @@ test!(
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     plural_with_placeholders,
      r#"
+       import { plural } from "@lingui/macro";
+
        const message = plural(count, {
            one: `${name} has # friend`,
            other: `${name} has # friends`
         })
      "#,
     r#"
+    import { i18n } from "@lingui/core";
     const message = i18n._("{count, plural, one {{name} has # friend} other {{name} has # friends}}", {
       count: count,
       name: name,
@@ -626,15 +747,19 @@ test!(
 
 test!(
     Default::default(),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     dedup_values_in_icu,
      r#"
+       import { plural } from "@lingui/macro";
+
        const message = plural(count, {
            one: `${name} has ${count} friend`,
            other: `${name} has {count} friends`
         })
      "#,
     r#"
+    import { i18n } from "@lingui/core";
+
     const message = i18n._("{count, plural, one {{name} has {count} friend} other {{name} has {count} friends}}", {
       count: count,
       name: name,
@@ -647,13 +772,16 @@ test!(
         tsx: true,
         ..Default::default()
     }),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     simple_jsx,
      r#"
+       import { Trans } from "@lingui/macro";
        const exp1 = <Custom>Refresh inbox</Custom>;
        const exp2 = <Trans>Refresh inbox</Trans>;
      "#,
     r#"
+       import { Trans } from "@lingui/core";
+
        const exp1 = <Custom>Refresh inbox</Custom>;
        const exp2 = <Trans id={"Refresh inbox"} />
     "#
@@ -664,12 +792,14 @@ test!(
         tsx: true,
         ..Default::default()
     }),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     preserve_id_in_trans,
      r#"
+       import { Trans } from "@lingui/macro";
        const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
     r#"
+       import { Trans } from "@lingui/core";
        const exp2 = <Trans message={"Refresh inbox"} id="custom.id"/>
     "#
 );
@@ -679,9 +809,10 @@ test!(
         tsx: true,
         ..Default::default()
     }),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     jsx_interpolation,
      r#"
+       import { Trans } from "@lingui/macro";
        <Trans>
           Property {props.name},
           function {random()},
@@ -692,6 +823,7 @@ test!(
         </Trans>;
      "#,
     r#"
+       import { Trans } from "@lingui/core";
        <Trans id={"Property {0}, function {1}, array {2}, constant {3}, object {4}, everything {5}"} values={{
           0: props.name,
           1: random(),
@@ -708,9 +840,10 @@ test!(
         tsx: true,
         ..Default::default()
     }),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     jsx_components_interpolation,
      r#"
+       import { Trans } from "@lingui/macro";
        <Trans>
           Hello <strong>World!</strong><br />
           <p>
@@ -720,15 +853,16 @@ test!(
         </Trans>
      "#,
     r#"
-       <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
-          name: name,
-        }} components={{
-          0: <strong />,
-          1: <br />,
-          2: <p />,
-          3: <a href="/about" />,
-          4: <em />
-        }} />;
+    import { Trans } from "@lingui/core";
+   <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
+      name: name,
+    }} components={{
+      0: <strong />,
+      1: <br />,
+      2: <p />,
+      3: <a href="/about" />,
+      4: <em />
+    }} />;
     "#
 );
 
@@ -737,16 +871,40 @@ test!(
         tsx: true,
         ..Default::default()
     }),
-    |_| TransformVisitor,
+    |_| TransformVisitor::default(),
     jsx_values_dedup,
      r#"
+       import { Trans } from "@lingui/macro";
        <Trans>
           Hello {foo} and {foo}
         </Trans>
      "#,
     r#"
+       import { Trans } from "@lingui/core";
        <Trans id={"Hello {foo} and {foo}"} values={{
           foo: foo,
         }}/>;
+    "#
+);
+
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor::default(),
+    should_not_add_extra_imports,
+     r#"
+       import { t } from "@lingui/macro";
+       import { i18n, Trans } from "@lingui/core";
+
+       t`Test`;
+       <Trans>Test</Trans>;
+     "#,
+    r#"
+       import { i18n, Trans } from "@lingui/core";
+
+       i18n._("Test", {});
+       <Trans id={"Test"}/>;
     "#
 );
