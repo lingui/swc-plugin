@@ -5,10 +5,10 @@ use regex::{RegexSet, NoExpand};
 
 // replace whitespace before/after newline with single space
 static KEEP_SPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s*(?:\r\n|\r|\n)+\s*").unwrap());
+// remove whitespace before/after tag or expression
+static STRIP_AROUND_TAGS: Lazy<Regex> = Lazy::new(|| Regex::new(r"([>}])(?:\r\n|\r|\n)+\s*|(?:\r\n|\r|\n)+\s*([<{])").unwrap());
 
-static STRIP_AFTER_TAG: Lazy<Regex> = Lazy::new(|| Regex::new(r"([>}])((?:\r\n|\r|\n)+\s*)").unwrap());
-static STRIP_BEFORE_TAG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?:\r\n|\r|\n)+\s*?([<{])+").unwrap());
-
+// JS code for the reference:
 // // replace whitespace before/after newline with single space
 // const keepSpaceRe = /\s*(?:\r\n|\r|\n)+\s*/g
 // // remove whitespace before/after tag or expression
@@ -29,8 +29,7 @@ static STRIP_BEFORE_TAG: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?:\r\n|\r|\n)+
 // }
 
 pub fn normalize_whitespaces(str: &str) -> String {
-    let str = STRIP_AFTER_TAG.replace_all(str, "$1"); //.trim().to_string()
-    let str = STRIP_BEFORE_TAG.replace_all(&str, "$1");
+    let str = STRIP_AROUND_TAGS.replace_all(&str, "$1$2");
     let str = KEEP_SPACE_RE.replace_all(&str, " ").trim().to_string();
 
     return str
