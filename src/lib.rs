@@ -1,10 +1,8 @@
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
 use swc_core::ecma::{
     transforms::testing::test,
-    visit::{as_folder, VisitMut, Visit, VisitMutWith, VisitWith},
+    visit::{Visit, VisitWith},
 };
-use std::collections::hash_map::DefaultHasher;
+use std::collections::HashSet;
 
 use swc_core::{
     common::{DUMMY_SP},
@@ -20,13 +18,18 @@ use swc_core::{
         proxies::TransformPluginProgramMetadata,
     },
 };
-use swc_core::ecma::atoms::Atom;
-use swc_core::ecma::parser::lexer::util::CharExt;
-// use swc_core::plugin::{plugin_transform, proxies::TransformPluginProgramMetadata};
 
 mod utils;
 
 const LINGUI_T: &str = &"t";
+
+
+fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
+    let mut uniques = HashSet::new();
+    v.retain(|e| uniques.insert(e.placeholder.clone()));
+
+    v
+}
 
 fn is_lingui_fn(name: &str) -> bool {
     // todo: i didn't find a better way to create a constant hashmap
@@ -99,10 +102,9 @@ impl TransformVisitor {
     // Receive TemplateLiteral with variables and return plane string where
     // substitutions replaced to placeholders and variables extracted as separate Vec
     // `Hello ${username}!` ->  (msg: `Hello {username}!`, variables: {username})
-    fn transform_tpl_to_msg_and_values(&self, tpl: &Tpl) -> (String, Vec<PropOrSpread>) {
+    fn transform_tpl_to_msg_and_values(&self, tpl: &Tpl) -> (String, Vec<ValueWithPlaceholder>) {
         let mut message = String::new();
-        let values: Vec<&ValueWithPlaceholder> = Vec::with_capacity(tpl.exprs.len());
-        let mut props = Vec::with_capacity(values.len());
+        let mut values: Vec<ValueWithPlaceholder> = Vec::with_capacity(tpl.exprs.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
             message.push_str(&tpl_element.raw);
@@ -110,14 +112,14 @@ impl TransformVisitor {
             if let Some(exp) = tpl.exprs.get(i) {
                 let val = self.get_value_with_placeholder(exp.clone(), &i);
                 message.push_str(&format!("{{{}}}", &val.placeholder));
-                props.push(val.to_prop());
+                values.push(val);
             }
         }
 
-        (message, props)
+        (message, values)
     }
 
-    fn create_i18n_fn_call(&self, callee_obj: Box<Expr>, message: &str, values: Vec<PropOrSpread>) -> CallExpr {
+    fn create_i18n_fn_call(&self, callee_obj: Box<Expr>, message: &str, values: Vec<ValueWithPlaceholder>) -> CallExpr {
         return CallExpr {
             span: DUMMY_SP,
             callee: Expr::Member(MemberExpr {
@@ -129,7 +131,7 @@ impl TransformVisitor {
                 message.as_arg(),
                 Expr::Object(ObjectLit {
                     span: DUMMY_SP,
-                    props: values,
+                    props: dedup_values(values).into_iter().map(|v| v.to_prop()).collect(),
                 }).as_arg(),
             ],
             type_args: None,
@@ -140,9 +142,9 @@ impl TransformVisitor {
     // {count, plural, few {..} many {..} other {..}}
     // If messages passed as TemplateLiterals with variables, it extracts variables into Vec
     // (msg: {count, plural, one `{name} has # friend` other `{name} has # friends`}, variables: {name})
-    fn get_icu_from_choices_obj(&self, props: &Vec<PropOrSpread>, icu_value_ident: &JsWord, icu_method: &JsWord) -> (String, Vec<PropOrSpread>) {
+    fn get_icu_from_choices_obj(&self, props: &Vec<PropOrSpread>, icu_value_ident: &JsWord, icu_method: &JsWord) -> (String, Vec<ValueWithPlaceholder>) {
         let mut icu_parts: Vec<String> = Vec::with_capacity(props.len());
-        let mut all_values: Vec<PropOrSpread> = Vec::new();
+        let mut all_values: Vec<ValueWithPlaceholder> = Vec::new();
 
         for prop_or_spread in props {
             if let PropOrSpread::Prop(prop) = prop_or_spread {
@@ -183,21 +185,6 @@ impl TransformVisitor {
         (msg, all_values)
     }
 }
-
-// fn get_jsx_element_id(name: &JSXElementName) -> &str {
-//     match name {
-//         JSXElementName::Ident(ident) => {
-//
-//         }
-//
-//         JSXElementName::JSXMemberExpr(member) => {
-//             member.obj
-//         }
-//
-//         JSXElementName::JSXNamespacedName(exp) => {
-//             return &format!("{}:{}", exp.ns, exp.name);
-//         }
-// }
 
 struct TransJSXVisitor /*<'a>*/ {
     message: String,
@@ -254,7 +241,7 @@ impl Visit for TransJSXVisitor {
         self.cmp_index = self.cmp_index + 1;
     }
 
-    fn visit_jsx_closing_element(&mut self, el: &JSXClosingElement) {
+    fn visit_jsx_closing_element(&mut self, _el: &JSXClosingElement) {
         if let Some(index) = self.components_stack.pop() {
             self.message.push_str(&format!("</{index}>"));
         } else {
@@ -379,7 +366,7 @@ impl Fold for TransformVisitor {
                             &object.props, &icu_value.placeholder.clone().into(), &ident.sym);
 
                         // todo need a function to remove duplicates from arguments
-                        let mut all_values = vec![icu_value.to_prop()];
+                        let mut all_values = vec![icu_value];
                         all_values.extend(values);
 
                         return self.create_i18n_fn_call(
@@ -399,9 +386,7 @@ impl Fold for TransformVisitor {
         expr
     }
 
-    fn fold_jsx_element(&mut self, mut el: JSXElement) -> JSXElement {
-        let mut msg: Option<&Atom> = None;
-
+    fn fold_jsx_element(&mut self, el: JSXElement) -> JSXElement {
         if let JSXElementName::Ident(ident) = &el.opening.name {
             if &ident.sym != "Trans" {
                 return el;
@@ -424,18 +409,11 @@ impl Fold for TransformVisitor {
                     }
                 }
             } else {
-                // todo panic unsupported syntax
+                // todo panic unsupported syntax JSXAttrSpread
             }
         }
 
-        // for el in &el.children {
-        //     if let JSXElementChild::JSXText(text) = el {
-        //         msg = Some(&text.value);
-        //     }
-        // }
-
         // todo pass render prop to trans
-
         let mut attrs = vec![
             create_jsx_attribute(
                 if let Some(_) = id { "message" } else { "id" }.into(),
@@ -452,7 +430,7 @@ impl Fold for TransformVisitor {
                 "values",
                 Expr::Object(ObjectLit {
                     span: DUMMY_SP,
-                    props: trans_visitor.values.into_iter().map(|item| item.to_prop()).collect(),
+                    props: dedup_values(trans_visitor.values).into_iter().map(|item| item.to_prop()).collect(),
                 }),
             ))
         }
@@ -524,7 +502,7 @@ test!(
 test!(
     Default::default(),
     |_| TransformVisitor,
-    substitution_in_tpl_literal1,
+    substitution_in_tpl_literal,
     // input
      r#"
      t`Refresh inbox`
@@ -538,6 +516,20 @@ test!(
     i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
     i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar: bar})
     i18n._("Refresh {0}", {0: expr()})
+    "#
+);
+
+test!(
+    Default::default(),
+    |_| TransformVisitor,
+    dedup_values_in_tpl_literal,
+    // input
+     r#"
+     t`Refresh ${foo} inbox ${foo}`
+     "#,
+    // output after transform
+    r#"
+    i18n._("Refresh {foo} inbox {foo}", {foo: foo})
     "#
 );
 
@@ -615,7 +607,6 @@ test!(
 
 
 test!(
-    ignore, // todo need to implement dedupe of params
     Default::default(),
     |_| TransformVisitor,
     plural_with_placeholders,
@@ -633,19 +624,23 @@ test!(
     "#
 );
 
-// test!(
-//     Default::default(),
-//     |_| TransformVisitor,
-//     plural_with_placeholders,
-//      r#"
-//       import { Trans } from "@lingui/macro"
-//         <Trans>Refresh inbox</Trans>;
-//      "#,
-//     r#"
-//    import { Trans } from "@lingui/react"
-//     <Trans id="Refresh inbox" />
-//     "#
-// );
+test!(
+    Default::default(),
+    |_| TransformVisitor,
+    dedup_values_in_icu,
+     r#"
+       const message = plural(count, {
+           one: `${name} has ${count} friend`,
+           other: `${name} has {count} friends`
+        })
+     "#,
+    r#"
+    const message = i18n._("{count, plural, one {{name} has {count} friend} other {{name} has {count} friends}}", {
+      count: count,
+      name: name,
+    })
+    "#
+);
 
 test!(
        Syntax::Typescript(TsConfig {
@@ -720,14 +715,13 @@ test!(
           Hello <strong>World!</strong><br />
           <p>
             My name is <a href="/about">{" "}
-            <em>{name} {expression()}</em></a>
+            <em>{name}</em></a>
           </p>
         </Trans>
      "#,
     r#"
-       <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name} {0}</4></3></2>"} values={{
+       <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
           name: name,
-          0: expression()
         }} components={{
           0: <strong />,
           1: <br />,
@@ -735,5 +729,24 @@ test!(
           3: <a href="/about" />,
           4: <em />
         }} />;
+    "#
+);
+
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor,
+    jsx_values_dedup,
+     r#"
+       <Trans>
+          Hello {foo} and {foo}
+        </Trans>
+     "#,
+    r#"
+       <Trans id={"Hello {foo} and {foo}"} values={{
+          foo: foo,
+        }}/>;
     "#
 );

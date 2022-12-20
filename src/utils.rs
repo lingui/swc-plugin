@@ -1,7 +1,5 @@
-use regex::{Captures, Regex};
+use regex::{Regex};
 use once_cell::sync::Lazy;
-use std::borrow::Cow;
-use regex::{RegexSet, NoExpand};
 
 // replace whitespace before/after newline with single space
 static KEEP_SPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s*(?:\r\n|\r|\n)+\s*").unwrap());
