@@ -27,21 +27,26 @@ cargo test
 
 ### Tasks:
 
-- [ ] Simple `t` macro:
+- [x] Essential  `t` macro cases:
   - [x] ``t`Some string` ``
   - [x] ``t`Some ${variable} string` ``
   - [x] ``t`Some ${expression} string` ``
   - [x] ``t(i18n)`Some string` `` - custom i18n instance
   - [x] check name of tag === 't' before transformation
-  - [ ] `t({ message descriptor })` call with message descriptor object
+  - [x] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}`
+- [ ] NON Essential `t` macro cases:
+    - [ ] `t({ message descriptor })` call with message descriptor object
+    - [ ] Passing other macros as arguments for `t()` eq: `t({message: plural(...)})`
 - [ ] `defineMessage`
-- [ ] ICU calls (plural, select, selectOrdinal)
+  - [ ] Basic transform
+  - [ ] Omit non-essential props on production
+- [x] Essential ICU calls (plural, select, selectOrdinal)
   - [x] ``plural(count, {one: '# item', few: '# items'})`` - simple strings
   - [x] ``plural(count, {one: `${variable} # item`, few: '# items'})`` - tpls with placeholders
   - [x] ``plural(expression(), {one: `${variable} # item`, few: '# items'})`` - expression as parameter
-  - [ ] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}` 
+  - [x] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}`
+- [ ] NON Essential ICU cases:
   - [ ] NON-ESSENTIAL nested icu as described here https://lingui.js.org/ref/macro.html#plural
-- [ ] Passing macro as `t()` arguments eq: `t({message: plural(...)})`
 - [ ] Support JSX transformation
   - [ ] `<Trans>`
     - [x] Simple cases `<Trans>Hello World</Trans>` -> `<Trans message="Hello World" />`
@@ -50,14 +55,12 @@ cargo test
     - [ ] Stripping non-essential props in production
     - [ ] NON-ESSENTIAL Support edge cases `<Trans>{'Hello World'}</Trans>` and ``<Trans>{`How much is ${expression}? ${count}`}</Trans>``
     - [ ] Whitespaces management: stripping, but keeping "forced"
-      - [x] Simple cases 
-      - --- It's turned to be quite complicated, i implemented basics, but i'm afraid there might be differences in spaces which can cause translations mismatch. 
+      - [x] Simple cases
+      - [ ] escaping forced `\r`
       - [ ] Port more test cases related to whitespaces from babel version
   - [ ] ICU: `<Plural>` `<SelectOrdinal>` `<Select>`
 - [ ] Support narrowing transformation to only function exported from `@lingui/macro` 
 - [ ] Automatic adding  `import { i18n } from @lingui/core`
-- [ ] Different behavior for macros for Production build as stated [here](https://lingui.js.org/ref/macro.html#plural:~:text=In%20production%20build%2C%20the%20whole%20macro%20is%20replaced) 
-- [ ] Splitting into modules and crates, clean up code
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
 - [ ] Investigate patterns how to effectively change something in the root of the tree based on the leafs using visitor / folder
 - [ ] Building binary and publishing
