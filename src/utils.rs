@@ -6,6 +6,8 @@ static KEEP_SPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s*(?:\r\n|\r|\n)+
 // remove whitespace before/after tag or expression
 static STRIP_AROUND_TAGS: Lazy<Regex> = Lazy::new(|| Regex::new(r"([>}])(?:\r\n|\r|\n)+\s*|(?:\r\n|\r|\n)+\s*([<{])").unwrap());
 
+static TRAILING_IN_EXPRESSIONS: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\s+})").unwrap());
+
 // JS code for the reference:
 // // replace whitespace before/after newline with single space
 // const keepSpaceRe = /\s*(?:\r\n|\r|\n)+\s*/g
@@ -27,8 +29,12 @@ static STRIP_AROUND_TAGS: Lazy<Regex> = Lazy::new(|| Regex::new(r"([>}])(?:\r\n|
 // }
 
 pub fn normalize_whitespaces(str: &str) -> String {
+    println!("{str}");
     let str = STRIP_AROUND_TAGS.replace_all(&str, "$1$2");
-    let str = KEEP_SPACE_RE.replace_all(&str, " ").trim().to_string();
+    let str = KEEP_SPACE_RE.replace_all(&str, " ");
+
+    // we remove trailing whitespace inside Plural
+    let str = TRAILING_IN_EXPRESSIONS.replace_all(&str, "}").trim().to_string();
 
     return str
 }
@@ -66,5 +72,23 @@ mod tests {
     "#
             ),
             r#"Property {0}, function {1}, array {2}, constant {3}, object {4}, everything {5}"#)
+    }
+
+    #[test]
+    fn remove_trailing_in_icu() {
+        assert_eq!(
+            normalize_whitespaces(
+                r#"{count, plural, one {
+
+              <0>#</0> slot added
+
+            } other {
+
+              <1>#</1> slots added
+
+            }}
+"#
+            ),
+            r#"{count, plural, one {<0>#</0> slot added} other {<1>#</1> slots added}}"#)
     }
 }

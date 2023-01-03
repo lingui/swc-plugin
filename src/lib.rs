@@ -5,12 +5,12 @@ use swc_core::ecma::{
 use std::collections::HashSet;
 
 use swc_core::{
-    common::{DUMMY_SP},
+    common::DUMMY_SP,
     ecma::{
-        parser::{Syntax, TsConfig},
         ast::*,
         atoms::JsWord,
-        utils::{ExprFactory},
+        parser::{Syntax, TsConfig},
+        utils::ExprFactory,
         visit::{Fold, FoldWith},
     },
     plugin::{
@@ -24,9 +24,11 @@ mod utils;
 mod builder;
 mod tokens;
 mod ecma_utils;
+mod jsx_visitor;
 
 use builder::*;
 use ecma_utils::*;
+use jsx_visitor::TransJSXVisitor;
 use crate::tokens::{Icu, IcuChoice, MsgToken, TagOpening};
 
 const LINGUI_T: &str = &"t";
@@ -47,71 +49,13 @@ fn is_lingui_fn(name: &str) -> bool {
     }
 }
 
-
-// <Plural /> <Select /> <SelectOrdinal />
-fn transform_icu_jsx_macro<'a>(el: &JSXOpeningElement) -> Vec<IcuChoice> {
-    let mut choices: Vec<IcuChoice> = Vec::new();
-
-    for attr in &el.attrs {
-        if let JSXAttrOrSpread::JSXAttr(attr) = attr {
-            if let Some(attr_value) = &attr.value {
-                if let JSXAttrName::Ident(ident) = &attr.name {
-                    // todo: probably need blacklist more properties, or whitelist only selected
-                    if ident.sym.to_string() == "value" {
-                        continue;
-                    }
-
-                    let mut tokens: Vec<MsgToken> = Vec::new();
-
-                    match attr_value {
-                        // some="# books"
-                        JSXAttrValue::Lit(Lit::Str(str)) => {
-                            let string: String = str.value.clone().to_string();
-                            tokens.push(MsgToken::String(string));
-                        }
-
-                        JSXAttrValue::JSXExprContainer(JSXExprContainer { expr: JSXExpr::Expr(exp), .. }) => {
-                            match exp.as_ref() {
-                                // some={"# books"}
-                                Expr::Lit(Lit::Str(str)) => {
-                                    tokens.push(MsgToken::String(str.value.clone().to_string()))
-                                    // choice.builder.push_msg(&str.value);
-                                }
-                                // some={`# books ${name}`}
-                                // Expr::Tpl(tpl) => {
-                                //     let (msg, values) = self.transform_tpl_to_msg_and_values(tpl);
-                                //     all_values.extend(values);
-                                //     push_part(&msg);
-                                // }
-                                // some={`<Books />`}
-                                Expr::JSXElement(_lit) => {}
-
-                                _ => {
-                                    // todo: unsupported syntax
-                                }
-                            }
-                        }
-
-                        _ => {
-                            // todo unsupported syntax
-                        }
-                    }
-
-                    choices.push(IcuChoice {
-                        tokens,
-                        key: ident.sym.clone().to_string(),
-                    })
-                }
-            }
-        } else {
-            // todo here is spread which is not supported
-        }
+fn is_lingui_jsx_el(name: &str) -> bool {
+    // todo: i didn't find a better way to create a constant hashmap
+    match name {
+        "Plural" | "Select" | "SelectOrdinal" => true,
+        _ => false,
     }
-
-    return choices;
-    // let msg = format!("{{{}, {}, {}}}", "count", "plural", icu_parts.join(" "));
 }
-
 
 #[derive(Default)]
 pub struct TransformVisitor {
@@ -234,33 +178,23 @@ impl TransformVisitor {
     }
 
     // <Trans>Message</Trans>
-    fn transform_trans_jsx_macro(&mut self, el: JSXElement) -> JSXElement {
+    // <Plural />
+    fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
         let mut trans_visitor = TransJSXVisitor::new();
 
-        el.children.visit_children_with(&mut trans_visitor);
+        if is_trans_el {
+            el.children.visit_children_with(&mut trans_visitor);
+        } else {
+            el.visit_children_with(&mut trans_visitor);
+        }
 
         let mut builder = MessageBuilder::new(trans_visitor.tokens);
 
-        // let mut message_builder = trans_visitor.builder;
-        // println!("{}", utils::normalize_whitespaces(&message_builder.message));
-
-        let mut id: Option<&JsWord> = None;
-
-        for el in &el.opening.attrs {
-            if let JSXAttrOrSpread::JSXAttr(attr) = el {
-                if let JSXAttrName::Ident(ident) = &attr.name {
-                    if &ident.sym == "id" {
-                        id = Some(&ident.sym)
-                    }
-                }
-            } else {
-                // todo panic unsupported syntax JSXAttrSpread
-            }
-        }
+        let mut id_attr = get_jsx_attr(&el.opening, "id");
 
         let mut attrs = vec![
             create_jsx_attribute(
-                if let Some(_) = id { "message" } else { "id" }.into(),
+                if let Some(_) = id_attr { "message" } else { "id" }.into(),
                 Expr::Lit(Lit::Str(Str {
                     span: DUMMY_SP,
                     value: utils::normalize_whitespaces(&builder.message).into(),
@@ -292,7 +226,9 @@ impl TransformVisitor {
             ))
         }
 
-        attrs.extend(el.opening.attrs);
+        attrs.extend(
+            pick_jsx_attrs(el.opening.attrs, HashSet::from(["id", "render"]))
+        );
 
         self.should_add_trans_import = true;
 
@@ -303,100 +239,13 @@ impl TransformVisitor {
             opening: JSXOpeningElement {
                 self_closing: true,
                 span: el.opening.span,
-                name: el.opening.name,
+                name: JSXElementName::Ident(
+                    Ident::new("Trans".into(), el.opening.span)
+                ),
                 type_args: None,
                 attrs,
             },
         };
-    }
-}
-
-
-struct TransJSXVisitor {
-    tokens: Vec<MsgToken>,
-}
-
-impl TransJSXVisitor {
-    fn new() -> TransJSXVisitor {
-        TransJSXVisitor {
-            tokens: Vec::new(),
-        }
-    }
-}
-
-
-impl Visit for TransJSXVisitor {
-    // todo: how to handle fragments?
-    fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
-        if match_jsx_name(el, "Plural") {
-            let value = match get_jsx_attr_value(&el, "value") {
-                Some(
-                    JSXAttrValue::JSXExprContainer(
-                        JSXExprContainer { expr: JSXExpr::Expr(exp), .. }
-                    )
-                ) => {
-                    exp.clone()
-                }
-                // todo: support here <Plural value=5 >
-                // JSXAttrValue::Lit(lit) => {
-                //     Box::new(Expr::Lit(*lit))
-                // }
-                _ => {
-                    Box::new(Expr::Lit(Lit::Null(Null {
-                        span: DUMMY_SP
-                    })))
-                }
-            };
-
-            let choices = transform_icu_jsx_macro(el);
-
-            self.tokens.push(MsgToken::Icu(Icu {
-                choices,
-                // todo: support different ICU methods
-                icu_method: "plural".into(),
-                value,
-            }))
-        } else {
-            self.tokens.push(MsgToken::TagOpening(TagOpening {
-                self_closing: el.self_closing,
-                el: JSXOpeningElement {
-                    self_closing: true,
-                    name: el.name.clone(),
-                    attrs: el.attrs.clone(),
-                    span: el.span,
-                    type_args: el.type_args.clone(),
-                },
-            }));
-        }
-    }
-
-    fn visit_jsx_closing_element(&mut self, _el: &JSXClosingElement) {
-        self.tokens.push(
-            MsgToken::TagClosing
-        );
-    }
-
-    fn visit_jsx_text(&mut self, el: &JSXText) {
-        self.tokens.push(
-            MsgToken::String(el.value.to_string())
-        );
-    }
-
-    fn visit_jsx_expr_container(&mut self, cont: &JSXExprContainer) {
-        if let JSXExpr::Expr(exp) = &cont.expr {
-            match exp.as_ref() {
-                Expr::Lit(Lit::Str(str)) => {
-                    self.tokens.push(
-                        MsgToken::String(str.value.to_string())
-                    );
-                }
-                _ => {
-                    self.tokens.push(
-                        MsgToken::Value(exp.clone())
-                    );
-                }
-            }
-        }
     }
 }
 
@@ -418,6 +267,13 @@ impl Fold for TransformVisitor {
                     for spec in &imp.specifiers {
                         if let ImportSpecifier::Named(spec) = spec {
                             has_i18n_import = if !has_i18n_import { &spec.local.sym == "i18n" } else { true };
+                        }
+                    }
+                }
+
+                if &imp.src.value == "@lingui/react" && !imp.type_only {
+                    for spec in &imp.specifiers {
+                        if let ImportSpecifier::Named(spec) = spec {
                             has_trans_import = if !has_trans_import { &spec.local.sym == "Trans" } else { true };
                         }
                     }
@@ -427,46 +283,14 @@ impl Fold for TransformVisitor {
             true
         });
 
-        println!("{} {}", has_i18n_import, has_trans_import);
-
         n = n.fold_children_with(self);
 
-        let mut specifiers: Vec<ImportSpecifier> = Vec::new();
-
         if !has_i18n_import && self.should_add_18n_import {
-            specifiers.push(
-                ImportSpecifier::Named(ImportNamedSpecifier {
-                    span: DUMMY_SP,
-                    local: quote_ident!("i18n"),
-                    imported: None,
-                    is_type_only: false,
-                })
-            )
+            n.insert(0, create_import("@lingui/core".into(), quote_ident!("i18n")));
         }
 
         if !has_trans_import && self.should_add_trans_import {
-            specifiers.push(
-                ImportSpecifier::Named(ImportNamedSpecifier {
-                    span: DUMMY_SP,
-                    local: quote_ident!("Trans"),
-                    imported: None,
-                    is_type_only: false,
-                })
-            )
-        }
-
-        if specifiers.len() > 0 {
-            n.insert(0, ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-                span: DUMMY_SP,
-                specifiers,
-                src: Box::new(Str {
-                    span: DUMMY_SP,
-                    value: "@lingui/core".into(),
-                    raw: None,
-                }),
-                asserts: None,
-                type_only: false,
-            })));
+            n.insert(0, create_import("@lingui/react".into(), quote_ident!("Trans")));
         }
 
         n
@@ -575,13 +399,12 @@ impl Fold for TransformVisitor {
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
             if &ident.sym == "Trans" {
-                return self.transform_trans_jsx_macro(el);
+                return self.transform_jsx_macro(el, true);
             }
 
-            // if (&ident.sym == "Plural") || (&ident.sym == "Select") || (&ident.sym == "SelectOrdinal") {
-            //     transform_icu_jsx_macro(&el);
-            //     return el;
-            // }
+            if is_lingui_jsx_el(&ident.sym) {
+                return self.transform_jsx_macro(el, false);
+            }
         }
 
         el
@@ -818,7 +641,7 @@ test!(
        const exp2 = <Trans>Refresh inbox</Trans>;
      "#,
     r#"
-       import { Trans } from "@lingui/core";
+       import { Trans } from "@lingui/react";
 
        const exp1 = <Custom>Refresh inbox</Custom>;
        const exp2 = <Trans id={"Refresh inbox"} />
@@ -834,11 +657,11 @@ test!(
     preserve_id_in_trans,
      r#"
        import { Trans } from "@lingui/macro";
-       const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
+       const exp2 = <Trans id="custom.id" render={(v) => v}>Refresh inbox</Trans>;
      "#,
     r#"
-       import { Trans } from "@lingui/core";
-       const exp2 = <Trans message={"Refresh inbox"} id="custom.id"/>
+       import { Trans } from "@lingui/react";
+       const exp2 = <Trans message={"Refresh inbox"} id="custom.id" render={(v) => v} />
     "#
 );
 
@@ -861,7 +684,7 @@ test!(
         </Trans>;
      "#,
     r#"
-       import { Trans } from "@lingui/core";
+       import { Trans } from "@lingui/react";
        <Trans id={"Property {0}, function {1}, array {2}, constant {3}, object {4}, everything {5}"} values={{
           0: props.name,
           1: random(),
@@ -891,7 +714,7 @@ test!(
         </Trans>
      "#,
     r#"
-    import { Trans } from "@lingui/core";
+    import { Trans } from "@lingui/react";
    <Trans id={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"} values={{
       name: name,
     }} components={{
@@ -918,7 +741,7 @@ test!(
         </Trans>
      "#,
     r#"
-       import { Trans } from "@lingui/core";
+       import { Trans } from "@lingui/react";
        <Trans id={"Hello {foo} and {foo}"} values={{
           foo: foo,
         }}/>;
@@ -934,13 +757,15 @@ test!(
     should_not_add_extra_imports,
      r#"
        import { t } from "@lingui/macro";
-       import { i18n, Trans } from "@lingui/core";
+       import { i18n } from "@lingui/core";
+       import { Trans } from "@lingui/react";
 
        t`Test`;
        <Trans>Test</Trans>;
      "#,
     r#"
-       import { i18n, Trans } from "@lingui/core";
+       import { i18n } from "@lingui/core";
+       import { Trans } from "@lingui/react";
 
        i18n._("Test", {});
        <Trans id={"Test"}/>;
@@ -968,7 +793,7 @@ test!(
      "#,
 
     r#"
-       import { Trans } from "@lingui/core";
+       import { Trans } from "@lingui/react";
 
        <Trans
            id={"You have {count, plural, one {Message} other {Messages}}"}
@@ -977,31 +802,97 @@ test!(
     "#
 );
 
-// test!(
-//        Syntax::Typescript(TsConfig {
-//         tsx: true,
-//         ..Default::default()
-//     }),
-//     |_| TransformVisitor::default(),
-//     jsx_icu_nested,
-//      r#"
-//        import { Plural } from "@lingui/macro";
-//
-//        <Trans>
-//           <Plural
-//            value={count}
-//            one="Message"
-//            other="Messages"
-//           />
-//       </Trans>
-//      "#,
-//
-//     r#"
-//        import { Trans } from "@lingui/core";
-//
-//        <Trans
-//            id={"{count, plural, one {Message} other {Messages}}"}
-//            values={{ count: count }}
-//         />
-//     "#
-// );
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor::default(),
+    jsx_icu,
+     r#"
+      import { Plural } from "@lingui/macro";
+
+      <Plural
+       value={count}
+       one="Message"
+       other="Messages"
+      />
+     "#,
+
+    r#"
+       import { Trans } from "@lingui/react";
+
+       <Trans
+           id={"{count, plural, one {Message} other {Messages}}"}
+           values={{ count: count }}
+        />
+    "#
+);
+
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor::default(),
+    jsx_icu_explicit_id,
+     r#"
+       import { Plural } from "@lingui/macro";
+
+      <Plural
+       id="plural.id"
+       value={count}
+       one="Message"
+       other="Messages"
+      />
+     "#,
+
+    r#"
+       import { Trans } from "@lingui/react";
+
+       <Trans
+           message={"{count, plural, one {Message} other {Messages}}"}
+           values={{ count: count }}
+           id="plural.id"
+        />
+    "#
+);
+
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor::default(),
+    jsx_trans_inside_plural,
+     r#"
+       import { Trans, Plural } from '@lingui/macro';
+        <Plural
+          value={count}
+          one={
+            <Trans>
+              <strong>#</strong> slot added
+            </Trans>
+          }
+          other={
+            <Trans>
+              <strong>#</strong> slots added
+            </Trans>
+          }
+        />;
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={
+          "{count, plural, one {<0>#</0> slot added} other {<1>#</1> slots added}}"
+        }
+        values={{
+          count: count
+        }} components={{
+          0: <strong />,
+          1: <strong />
+        }} />;
+
+    "#
+);
