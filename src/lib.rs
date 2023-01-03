@@ -21,6 +21,13 @@ use swc_core::{
 use swc_core::ecma::utils::quote_ident;
 
 mod utils;
+mod builder;
+mod tokens;
+mod ecma_utils;
+
+use builder::*;
+use ecma_utils::*;
+use crate::tokens::{Icu, IcuChoice, MsgToken, TagOpening};
 
 const LINGUI_T: &str = &"t";
 
@@ -40,36 +47,71 @@ fn is_lingui_fn(name: &str) -> bool {
     }
 }
 
-fn match_callee_name(call: &CallExpr, fn_name: &str) -> bool {
-    match &call.callee {
-        Callee::Expr(expr) => {
-            if let Expr::Ident(ident) = expr.as_ref() {
-                return &ident.sym == fn_name;
+
+// <Plural /> <Select /> <SelectOrdinal />
+fn transform_icu_jsx_macro<'a>(el: &JSXOpeningElement) -> Vec<IcuChoice> {
+    let mut choices: Vec<IcuChoice> = Vec::new();
+
+    for attr in &el.attrs {
+        if let JSXAttrOrSpread::JSXAttr(attr) = attr {
+            if let Some(attr_value) = &attr.value {
+                if let JSXAttrName::Ident(ident) = &attr.name {
+                    // todo: probably need blacklist more properties, or whitelist only selected
+                    if ident.sym.to_string() == "value" {
+                        continue;
+                    }
+
+                    let mut tokens: Vec<MsgToken> = Vec::new();
+
+                    match attr_value {
+                        // some="# books"
+                        JSXAttrValue::Lit(Lit::Str(str)) => {
+                            let string: String = str.value.clone().to_string();
+                            tokens.push(MsgToken::String(string));
+                        }
+
+                        JSXAttrValue::JSXExprContainer(JSXExprContainer { expr: JSXExpr::Expr(exp), .. }) => {
+                            match exp.as_ref() {
+                                // some={"# books"}
+                                Expr::Lit(Lit::Str(str)) => {
+                                    tokens.push(MsgToken::String(str.value.clone().to_string()))
+                                    // choice.builder.push_msg(&str.value);
+                                }
+                                // some={`# books ${name}`}
+                                // Expr::Tpl(tpl) => {
+                                //     let (msg, values) = self.transform_tpl_to_msg_and_values(tpl);
+                                //     all_values.extend(values);
+                                //     push_part(&msg);
+                                // }
+                                // some={`<Books />`}
+                                Expr::JSXElement(_lit) => {}
+
+                                _ => {
+                                    // todo: unsupported syntax
+                                }
+                            }
+                        }
+
+                        _ => {
+                            // todo unsupported syntax
+                        }
+                    }
+
+                    choices.push(IcuChoice {
+                        tokens,
+                        key: ident.sym.clone().to_string(),
+                    })
+                }
             }
+        } else {
+            // todo here is spread which is not supported
         }
-        _ => {}
     }
 
-    false
+    return choices;
+    // let msg = format!("{{{}, {}, {}}}", "count", "plural", icu_parts.join(" "));
 }
 
-struct ValueWithPlaceholder {
-    placeholder: String,
-    value: Box<Expr>,
-}
-
-impl ValueWithPlaceholder {
-    fn to_prop(self) -> PropOrSpread {
-        let ident = Ident::new(self.placeholder.into(), DUMMY_SP);
-
-        PropOrSpread::Prop(Box::new(
-            Prop::KeyValue(KeyValueProp {
-                key: PropName::Ident(ident),
-                value: self.value,
-            })
-        ))
-    }
-}
 
 #[derive(Default)]
 pub struct TransformVisitor {
@@ -190,116 +232,174 @@ impl TransformVisitor {
 
         (msg, all_values)
     }
+
+    // <Trans>Message</Trans>
+    fn transform_trans_jsx_macro(&mut self, el: JSXElement) -> JSXElement {
+        let mut trans_visitor = TransJSXVisitor::new();
+
+        el.children.visit_children_with(&mut trans_visitor);
+
+        let mut builder = MessageBuilder::new(trans_visitor.tokens);
+
+        // let mut message_builder = trans_visitor.builder;
+        // println!("{}", utils::normalize_whitespaces(&message_builder.message));
+
+        let mut id: Option<&JsWord> = None;
+
+        for el in &el.opening.attrs {
+            if let JSXAttrOrSpread::JSXAttr(attr) = el {
+                if let JSXAttrName::Ident(ident) = &attr.name {
+                    if &ident.sym == "id" {
+                        id = Some(&ident.sym)
+                    }
+                }
+            } else {
+                // todo panic unsupported syntax JSXAttrSpread
+            }
+        }
+
+        let mut attrs = vec![
+            create_jsx_attribute(
+                if let Some(_) = id { "message" } else { "id" }.into(),
+                Expr::Lit(Lit::Str(Str {
+                    span: DUMMY_SP,
+                    value: utils::normalize_whitespaces(&builder.message).into(),
+                    // value: builder.message.into(),
+                    raw: None,
+                })),
+            ),
+        ];
+
+        builder.values.append(&mut builder.values_indexed);
+
+        if builder.values.len() > 0 {
+            attrs.push(create_jsx_attribute(
+                "values",
+                Expr::Object(ObjectLit {
+                    span: DUMMY_SP,
+                    props: dedup_values(builder.values).into_iter().map(|item| item.to_prop()).collect(),
+                }),
+            ))
+        }
+
+        if builder.components.len() > 0 {
+            attrs.push(create_jsx_attribute(
+                "components",
+                Expr::Object(ObjectLit {
+                    span: DUMMY_SP,
+                    props: builder.components.into_iter().map(|item| item.to_prop()).collect(),
+                }),
+            ))
+        }
+
+        attrs.extend(el.opening.attrs);
+
+        self.should_add_trans_import = true;
+
+        return JSXElement {
+            span: el.span,
+            children: vec![],
+            closing: None,
+            opening: JSXOpeningElement {
+                self_closing: true,
+                span: el.opening.span,
+                name: el.opening.name,
+                type_args: None,
+                attrs,
+            },
+        };
+    }
 }
 
-struct TransJSXVisitor /*<'a>*/ {
-    message: String,
-    components: Vec<ValueWithPlaceholder>,
-    components_stack: Vec<usize>,
-    values: Vec<ValueWithPlaceholder>,
-    cmp_index: usize,
-    value_index: usize,
+
+struct TransJSXVisitor {
+    tokens: Vec<MsgToken>,
 }
 
 impl TransJSXVisitor {
     fn new() -> TransJSXVisitor {
         TransJSXVisitor {
-            message: String::new(),
-            components: Vec::new(),
-            components_stack: Vec::new(),
-            values: Vec::new(),
-            cmp_index: 0,
-            value_index: 0,
+            tokens: Vec::new(),
         }
     }
 }
 
+
 impl Visit for TransJSXVisitor {
     // todo: how to handle fragments?
     fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
-        if el.self_closing {
-            self.message.push_str(&format!("<{}/>", self.cmp_index));
-        } else {
-            self.components_stack.push(self.cmp_index);
-            self.message.push_str(&format!("<{}>", self.cmp_index));
-        }
+        if match_jsx_name(el, "Plural") {
+            let value = match get_jsx_attr_value(&el, "value") {
+                Some(
+                    JSXAttrValue::JSXExprContainer(
+                        JSXExprContainer { expr: JSXExpr::Expr(exp), .. }
+                    )
+                ) => {
+                    exp.clone()
+                }
+                // todo: support here <Plural value=5 >
+                // JSXAttrValue::Lit(lit) => {
+                //     Box::new(Expr::Lit(*lit))
+                // }
+                _ => {
+                    Box::new(Expr::Lit(Lit::Null(Null {
+                        span: DUMMY_SP
+                    })))
+                }
+            };
 
-        // todo: it looks very dirty and bad to cloning this jsx values
-        self.components.push(ValueWithPlaceholder {
-            placeholder: self.cmp_index.to_string(),
-            value: Box::new(Expr::JSXElement(
-                Box::new(
-                    JSXElement {
-                        opening: JSXOpeningElement {
-                            self_closing: true,
-                            name: el.name.clone(),
-                            attrs: el.attrs.clone(),
-                            span: el.span.clone(),
-                            type_args: el.type_args.clone(),
-                        },
-                        closing: None,
-                        children: vec![],
-                        span: DUMMY_SP,
-                    }
-                )
-            )),
-        });
-        self.cmp_index = self.cmp_index + 1;
+            let choices = transform_icu_jsx_macro(el);
+
+            self.tokens.push(MsgToken::Icu(Icu {
+                choices,
+                // todo: support different ICU methods
+                icu_method: "plural".into(),
+                value,
+            }))
+        } else {
+            self.tokens.push(MsgToken::TagOpening(TagOpening {
+                self_closing: el.self_closing,
+                el: JSXOpeningElement {
+                    self_closing: true,
+                    name: el.name.clone(),
+                    attrs: el.attrs.clone(),
+                    span: el.span,
+                    type_args: el.type_args.clone(),
+                },
+            }));
+        }
     }
 
     fn visit_jsx_closing_element(&mut self, _el: &JSXClosingElement) {
-        if let Some(index) = self.components_stack.pop() {
-            self.message.push_str(&format!("</{index}>"));
-        } else {
-            // todo JSX tags mismatch. write tests for tags mismatch, swc should not crash in that case
-        }
+        self.tokens.push(
+            MsgToken::TagClosing
+        );
     }
 
     fn visit_jsx_text(&mut self, el: &JSXText) {
-        self.message.push_str(&el.value);
+        self.tokens.push(
+            MsgToken::String(el.value.to_string())
+        );
     }
 
     fn visit_jsx_expr_container(&mut self, cont: &JSXExprContainer) {
         if let JSXExpr::Expr(exp) = &cont.expr {
             match exp.as_ref() {
-                Expr::Ident(ident) => {
-                    self.message.push_str(&format!("{{{}}}", ident.sym));
-                    self.values.push(ValueWithPlaceholder {
-                        placeholder: ident.sym.to_string(),
-                        value: exp.clone(),
-                    });
-                }
                 Expr::Lit(Lit::Str(str)) => {
-                    self.message.push_str(&str.value);
+                    self.tokens.push(
+                        MsgToken::String(str.value.to_string())
+                    );
                 }
                 _ => {
-                    self.message.push_str(&format!("{{{}}}", self.value_index));
-                    self.values.push(ValueWithPlaceholder {
-                        placeholder: (self.value_index.to_string()),
-                        value: exp.clone(),
-                    });
-
-                    self.value_index = self.value_index + 1;
+                    self.tokens.push(
+                        MsgToken::Value(exp.clone())
+                    );
                 }
             }
         }
     }
 }
 
-fn create_jsx_attribute(name: &str, exp: Expr) -> JSXAttrOrSpread {
-    JSXAttrOrSpread::JSXAttr(JSXAttr {
-        span: DUMMY_SP,
-        name: JSXAttrName::Ident(Ident {
-            span: DUMMY_SP,
-            sym: name.into(),
-            optional: false,
-        }),
-        value: Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
-            span: DUMMY_SP,
-            expr: JSXExpr::Expr(Box::new(exp)),
-        })),
-    })
-}
 
 impl Fold for TransformVisitor {
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
@@ -474,79 +574,17 @@ impl Fold for TransformVisitor {
         }
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
-            if &ident.sym != "Trans" {
-                return el;
+            if &ident.sym == "Trans" {
+                return self.transform_trans_jsx_macro(el);
             }
+
+            // if (&ident.sym == "Plural") || (&ident.sym == "Select") || (&ident.sym == "SelectOrdinal") {
+            //     transform_icu_jsx_macro(&el);
+            //     return el;
+            // }
         }
 
-        let mut trans_visitor = TransJSXVisitor::new();
-
-        el.children.visit_children_with(&mut trans_visitor);
-
-        println!("{}", utils::normalize_whitespaces(&trans_visitor.message));
-
-        let mut id: Option<&JsWord> = None;
-
-        for el in &el.opening.attrs {
-            if let JSXAttrOrSpread::JSXAttr(attr) = el {
-                if let JSXAttrName::Ident(ident) = &attr.name {
-                    if &ident.sym == "id" {
-                        id = Some(&ident.sym)
-                    }
-                }
-            } else {
-                // todo panic unsupported syntax JSXAttrSpread
-            }
-        }
-
-        // todo pass render prop to trans
-        let mut attrs = vec![
-            create_jsx_attribute(
-                if let Some(_) = id { "message" } else { "id" }.into(),
-                Expr::Lit(Lit::Str(Str {
-                    span: DUMMY_SP,
-                    value: utils::normalize_whitespaces(&trans_visitor.message).into(),
-                    raw: None,
-                })),
-            ),
-        ];
-
-        if trans_visitor.values.len() > 0 {
-            attrs.push(create_jsx_attribute(
-                "values",
-                Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: dedup_values(trans_visitor.values).into_iter().map(|item| item.to_prop()).collect(),
-                }),
-            ))
-        }
-
-        if trans_visitor.components.len() > 0 {
-            attrs.push(create_jsx_attribute(
-                "components",
-                Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: trans_visitor.components.into_iter().map(|item| item.to_prop()).collect(),
-                }),
-            ))
-        }
-
-        attrs.extend(el.opening.attrs);
-
-        self.should_add_trans_import = true;
-
-        return JSXElement {
-            span: el.span,
-            children: vec![],
-            closing: None,
-            opening: JSXOpeningElement {
-                self_closing: true,
-                span: el.opening.span,
-                name: el.opening.name,
-                type_args: None,
-                attrs,
-            },
-        };
+        el
     }
 }
 
@@ -908,3 +946,62 @@ test!(
        <Trans id={"Test"}/>;
     "#
 );
+
+test!(
+       Syntax::Typescript(TsConfig {
+        tsx: true,
+        ..Default::default()
+    }),
+    |_| TransformVisitor::default(),
+    jsx_icu_nested,
+     r#"
+       import { Plural } from "@lingui/macro";
+
+       <Trans>
+       You have{" "}
+          <Plural
+           value={count}
+           one="Message"
+           other="Messages"
+          />
+      </Trans>
+     "#,
+
+    r#"
+       import { Trans } from "@lingui/core";
+
+       <Trans
+           id={"You have {count, plural, one {Message} other {Messages}}"}
+           values={{ count: count }}
+        />
+    "#
+);
+
+// test!(
+//        Syntax::Typescript(TsConfig {
+//         tsx: true,
+//         ..Default::default()
+//     }),
+//     |_| TransformVisitor::default(),
+//     jsx_icu_nested,
+//      r#"
+//        import { Plural } from "@lingui/macro";
+//
+//        <Trans>
+//           <Plural
+//            value={count}
+//            one="Message"
+//            other="Messages"
+//           />
+//       </Trans>
+//      "#,
+//
+//     r#"
+//        import { Trans } from "@lingui/core";
+//
+//        <Trans
+//            id={"{count, plural, one {Message} other {Messages}}"}
+//            values={{ count: count }}
+//         />
+//     "#
+// );
