@@ -29,7 +29,6 @@ static TRAILING_IN_EXPRESSIONS: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\s+})")
 // }
 
 pub fn normalize_whitespaces(str: &str) -> String {
-    println!("{str}");
     let str = STRIP_AROUND_TAGS.replace_all(&str, "$1$2");
     let str = KEEP_SPACE_RE.replace_all(&str, " ");
 

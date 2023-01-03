@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use swc_common::DUMMY_SP;
 use swc_core::ecma::ast::{*};
 use swc_core::ecma::atoms::JsWord;
-use swc_core::ecma::utils::quote_ident;
 
 pub fn get_jsx_attr_value<'a>(el: &'a JSXOpeningElement, name: &str) -> &'a Option<JSXAttrValue> {
     for attr in &el.attrs {
@@ -23,7 +22,7 @@ pub fn pick_jsx_attrs(mut attrs: Vec<JSXAttrOrSpread>, names: HashSet<&str>) -> 
         if let JSXAttrOrSpread::JSXAttr(attr) = attr {
             if let JSXAttrName::Ident(ident) = &attr.name {
                 let name: &str = &ident.sym.to_string();
-                if let Some(v) = names.get(name) {
+                if let Some(_) = names.get(name) {
                     return true;
                 }
             }
@@ -48,7 +47,7 @@ pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSX
     return None;
 }
 
-pub fn create_jsx_attribute(name: &str, exp: Expr) -> JSXAttrOrSpread {
+pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
     JSXAttrOrSpread::JSXAttr(JSXAttr {
         span: DUMMY_SP,
         name: JSXAttrName::Ident(Ident {
@@ -58,7 +57,7 @@ pub fn create_jsx_attribute(name: &str, exp: Expr) -> JSXAttrOrSpread {
         }),
         value: Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
             span: DUMMY_SP,
-            expr: JSXExpr::Expr(Box::new(exp)),
+            expr: JSXExpr::Expr(exp),
         })),
     })
 }
@@ -77,12 +76,12 @@ pub fn match_callee_name(call: &CallExpr, fn_name: &str) -> bool {
     false
 }
 
-pub fn match_jsx_name(el: &JSXOpeningElement, name: &str) -> bool {
-    if let JSXElementName::Ident(ident) = &el.name {
-        return ident.sym.to_string() == name;
-    }
-    return false;
-}
+// pub fn match_jsx_name(el: &JSXOpeningElement, name: &str) -> bool {
+//     if let JSXElementName::Ident(ident) = &el.name {
+//         return ident.sym.to_string() == name;
+//     }
+//     return false;
+// }
 
 pub fn create_import(source: JsWord, specifier: Ident) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {

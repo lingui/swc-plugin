@@ -3,7 +3,7 @@ use swc_core::ecma::{
 };
 use swc_core::ecma::ast::{Expr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXClosingElement, JSXElementName, JSXExpr, JSXExprContainer, JSXOpeningElement, JSXText, Lit, Null};
 use swc_common::DUMMY_SP;
-use crate::ecma_utils::{get_jsx_attr_value, match_jsx_name};
+use crate::ecma_utils::{get_jsx_attr_value};
 use crate::is_lingui_jsx_el;
 use crate::tokens::{Icu, IcuChoice, MsgToken, TagOpening};
 
@@ -165,7 +165,7 @@ impl Visit for TransJSXVisitor {
                 }
                 _ => {
                     self.tokens.push(
-                        MsgToken::Value(exp.clone())
+                        MsgToken::Expression(exp.clone())
                     );
                 }
             }

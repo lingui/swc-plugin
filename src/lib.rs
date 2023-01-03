@@ -1,6 +1,6 @@
 use swc_core::ecma::{
     transforms::testing::test,
-    visit::{Visit, VisitWith},
+    visit::{VisitWith},
 };
 use std::collections::HashSet;
 
@@ -8,7 +8,6 @@ use swc_core::{
     common::DUMMY_SP,
     ecma::{
         ast::*,
-        atoms::JsWord,
         parser::{Syntax, TsConfig},
         utils::ExprFactory,
         visit::{Fold, FoldWith},
@@ -29,17 +28,9 @@ mod jsx_visitor;
 use builder::*;
 use ecma_utils::*;
 use jsx_visitor::TransJSXVisitor;
-use crate::tokens::{Icu, IcuChoice, MsgToken, TagOpening};
+use crate::tokens::{Icu, IcuChoice, MsgToken};
 
 const LINGUI_T: &str = &"t";
-
-
-fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
-    let mut uniques = HashSet::new();
-    v.retain(|e| uniques.insert(e.placeholder.clone()));
-
-    v
-}
 
 fn is_lingui_fn(name: &str) -> bool {
     // todo: i didn't find a better way to create a constant hashmap
@@ -65,53 +56,29 @@ pub struct TransformVisitor {
 }
 
 impl TransformVisitor {
-    // Receive an expression which expected to be either simple variable (ident) or expression
-    // If simple variable is detected os literal used as placeholder
-    // If expression detected we use index as placeholder.
-    fn get_value_with_placeholder(&self, expr: Box<Expr>, i: &usize) -> ValueWithPlaceholder {
-        match expr.as_ref() {
-            // `text {foo} bar`
-            Expr::Ident(ident) => {
-                ValueWithPlaceholder {
-                    placeholder: ident.sym.to_string(),
-                    value: expr,
-                }
-            }
-            // everything else, e.q.
-            // `text {executeFn()} bar`
-            // `text {bar.baz} bar`
-            _ => {
-                // would be a positional argument
-                let index_str = &i.to_string();
-                ValueWithPlaceholder {
-                    placeholder: index_str.into(),
-                    value: expr,
-                }
-            }
-        }
-    }
-
-    // Receive TemplateLiteral with variables and return plane string where
-    // substitutions replaced to placeholders and variables extracted as separate Vec
-    // `Hello ${username}!` ->  (msg: `Hello {username}!`, variables: {username})
-    fn transform_tpl_to_msg_and_values(&self, tpl: &Tpl) -> (String, Vec<ValueWithPlaceholder>) {
-        let mut message = String::new();
-        let mut values: Vec<ValueWithPlaceholder> = Vec::with_capacity(tpl.exprs.len());
+    // Receive TemplateLiteral with variables and return MsgTokens
+    fn transform_tpl_to_tokens(&self, tpl: &Tpl) -> Vec<MsgToken> {
+        let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
-            message.push_str(&tpl_element.raw);
-
+            tokens.push(MsgToken::String(tpl_element.raw.to_string()));
             if let Some(exp) = tpl.exprs.get(i) {
-                let val = self.get_value_with_placeholder(exp.clone(), &i);
-                message.push_str(&format!("{{{}}}", &val.placeholder));
-                values.push(val);
+                tokens.push(MsgToken::Expression(exp.clone()));
             }
         }
 
-        (message, values)
+        tokens
     }
 
-    fn create_i18n_fn_call(&self, callee_obj: Box<Expr>, message: &str, values: Vec<ValueWithPlaceholder>) -> CallExpr {
+    fn create_i18n_fn_call(&self, callee_obj: Box<Expr>, tokens: Vec<MsgToken>) -> CallExpr {
+        let parsed = MessageBuilder::parse(tokens);
+
+        let mut args: Vec<ExprOrSpread> = vec![parsed.message.as_arg()];
+
+        if let Some(v) = parsed.values {
+            args.push(v.as_arg())
+        }
+
         return CallExpr {
             span: DUMMY_SP,
             callee: Expr::Member(MemberExpr {
@@ -119,47 +86,39 @@ impl TransformVisitor {
                 obj: callee_obj,
                 prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
             }).as_callee(),
-            args: vec![
-                message.as_arg(),
-                Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: dedup_values(values).into_iter().map(|v| v.to_prop()).collect(),
-                }).as_arg(),
-            ],
+            args,
             type_args: None,
         };
     }
 
-    // receive ObjectLiteral {few: "..", many: "..", other: ".."} and create ICU string in form:
-    // {count, plural, few {..} many {..} other {..}}
-    // If messages passed as TemplateLiterals with variables, it extracts variables into Vec
-    // (msg: {count, plural, one `{name} has # friend` other `{name} has # friends`}, variables: {name})
-    fn get_icu_from_choices_obj(&self, props: &Vec<PropOrSpread>, icu_value_ident: &JsWord, icu_method: &JsWord) -> (String, Vec<ValueWithPlaceholder>) {
-        let mut icu_parts: Vec<String> = Vec::with_capacity(props.len());
-        let mut all_values: Vec<ValueWithPlaceholder> = Vec::new();
+    // receive ObjectLiteral {few: "..", many: "..", other: ".."} and create tokens
+    // If messages passed as TemplateLiterals with variables, it extracts variables
+    fn get_choices_from_obj(&self, props: &Vec<PropOrSpread>) -> Vec<IcuChoice> {
+        // todo: there might be more props then real choices. Id for example
+        let mut choices: Vec<IcuChoice> = Vec::with_capacity(props.len());
 
         for prop_or_spread in props {
             if let PropOrSpread::Prop(prop) = prop_or_spread {
                 if let Prop::KeyValue(prop) = prop.as_ref() {
                     if let PropName::Ident(ident) = &prop.key {
-                        let mut push_part = |msg: &str| {
-                            icu_parts.push(format!("{} {{{}}}", &ident.sym, msg));
-                        };
+                        let mut tokens: Vec<MsgToken> = Vec::new();
 
                         // String Literal: "has # friend"
                         if let Expr::Lit(lit) = prop.value.as_ref() {
                             if let Lit::Str(str) = lit {
-                                // one {has # friend}
-                                push_part(&str.value);
+                                tokens = vec!(MsgToken::String(str.clone().value.to_string()));
                             }
                         }
 
                         // Template Literal: `${name} has # friend`
                         if let Expr::Tpl(tpl) = prop.value.as_ref() {
-                            let (msg, values) = self.transform_tpl_to_msg_and_values(tpl);
-                            all_values.extend(values);
-                            push_part(&msg);
+                            tokens = self.transform_tpl_to_tokens(tpl);
                         }
+
+                        choices.push(IcuChoice {
+                            tokens,
+                            key: ident.sym.to_string(),
+                        })
                     } else {
                         // todo panic
                     }
@@ -172,9 +131,7 @@ impl TransformVisitor {
             }
         }
 
-        let msg = format!("{{{}, {}, {}}}", icu_value_ident, icu_method, icu_parts.join(" "));
-
-        (msg, all_values)
+        choices
     }
 
     // <Trans>Message</Trans>
@@ -188,42 +145,28 @@ impl TransformVisitor {
             el.visit_children_with(&mut trans_visitor);
         }
 
-        let mut builder = MessageBuilder::new(trans_visitor.tokens);
-
-        let mut id_attr = get_jsx_attr(&el.opening, "id");
+        let parsed = MessageBuilder::parse(trans_visitor.tokens);
+        let id_attr = get_jsx_attr(&el.opening, "id");
 
         let mut attrs = vec![
             create_jsx_attribute(
                 if let Some(_) = id_attr { "message" } else { "id" }.into(),
-                Expr::Lit(Lit::Str(Str {
-                    span: DUMMY_SP,
-                    value: utils::normalize_whitespaces(&builder.message).into(),
-                    // value: builder.message.into(),
-                    raw: None,
-                })),
+                parsed.message,
             ),
         ];
 
-        builder.values.append(&mut builder.values_indexed);
-
-        if builder.values.len() > 0 {
+        if let Some(exp) = parsed.values {
             attrs.push(create_jsx_attribute(
                 "values",
-                Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: dedup_values(builder.values).into_iter().map(|item| item.to_prop()).collect(),
-                }),
-            ))
+                exp,
+            ));
         }
 
-        if builder.components.len() > 0 {
+        if let Some(exp) = parsed.components {
             attrs.push(create_jsx_attribute(
                 "components",
-                Expr::Object(ObjectLit {
-                    span: DUMMY_SP,
-                    props: builder.components.into_iter().map(|item| item.to_prop()).collect(),
-                }),
-            ))
+                exp,
+            ));
         }
 
         attrs.extend(
@@ -308,25 +251,18 @@ impl Fold for TransformVisitor {
                 // t(i18n)``
                 Expr::Call(call) if match_callee_name(call, LINGUI_T) => {
                     if let Some(v) = call.args.get(0) {
-                        let (message, values)
-                            = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
                         return Expr::Call(self.create_i18n_fn_call(
                             v.expr.clone(),
-                            &message,
-                            values,
+                            self.transform_tpl_to_tokens(&tagged_tpl.tpl),
                         ));
                     }
                 }
                 // t``
                 Expr::Ident(ident) if &ident.sym == LINGUI_T => {
-                    let (message, values)
-                        = self.transform_tpl_to_msg_and_values(&tagged_tpl.tpl);
-
                     self.should_add_18n_import = true;
                     return Expr::Call(self.create_i18n_fn_call(
                         Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
-                        &message,
-                        values,
+                        self.transform_tpl_to_tokens(&tagged_tpl.tpl),
                     ));
                 }
                 _ => {}
@@ -356,27 +292,26 @@ impl Fold for TransformVisitor {
                         return expr;
                     }
 
+
                     // ICU value
                     let arg = expr.args.get(0).unwrap();
-                    let icu_value
-                        = self.get_value_with_placeholder(arg.expr.clone(), &0);
+                    let icu_value = arg.expr.clone();
+
 
                     // ICU Choices
                     let arg = expr.args.get(1).unwrap();
                     if let Expr::Object(object) = &arg.expr.as_ref() {
-                        let (message, values) = self.get_icu_from_choices_obj(
-                            &object.props, &icu_value.placeholder.clone().into(), &ident.sym);
-
-                        // todo need a function to remove duplicates from arguments
-                        let mut all_values = vec![icu_value];
-                        all_values.extend(values);
+                        let choices = self.get_choices_from_obj(&object.props);
 
                         self.should_add_18n_import = true;
 
                         return self.create_i18n_fn_call(
                             Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
-                            &message,
-                            all_values,
+                            vec!(MsgToken::Icu(Icu {
+                                icu_method: ident.sym.clone().to_string(),
+                                value: icu_value,
+                                choices,
+                            })),
                         );
                     } else {
                         // todo passed not an ObjectLiteral,
@@ -481,9 +416,9 @@ test!(
     r#"
     import { i18n } from "@lingui/core";
 
-    i18n._("Refresh inbox", {})
+    i18n._("Refresh inbox")
     i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
-    i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar: bar})
+    i18n._("Refresh {0} inbox {bar}", {bar: bar, 0: foo.bar})
     i18n._("Refresh {0}", {0: expr()})
     "#
 );
@@ -522,9 +457,9 @@ test!(
     r#"
     import { custom_i18n } from "./i18n";
 
-    custom_i18n._("Refresh inbox", {})
+    custom_i18n._("Refresh inbox")
     custom_i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
-    custom_i18n._("Refresh {0} inbox {bar}", {0: foo.bar, bar: bar})
+    custom_i18n._("Refresh {0} inbox {bar}", {bar: bar, 0: foo.bar})
     custom_i18n._("Refresh {0}", {0: expr()})
     "#
 );
@@ -767,7 +702,7 @@ test!(
        import { i18n } from "@lingui/core";
        import { Trans } from "@lingui/react";
 
-       i18n._("Test", {});
+       i18n._("Test");
        <Trans id={"Test"}/>;
     "#
 );

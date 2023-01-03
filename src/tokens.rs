@@ -2,7 +2,7 @@ use swc_core::ecma::ast::{Expr, JSXOpeningElement};
 
 pub enum MsgToken {
     String(String),
-    Value(Box<Expr>),
+    Expression(Box<Expr>),
     TagOpening(TagOpening),
     TagClosing,
     Icu(Icu),

@@ -1,10 +1,20 @@
+use std::collections::HashSet;
 use swc_core::{
     common::{DUMMY_SP},
     ecma::{
         ast::*,
     },
 };
+
+use crate::{utils};
 use crate::tokens::{Icu, MsgToken};
+
+fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
+    let mut uniques = HashSet::new();
+    v.retain(|e| uniques.insert(e.placeholder.clone()));
+
+    v
+}
 
 pub struct ValueWithPlaceholder {
     pub placeholder: String,
@@ -24,18 +34,24 @@ impl ValueWithPlaceholder {
     }
 }
 
+pub struct MessageBuilderResult {
+    pub message: Box<Expr>,
+    pub values: Option<Box<Expr>>,
+    pub components: Option<Box<Expr>>,
+}
+
 pub struct MessageBuilder {
-    pub message: String,
+    message: String,
 
     components_stack: Vec<usize>,
-    pub components: Vec<ValueWithPlaceholder>,
+    components: Vec<ValueWithPlaceholder>,
 
-    pub values: Vec<ValueWithPlaceholder>,
-    pub values_indexed: Vec<ValueWithPlaceholder>,
+    values: Vec<ValueWithPlaceholder>,
+    values_indexed: Vec<ValueWithPlaceholder>,
 }
 
 impl MessageBuilder {
-    pub fn new(tokens: Vec<MsgToken>) -> MessageBuilder {
+    pub fn parse(tokens: Vec<MsgToken>) -> MessageBuilderResult {
         let mut builder = MessageBuilder {
             message: String::new(),
             components_stack: Vec::new(),
@@ -45,8 +61,37 @@ impl MessageBuilder {
         };
 
         builder.from_tokens(tokens);
+        builder.to_args()
+    }
 
-        builder
+    pub fn to_args(mut self) -> MessageBuilderResult {
+        let message = Box::new(Expr::Lit(Lit::Str(Str {
+            span: DUMMY_SP,
+            value: utils::normalize_whitespaces(&self.message).into(),
+            raw: None,
+        })));
+
+        self.values.append(&mut self.values_indexed);
+
+        let values = if self.values.len() > 0 {
+            Some(Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: dedup_values(self.values).into_iter().map(|item| item.to_prop()).collect(),
+            })))
+        } else { None };
+
+        let components = if self.components.len() > 0 {
+            Some(Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: self.components.into_iter().map(|item| item.to_prop()).collect(),
+            })))
+        } else { None };
+
+        MessageBuilderResult {
+            message,
+            values,
+            components,
+        }
     }
 
     fn from_tokens(&mut self, tokens: Vec<MsgToken>) {
@@ -56,7 +101,7 @@ impl MessageBuilder {
                     self.push_msg(&str);
                 }
 
-                MsgToken::Value(val) => {
+                MsgToken::Expression(val) => {
                     let placeholder = self.push_exp(val);
                     self.push_msg(&format!("{{{placeholder}}}"));
                 }
