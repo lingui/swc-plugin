@@ -1,5 +1,5 @@
 [package]
-name = "lingui-macro-plugin"
+name = "lingui_macro_plugin"
 version = "0.1.0"
 edition = "2021"
 
