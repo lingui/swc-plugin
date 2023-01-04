@@ -62,18 +62,16 @@ pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
     })
 }
 
-
-pub fn match_callee_name(call: &CallExpr, fn_name: &str) -> bool {
-    match &call.callee {
-        Callee::Expr(expr) => {
-            if let Expr::Ident(ident) = expr.as_ref() {
-                return &ident.sym == fn_name;
+pub fn match_callee_name<F: Fn(&JsWord) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
+    if let  Callee::Expr(expr) = &call.callee {
+        if let Expr::Ident(ident) = expr.as_ref() {
+            if predicate(&ident.sym) {
+                return Some(ident)
             }
         }
-        _ => {}
     }
 
-    false
+    None
 }
 
 // pub fn match_jsx_name(el: &JSXOpeningElement, name: &str) -> bool {

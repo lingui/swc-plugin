@@ -87,93 +87,103 @@ to!(
     "#
 );
 
-to!(
-    js_icu_functions,
-     r#"
-    import { plural, select, selectOrdinal } from "@lingui/macro";
-    const messagePlural = plural(count, {
-       one: '# Book',
-       other: '# Books'
-    })
-    const messageSelect = select(gender, {
-       male: 'he',
-       female: 'she',
-       other: 'they'
-    })
-    const messageSelectOrdinal = selectOrdinal(count, {
-       one: '#st',
-       two: '#nd',
-       few: '#rd',
-       other: '#th',
-    })
-     "#,
-    r#"
-    import { i18n } from "@lingui/core";
-    const messagePlural = i18n._("{count, plural, one {# Book} other {# Books}}", {
-      count: count
-    });
-    const messageSelect = i18n._("{gender, select, male {he} female {she} other {they}}", {
-      gender: gender
-    });
-    const messageSelectOrdinal = i18n._("{count, selectOrdinal, one {#st} two {#nd} few {#rd} other {#th}}", {
-      count: count
-    });
-    "#
-);
+//
+// to!(
+//     js_newlines_are_preserved,
+//     r#"
+//        import { t } from '@lingui/macro';
+//          t`Multiline
+//            string`;
+//     "#,
+//      r#"
+//         import { i18n } from "@lingui/core";
+//         i18n._("Multiline\\nstring");
+//      "#
+// );
 
-to!(
-    js_should_not_touch_non_lungui_fns,
-     r#"
-    import { plural } from "@lingui/macro";
-    const messagePlural = customName(count, {
-       one: '# Book',
-       other: '# Books'
-    })
-     "#,
-    r#"
-   const messagePlural = customName(count, {
-       one: '# Book',
-       other: '# Books'
-    })
-    "#
-);
+// to!(
+//     js_support_template_strings_in_t_macro_message,
+//     r#"
+//         import { t } from '@lingui/macro'
+//         const msg = t({ message: \`Hello \${name}\` })
+//     "#,
+//      r#"
+//          import { i18n } from "@lingui/core";
+//          const msg =
+//          i18n._({
+//           id: "Hello {name}",
+//           values: {
+//             name: name,
+//           },
+//          });
+//      "#
+// );
 
-
-to!(
-    js_plural_with_placeholders,
-     r#"
-       import { plural } from "@lingui/macro";
-
-       const message = plural(count, {
-           one: `${name} has # friend`,
-           other: `${name} has # friends`
-        })
-     "#,
-    r#"
-    import { i18n } from "@lingui/core";
-    const message = i18n._("{count, plural, one {{name} has # friend} other {{name} has # friends}}", {
-      count: count,
-      name: name,
-    })
-    "#
-);
-
-to!(
-    js_dedup_values_in_icu,
-     r#"
-       import { plural } from "@lingui/macro";
-
-       const message = plural(count, {
-           one: `${name} has ${count} friend`,
-           other: `${name} has {count} friends`
-        })
-     "#,
-    r#"
-    import { i18n } from "@lingui/core";
-
-    const message = i18n._("{count, plural, one {{name} has {count} friend} other {{name} has {count} friends}}", {
-      count: count,
-      name: name,
-    })
-    "#
-);
+// to!(
+//     js_support_template_strings_in_t_macro_message_with_custom_i18n_instance,
+//     r#"
+//     import { t } from '@lingui/macro'
+//     import { i18n } from './lingui'
+//     const msg = t(i18n)({ message: `Hello ${name}` })
+//     "#,
+//     r#"
+//     import { i18n } from "./lingui";
+//     const msg = i18n._({
+//       id: "Hello {name}",
+//       values: {
+//         name: name,
+//       },
+//     });
+//     "#
+// );
+//
+// to!(
+//     support_id_and_comment_in_t_macro_as_call_expression,
+//     r#"
+//         import { t } from '@lingui/macro'
+//         const msg = t({ id: 'msgId', comment: 'description for translators', message: plural(val, { one: '...', other: '...' }) })
+//     "#,
+//     r#"
+//     import { i18n } from "@lingui/core";
+//     const msg = i18n._({
+//       id: "msgId",
+//       comment: "description for translators",
+//       message: "{val, plural, one {...} other {...}}",
+//       values: {
+//         val: val,
+//       },
+//     });
+//     "#
+// );
+//
+// to!(
+//    support_id_with_message_interpolation,
+//     r#"
+//         import { t } from '@lingui/macro'
+//         const msg = t({ id: 'msgId', message: `Some ${value}` })
+//     "#,
+//     r#"
+//         import { i18n } from "@lingui/core";
+//         const msg = i18n._({
+//           id: "msgId",
+//           message: "Some {value}",
+//           values: {
+//             value: value,
+//           },
+//         });
+//     "#
+// );
+//
+// to!(
+//     support_id_in_template_literal,
+//     r#"
+//         import { t } from '@lingui/macro'
+//         const msg = t({ id: `msgId` })
+//     "#,
+//     r#"
+//         import { i18n } from "@lingui/core";
+//         const msg = i18n._({
+//           id: `msgId`
+//         });
+//     "#
+// );

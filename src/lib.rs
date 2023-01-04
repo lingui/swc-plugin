@@ -54,14 +54,22 @@ pub struct TransformVisitor {
     should_add_trans_import: bool,
 }
 
- impl TransformVisitor {
+impl TransformVisitor {
     // Receive TemplateLiteral with variables and return MsgTokens
-    fn transform_tpl_to_tokens(&self, tpl: &Tpl) -> Vec<MsgToken> {
+    fn tokenize_tpl(&self, tpl: &Tpl) -> Vec<MsgToken> {
         let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
             tokens.push(MsgToken::String(tpl_element.raw.to_string()));
+
             if let Some(exp) = tpl.exprs.get(i) {
+                if let Expr::Call(call) = exp.as_ref() {
+                    if let Some(call_tokens) = self.tokenize_call_expr(call) {
+                        tokens.extend(call_tokens);
+                        continue;
+                    }
+                }
+
                 tokens.push(MsgToken::Expression(exp.clone()));
             }
         }
@@ -90,6 +98,60 @@ pub struct TransformVisitor {
         };
     }
 
+    fn tokenize_call_expr(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
+        if let Some(ident) = match_callee_name(&expr, |name| is_lingui_fn(name)) {
+            if expr.args.len() != 2 {
+                // malformed plural call, exit
+                return None;
+            }
+
+            // ICU value
+            let arg = expr.args.get(0).unwrap();
+            let icu_value = arg.expr.clone();
+
+            // ICU Choices
+            let arg = expr.args.get(1).unwrap();
+            if let Expr::Object(object) = &arg.expr.as_ref() {
+                let choices = self.get_choices_from_obj(&object.props);
+
+                return Some(vec![MsgToken::Icu(Icu {
+                    icu_method: ident.sym.to_lowercase(),
+                    value: icu_value,
+                    choices,
+                })]);
+            } else {
+                // todo passed not an ObjectLiteral,
+                //      we should panic here or just skip this call
+            }
+        }
+
+        return None;
+    }
+
+    fn tokenize_expr(&self, expr: &Box<Expr>) -> Option<Vec<MsgToken>> {
+        match expr.as_ref() {
+            // String Literal: "has # friend"
+            Expr::Lit(Lit::Str(str)) => {
+                Some(vec!(MsgToken::String(str.clone().value.to_string())))
+            }
+            // Template Literal: `${name} has # friend`
+            Expr::Tpl(tpl) => {
+                Some(self.tokenize_tpl(tpl))
+            }
+
+            // ParenthesisExpression: ("has # friend")
+            Expr::Paren(ParenExpr {expr, ..}) => {
+                self.tokenize_expr(expr)
+            }
+
+            // Call Expression: {one: plural(numArticles, {...})}
+            Expr::Call(expr) => {
+                self.tokenize_call_expr(expr)
+            }
+            _ => None
+        }
+    }
+
     // receive ObjectLiteral {few: "..", many: "..", other: ".."} and create tokens
     // If messages passed as TemplateLiterals with variables, it extracts variables
     fn get_choices_from_obj(&self, props: &Vec<PropOrSpread>) -> Vec<IcuChoice> {
@@ -99,26 +161,24 @@ pub struct TransformVisitor {
         for prop_or_spread in props {
             if let PropOrSpread::Prop(prop) = prop_or_spread {
                 if let Prop::KeyValue(prop) = prop.as_ref() {
-                    if let PropName::Ident(ident) = &prop.key {
-                        let mut tokens: Vec<MsgToken> = Vec::new();
+                    match &prop.key {
+                        // {one: ""}
+                        // {"one": ""}
+                        PropName::Ident(Ident { sym, .. })
+                        | PropName::Str(Str { value: sym, .. }) => {
+                            let tokens = self
+                                .tokenize_expr(&prop.value)
+                                .unwrap_or(Vec::new());
 
-                        // String Literal: "has # friend"
-                        if let Expr::Lit(lit) = prop.value.as_ref() {
-                            if let Lit::Str(str) = lit {
-                                tokens = vec!(MsgToken::String(str.clone().value.to_string()));
-                            }
+                            choices.push(IcuChoice {
+                                tokens,
+                                key: sym.to_string(),
+                            })
                         }
+                        _ => {}
+                    }
 
-                        // Template Literal: `${name} has # friend`
-                        if let Expr::Tpl(tpl) = prop.value.as_ref() {
-                            tokens = self.transform_tpl_to_tokens(tpl);
-                        }
-
-                        choices.push(IcuChoice {
-                            tokens,
-                            key: ident.sym.to_string(),
-                        })
-                    } else {
+                    if let PropName::Ident(ident) = &prop.key {} else {
                         // todo panic
                     }
                     // icuParts.push_str(prop.key)
@@ -248,11 +308,11 @@ impl Fold for TransformVisitor {
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
             match tagged_tpl.tag.as_ref() {
                 // t(i18n)``
-                Expr::Call(call) if match_callee_name(call, LINGUI_T) => {
+                Expr::Call(call) if matches!(match_callee_name(call, |n| n == LINGUI_T), Some(_)) => {
                     if let Some(v) = call.args.get(0) {
                         return Expr::Call(self.create_i18n_fn_call(
                             v.expr.clone(),
-                            self.transform_tpl_to_tokens(&tagged_tpl.tpl),
+                            self.tokenize_tpl(&tagged_tpl.tpl),
                         ));
                     }
                 }
@@ -261,7 +321,7 @@ impl Fold for TransformVisitor {
                     self.should_add_18n_import = true;
                     return Expr::Call(self.create_i18n_fn_call(
                         Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
-                        self.transform_tpl_to_tokens(&tagged_tpl.tpl),
+                        self.tokenize_tpl(&tagged_tpl.tpl),
                     ));
                 }
                 _ => {}
@@ -278,47 +338,13 @@ impl Fold for TransformVisitor {
             return expr;
         }
 
-        if let Callee::Expr(e) = &expr.callee {
-            match e.as_ref() {
-                // (plural | select | selectOrdinal)()
-                Expr::Ident(ident) => {
-                    if !is_lingui_fn(&ident.sym) {
-                        return expr;
-                    }
+        if let Some(tokens) = self.tokenize_call_expr(&expr) {
+            self.should_add_18n_import = true;
 
-                    if expr.args.len() != 2 {
-                        // malformed plural call, exit
-                        return expr;
-                    }
-
-
-                    // ICU value
-                    let arg = expr.args.get(0).unwrap();
-                    let icu_value = arg.expr.clone();
-
-
-                    // ICU Choices
-                    let arg = expr.args.get(1).unwrap();
-                    if let Expr::Object(object) = &arg.expr.as_ref() {
-                        let choices = self.get_choices_from_obj(&object.props);
-
-                        self.should_add_18n_import = true;
-
-                        return self.create_i18n_fn_call(
-                            Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
-                            vec!(MsgToken::Icu(Icu {
-                                icu_method: ident.sym.clone().to_string(),
-                                value: icu_value,
-                                choices,
-                            })),
-                        );
-                    } else {
-                        // todo passed not an ObjectLiteral,
-                        //      we should panic here or just skip this call
-                    }
-                }
-                _ => {}
-            }
+            return self.create_i18n_fn_call(
+                Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
+                tokens,
+            );
         }
 
         expr

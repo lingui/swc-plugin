@@ -32,7 +32,6 @@ cargo test
   - [x] ``t`Some ${variable} string` ``
   - [x] ``t`Some ${expression} string` ``
   - [x] ``t(i18n)`Some string` `` - custom i18n instance
-  - [x] check name of tag === 't' before transformation
   - [x] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}`
 - [ ] NON Essential `t` macro cases:
     - [ ] `t({ message descriptor })` call with message descriptor object
@@ -40,13 +39,13 @@ cargo test
 - [ ] `defineMessage`
   - [ ] Basic transform
   - [ ] Omit non-essential props on production
-- [x] Essential ICU calls (plural, select, selectOrdinal)
+- [x] JS ICU calls (plural, select, selectOrdinal)
   - [x] ``plural(count, {one: '# item', few: '# items'})`` - simple strings
   - [x] ``plural(count, {one: `${variable} # item`, few: '# items'})`` - tpls with placeholders
   - [x] ``plural(expression(), {one: `${variable} # item`, few: '# items'})`` - expression as parameter
   - [x] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}`
-- [ ] NON Essential ICU cases:
-  - [ ] NON-ESSENTIAL nested icu as described here https://lingui.js.org/ref/macro.html#plural
+  - [x] nesting expressions as described here https://lingui.js.org/ref/macro.html#plural
+  - [] Support `offset:1`
 - [ ] Support JSX transformation
   - [ ] `<Trans>`
     - [x] Simple cases `<Trans>Hello World</Trans>` -> `<Trans message="Hello World" />`
