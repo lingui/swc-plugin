@@ -33,9 +33,9 @@ cargo test
   - [x] ``t`Some ${expression} string` ``
   - [x] ``t(i18n)`Some string` `` - custom i18n instance
   - [x] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}`
-- [ ] NON Essential `t` macro cases:
-    - [ ] `t({ message descriptor })` call with message descriptor object
-    - [ ] Passing other macros as arguments for `t()` eq: `t({message: plural(...)})`
+- [x] NON Essential `t` macro cases:
+    - [x] `t({ message descriptor })` call with message descriptor object
+    - [x] Passing other macros as arguments for `t()` eq: `t({message: plural(...)})`
 - [ ] `defineMessage`
   - [ ] Basic transform
   - [ ] Omit non-essential props on production
@@ -61,7 +61,7 @@ cargo test
 - [x] Support narrowing transformation to only function exported from `@lingui/macro` 
 - [x] Automatic adding  `import { i18n } from @lingui/core`
 - [ ] NON-ESSENTIAL Injecting uniq variables, avoiding collision with existing variables
-- [ ] NON-ESSENTIAL support renaming `import {t as macroT} from "@lingui/macro"`
+- [ ] NON-ESSENTIAL support renamed macro calls `import {t as macroT} from "@lingui/macro"`
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
 - [ ] Building binary and publishing
 - [ ] Support `runtimeConfigModule` settings

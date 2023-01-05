@@ -64,7 +64,7 @@ impl TransformVisitor {
 
             if let Some(exp) = tpl.exprs.get(i) {
                 if let Expr::Call(call) = exp.as_ref() {
-                    if let Some(call_tokens) = self.tokenize_call_expr(call) {
+                    if let Some(call_tokens) = self.try_tokenize_call_expr_as_icu(call) {
                         tokens.extend(call_tokens);
                         continue;
                     }
@@ -77,7 +77,7 @@ impl TransformVisitor {
         tokens
     }
 
-    fn create_i18n_fn_call(&self, callee_obj: Box<Expr>, tokens: Vec<MsgToken>) -> CallExpr {
+    fn create_i18n_fn_call_from_tokens(&mut self, callee_obj: Option<Box<Expr>>, tokens: Vec<MsgToken>) -> CallExpr {
         let parsed = MessageBuilder::parse(tokens);
 
         let mut args: Vec<ExprOrSpread> = vec![parsed.message.as_arg()];
@@ -86,11 +86,18 @@ impl TransformVisitor {
             args.push(v.as_arg())
         }
 
+        return self.create_i18n_fn_call(callee_obj, args);
+    }
+
+    fn create_i18n_fn_call(&mut self, callee_obj: Option<Box<Expr>>, args: Vec<ExprOrSpread>) -> CallExpr {
         return CallExpr {
             span: DUMMY_SP,
             callee: Expr::Member(MemberExpr {
                 span: DUMMY_SP,
-                obj: callee_obj,
+                obj: callee_obj.unwrap_or_else(|| {
+                    self.should_add_18n_import = true;
+                    return Box::new(Ident::new("i18n".into(), DUMMY_SP).into());
+                }),
                 prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
             }).as_callee(),
             args,
@@ -98,7 +105,7 @@ impl TransformVisitor {
         };
     }
 
-    fn tokenize_call_expr(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
+    fn try_tokenize_call_expr_as_icu(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
         if let Some(ident) = match_callee_name(&expr, |name| is_lingui_fn(name)) {
             if expr.args.len() != 2 {
                 // malformed plural call, exit
@@ -128,7 +135,7 @@ impl TransformVisitor {
         return None;
     }
 
-    fn tokenize_expr(&self, expr: &Box<Expr>) -> Option<Vec<MsgToken>> {
+    fn try_tokenize_expr(&self, expr: &Box<Expr>) -> Option<Vec<MsgToken>> {
         match expr.as_ref() {
             // String Literal: "has # friend"
             Expr::Lit(Lit::Str(str)) => {
@@ -140,15 +147,35 @@ impl TransformVisitor {
             }
 
             // ParenthesisExpression: ("has # friend")
-            Expr::Paren(ParenExpr {expr, ..}) => {
-                self.tokenize_expr(expr)
+            Expr::Paren(ParenExpr { expr, .. }) => {
+                self.try_tokenize_expr(expr)
             }
 
             // Call Expression: {one: plural(numArticles, {...})}
             Expr::Call(expr) => {
-                self.tokenize_call_expr(expr)
+                self.try_tokenize_call_expr_as_icu(expr)
             }
             _ => None
+        }
+    }
+
+    fn is_lingui_t_call_expr(&self, callee_expr: &Box<Expr>) -> (bool, Option<Box<Expr>>) {
+        match callee_expr.as_ref() {
+            // t(i18n)...
+            Expr::Call(call) if matches!(match_callee_name(call, |n| n == LINGUI_T), Some(_)) => {
+                if let Some(v) = call.args.get(0) {
+                    (true, Some(v.expr.clone()))
+                } else {
+                    (false, None)
+                }
+            }
+            // t..
+            Expr::Ident(ident) if &ident.sym == LINGUI_T => {
+                (true, None)
+            }
+            _ => {
+                (false, None)
+            }
         }
     }
 
@@ -167,7 +194,7 @@ impl TransformVisitor {
                         PropName::Ident(Ident { sym, .. })
                         | PropName::Str(Str { value: sym, .. }) => {
                             let tokens = self
-                                .tokenize_expr(&prop.value)
+                                .try_tokenize_expr(&prop.value)
                                 .unwrap_or(Vec::new());
 
                             choices.push(IcuChoice {
@@ -249,6 +276,46 @@ impl TransformVisitor {
             },
         };
     }
+
+    // take {message: "", ...} object literal, process message and return updated props
+    fn update_msg_descriptor_props(&self, expr: Box<Expr>) -> Box<Expr> {
+        if let Expr::Object(obj) = *expr {
+            let has_id = has_object_prop(&obj.props, "id");
+
+            let new_props: Vec<PropOrSpread> = obj.props.into_iter().map(|prop_or_spread| {
+                if let PropOrSpread::Prop(prop1) = &prop_or_spread {
+                    if let Prop::KeyValue(prop) = prop1.as_ref() {
+                        if match_prop_key(prop, "message") {
+                            let tokens = self.try_tokenize_expr(&prop.value).unwrap();
+
+                            let parsed = MessageBuilder::parse(tokens);
+
+                            let mut args: Vec<PropOrSpread> = vec![
+                                create_key_value_prop(if has_id { "message" } else { "id" }, parsed.message),
+                            ];
+
+                            if let Some(v) = parsed.values {
+                                args.push(
+                                    create_key_value_prop("values", v),
+                                )
+                            }
+
+                            return args;
+                        }
+                    }
+                }
+
+                return vec![prop_or_spread];
+            }).flatten().collect();
+
+            return Box::new(Expr::Object(ObjectLit {
+                span: DUMMY_SP,
+                props: new_props,
+            }));
+        }
+
+        expr
+    }
 }
 
 
@@ -306,30 +373,19 @@ impl Fold for TransformVisitor {
         }
 
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
-            match tagged_tpl.tag.as_ref() {
-                // t(i18n)``
-                Expr::Call(call) if matches!(match_callee_name(call, |n| n == LINGUI_T), Some(_)) => {
-                    if let Some(v) = call.args.get(0) {
-                        return Expr::Call(self.create_i18n_fn_call(
-                            v.expr.clone(),
-                            self.tokenize_tpl(&tagged_tpl.tpl),
-                        ));
-                    }
-                }
-                // t``
-                Expr::Ident(ident) if &ident.sym == LINGUI_T => {
-                    self.should_add_18n_import = true;
-                    return Expr::Call(self.create_i18n_fn_call(
-                        Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
-                        self.tokenize_tpl(&tagged_tpl.tpl),
-                    ));
-                }
-                _ => {}
+            let (is_t, callee) = self.is_lingui_t_call_expr(&tagged_tpl.tag);
+
+            if is_t {
+                return Expr::Call(self.create_i18n_fn_call_from_tokens(
+                    callee,
+                    self.tokenize_tpl(&tagged_tpl.tpl),
+                ));
             }
         }
 
         expr.fold_children_with(self)
     }
+
 
     fn fold_call_expr(&mut self, expr: CallExpr) -> CallExpr {
         // If no package that we care about is imported, skip the following
@@ -338,11 +394,23 @@ impl Fold for TransformVisitor {
             return expr;
         }
 
-        if let Some(tokens) = self.tokenize_call_expr(&expr) {
-            self.should_add_18n_import = true;
+        // t({}) / t(i18n)({})
+        if let Callee::Expr(callee) = &expr.callee {
+            let (is_t, callee) = self.is_lingui_t_call_expr(callee);
 
-            return self.create_i18n_fn_call(
-                Box::new(Ident::new("i18n".into(), DUMMY_SP).into()),
+            if is_t && expr.args.len() == 1 {
+                let descriptor = self.update_msg_descriptor_props(
+                    expr.args.into_iter().next().unwrap().expr
+                );
+
+                return self.create_i18n_fn_call(callee, vec![descriptor.as_arg()]);
+            }
+        }
+
+        // plural / selectOrdinal / select
+        if let Some(tokens) = self.try_tokenize_call_expr_as_icu(&expr) {
+            return self.create_i18n_fn_call_from_tokens(
+                None,
                 tokens,
             );
         }

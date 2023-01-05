@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use swc_common::DUMMY_SP;
 use swc_core::ecma::ast::{*};
 use swc_core::ecma::atoms::JsWord;
+use swc_core::ecma::utils::quote_ident;
 
 pub fn get_jsx_attr_value<'a>(el: &'a JSXOpeningElement, name: &str) -> &'a Option<JSXAttrValue> {
     for attr in &el.attrs {
@@ -63,15 +64,45 @@ pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
 }
 
 pub fn match_callee_name<F: Fn(&JsWord) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
-    if let  Callee::Expr(expr) = &call.callee {
+    if let Callee::Expr(expr) = &call.callee {
         if let Expr::Ident(ident) = expr.as_ref() {
             if predicate(&ident.sym) {
-                return Some(ident)
+                return Some(ident);
             }
         }
     }
 
     None
+}
+
+pub fn to_key_value_prop(prop_or_spread: &PropOrSpread) -> Option<&KeyValueProp> {
+    if let PropOrSpread::Prop(prop) = prop_or_spread {
+        if let Prop::KeyValue(prop) = prop.as_ref() {
+            return Some(prop);
+        }
+    }
+
+    None
+}
+
+pub fn has_object_prop(props: &Vec<PropOrSpread>, name: &str) -> bool {
+   for prop_or_spread in props {
+       if let Some(prop) = to_key_value_prop(prop_or_spread) {
+          if  match_prop_key(prop, name) {
+              return true;
+          }
+       }
+   }
+
+    false
+}
+
+pub fn match_prop_key(prop: &KeyValueProp, name: &str) -> bool {
+    if let PropName::Ident(ident) = &prop.key {
+        return ident.sym.to_string() == name;
+    }
+
+    false
 }
 
 // pub fn match_jsx_name(el: &JSXOpeningElement, name: &str) -> bool {
@@ -80,6 +111,15 @@ pub fn match_callee_name<F: Fn(&JsWord) -> bool>(call: &CallExpr, predicate: F) 
 //     }
 //     return false;
 // }
+
+pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
+    return PropOrSpread::Prop(Box::new(Prop::KeyValue(
+        KeyValueProp {
+            key: PropName::Ident(quote_ident!(key)),
+            value,
+        }
+    )));
+}
 
 pub fn create_import(source: JsWord, specifier: Ident) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
