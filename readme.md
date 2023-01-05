@@ -51,15 +51,16 @@ cargo test
     - [x] Simple cases `<Trans>Hello World</Trans>` -> `<Trans message="Hello World" />`
     - [x] Variables interpolation  `<Trans>Hello {name} and {getName()}</Trans>` -> `<Trans variables={name, 1: getName()} msg="Hello {name} and {1}"/>`
     - [x] Recursive Components interpolation `<Trans>Hello <strong>World!</strong></Trans>`
+    - [x] Support edge cases `<Trans>{'Hello World'}</Trans>` and ``<Trans>{`How much is ${expression}? ${count}`}</Trans>``
     - [ ] Stripping non-essential props in production
-    - [ ] NON-ESSENTIAL Support edge cases `<Trans>{'Hello World'}</Trans>` and ``<Trans>{`How much is ${expression}? ${count}`}</Trans>``
     - [ ] Whitespaces management: stripping, but keeping "forced"
       - [x] Simple cases
       - [ ] escaping forced `\r`
-  - [ ] ICU: `<Plural>` `<SelectOrdinal>` `<Select>`
+  - [x] ICU: `<Plural>` `<SelectOrdinal>` `<Select>`
     - [x] Support `offset:1` and exact matches `=1 {...}`
 - [x] Support narrowing transformation to only function exported from `@lingui/macro` 
 - [x] Automatic adding  `import { i18n } from @lingui/core`
+- [ ] Unicode escaping, validate how SWC produce values
 - [ ] NON-ESSENTIAL Injecting uniq variables, avoiding collision with existing variables
 - [ ] NON-ESSENTIAL support renamed macro calls `import {t as macroT} from "@lingui/macro"`
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)

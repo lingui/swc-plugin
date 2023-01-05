@@ -96,6 +96,21 @@ to!(
 );
 
 to!(
+    jsx_template_literal_in_children,
+     r#"
+       import { Trans } from "@lingui/macro";
+       <Trans>{`Hello ${foo} and ${bar}`}</Trans>
+     "#,
+    r#"
+       import { Trans } from "@lingui/react";
+       <Trans id={"Hello {foo} and {bar}"} values={{
+          foo: foo,
+          bar: bar,
+        }}/>;
+    "#
+);
+
+to!(
     jsx_icu,
      r#"
       import { Plural } from "@lingui/macro";
@@ -275,26 +290,26 @@ to!(
     "#
 );
 
-// to!(
-//     jsx_icu_with_template_literal,
-//      r#"
-//        import { Plural } from "@lingui/macro";
-// 
-//         <Plural
-//           value={count}
-//           one={`${count} items`}
-//           other="..."
-//         />;
-//      "#,
-// 
-//     r#"
-//        import { Trans } from "@lingui/react";
-//         <Trans id={
-//           "{count, plural, one {{count} items} other {...}}}"
-//          }
-//          values={{
-//           count: count
-//         }}
-//         />;
-//     "#
-// );
+to!(
+    jsx_icu_with_template_literal,
+     r#"
+       import { Plural } from "@lingui/macro";
+
+        <Plural
+          value={count}
+          one={`${count} items`}
+          other="..."
+        />;
+     "#,
+
+    r#"
+       import { Trans } from "@lingui/react";
+        <Trans id={
+          "{count, plural, one {{count} items} other {...}}"
+         }
+         values={{
+          count: count
+        }}
+        />;
+    "#
+);

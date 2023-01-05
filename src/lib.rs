@@ -15,7 +15,6 @@ use swc_core::{
         proxies::TransformPluginProgramMetadata,
     },
 };
-use swc_core::ecma::atoms::JsWord;
 use swc_core::ecma::utils::quote_ident;
 
 mod tests;
@@ -23,31 +22,15 @@ mod normalize_witespaces_jsx;
 mod normalize_witespaces_js;
 mod builder;
 mod tokens;
-mod ecma_utils;
+mod ast_utils;
+mod macro_utils;
 mod jsx_visitor;
 
 use builder::*;
-use ecma_utils::*;
+use ast_utils::*;
 use jsx_visitor::TransJSXVisitor;
-use crate::tokens::{Icu, IcuChoice, IcuChoiceOrOffset, MsgToken};
-
-const LINGUI_T: &str = &"t";
-
-fn is_lingui_fn(name: &str) -> bool {
-    // todo: i didn't find a better way to create a constant hashmap
-    match name {
-        "plural" | "select" | "selectOrdinal" => true,
-        _ => false,
-    }
-}
-
-fn is_lingui_jsx_el(name: &str) -> bool {
-    // todo: i didn't find a better way to create a constant hashmap
-    match name {
-        "Plural" | "Select" | "SelectOrdinal" => true,
-        _ => false,
-    }
-}
+use crate::macro_utils::{*};
+use crate::tokens::{MsgToken};
 
 #[derive(Default)]
 pub struct TransformVisitor {
@@ -57,28 +40,6 @@ pub struct TransformVisitor {
 }
 
 impl TransformVisitor {
-    // Receive TemplateLiteral with variables and return MsgTokens
-    fn tokenize_tpl(&self, tpl: &Tpl) -> Vec<MsgToken> {
-        let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
-
-        for (i, tpl_element) in tpl.quasis.iter().enumerate() {
-            tokens.push(MsgToken::String(tpl_element.raw.to_string()));
-
-            if let Some(exp) = tpl.exprs.get(i) {
-                if let Expr::Call(call) = exp.as_ref() {
-                    if let Some(call_tokens) = self.try_tokenize_call_expr_as_icu(call) {
-                        tokens.extend(call_tokens);
-                        continue;
-                    }
-                }
-
-                tokens.push(MsgToken::Expression(exp.clone()));
-            }
-        }
-
-        tokens
-    }
-
     fn create_i18n_fn_call_from_tokens(&mut self, callee_obj: Option<Box<Expr>>, tokens: Vec<MsgToken>) -> CallExpr {
         let parsed = MessageBuilder::parse(tokens, false);
 
@@ -107,136 +68,6 @@ impl TransformVisitor {
         };
     }
 
-    fn try_tokenize_call_expr_as_icu(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
-        if let Some(ident) = match_callee_name(&expr, |name| is_lingui_fn(name)) {
-            if expr.args.len() != 2 {
-                // malformed plural call, exit
-                return None;
-            }
-
-            // ICU value
-            let arg = expr.args.get(0).unwrap();
-            let icu_value = arg.expr.clone();
-
-            // ICU Choices
-            let arg = expr.args.get(1).unwrap();
-            if let Expr::Object(object) = &arg.expr.as_ref() {
-                let icu_method = ident.sym.to_lowercase();
-                let choices = self.get_choices_from_obj(&object.props, &icu_method);
-
-                return Some(vec![MsgToken::Icu(Icu {
-                    icu_method,
-                    value: icu_value,
-                    choices,
-                })]);
-            } else {
-                // todo passed not an ObjectLiteral,
-                //      we should panic here or just skip this call
-            }
-        }
-
-        return None;
-    }
-
-    fn try_tokenize_expr(&self, expr: &Box<Expr>) -> Option<Vec<MsgToken>> {
-        match expr.as_ref() {
-            // String Literal: "has # friend"
-            Expr::Lit(Lit::Str(str)) => {
-                Some(vec!(MsgToken::String(str.clone().value.to_string())))
-            }
-            // Template Literal: `${name} has # friend`
-            Expr::Tpl(tpl) => {
-                Some(self.tokenize_tpl(tpl))
-            }
-
-            // ParenthesisExpression: ("has # friend")
-            Expr::Paren(ParenExpr { expr, .. }) => {
-                self.try_tokenize_expr(expr)
-            }
-
-            // Call Expression: {one: plural(numArticles, {...})}
-            Expr::Call(expr) => {
-                self.try_tokenize_call_expr_as_icu(expr)
-            }
-            _ => None
-        }
-    }
-
-    fn is_lingui_t_call_expr(&self, callee_expr: &Box<Expr>) -> (bool, Option<Box<Expr>>) {
-        match callee_expr.as_ref() {
-            // t(i18n)...
-            Expr::Call(call) if matches!(match_callee_name(call, |n| n == LINGUI_T), Some(_)) => {
-                if let Some(v) = call.args.get(0) {
-                    (true, Some(v.expr.clone()))
-                } else {
-                    (false, None)
-                }
-            }
-            // t..
-            Expr::Ident(ident) if &ident.sym == LINGUI_T => {
-                (true, None)
-            }
-            _ => {
-                (false, None)
-            }
-        }
-    }
-
-    fn get_js_choice_key(&self, prop: &KeyValueProp ) -> Option<JsWord> {
-        match &prop.key {
-            // {one: ""}
-            PropName::Ident(Ident { sym, .. })
-            // {"one": ""}
-            | PropName::Str(Str { value: sym, .. }) => {
-                Some(sym.clone())
-            }
-            // {0: ""} -> `={number}`
-            PropName::Num(Number {value, ..}) => {
-                Some(format!("={value}").into())
-            }
-            _ => {
-                None
-            }
-        }
-    }
-
-    // receive ObjectLiteral {few: "..", many: "..", other: ".."} and create tokens
-    // If messages passed as TemplateLiterals with variables, it extracts variables
-    fn get_choices_from_obj(&self, props: &Vec<PropOrSpread>, icu_format: &str) -> Vec<IcuChoiceOrOffset> {
-        // todo: there might be more props then real choices. Id for example
-        let mut choices: Vec<IcuChoiceOrOffset> = Vec::with_capacity(props.len());
-
-        for prop_or_spread in props {
-            if let PropOrSpread::Prop(prop) = prop_or_spread {
-                if let Prop::KeyValue(prop) = prop.as_ref() {
-                    if let Some(key) = self.get_js_choice_key(prop) {
-                        if &key == "offset" && icu_format != "select" {
-                            if let Expr::Lit(Lit::Num(Number {value, ..})) = prop.value.as_ref() {
-                                choices.push(IcuChoiceOrOffset::Offset(value.to_string()))
-                            } else {
-                                // todo: panic offset might be only a number, other forms is not supported
-                            }
-                        } else {
-                            let tokens = self
-                                .try_tokenize_expr(&prop.value)
-                                .unwrap_or(Vec::new());
-
-                            choices.push(IcuChoiceOrOffset::IcuChoice(IcuChoice {
-                                tokens,
-                                key: key.to_string(),
-                            }));
-                        }
-                    }
-                } else {
-                    // todo: panic here we could not parse anything else then KeyValue pair
-                }
-            } else {
-                // todo: panic here, we could not parse spread
-            }
-        }
-
-        choices
-    }
 
     // <Trans>Message</Trans>
     // <Plural />
@@ -304,7 +135,7 @@ impl TransformVisitor {
                 if let PropOrSpread::Prop(prop1) = &prop_or_spread {
                     if let Prop::KeyValue(prop) = prop1.as_ref() {
                         if match_prop_key(prop, "message") {
-                            let tokens = self.try_tokenize_expr(&prop.value).unwrap();
+                            let tokens = try_tokenize_expr(&prop.value).unwrap();
 
                             let parsed = MessageBuilder::parse(tokens, false);
 
@@ -391,12 +222,12 @@ impl Fold for TransformVisitor {
         }
 
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
-            let (is_t, callee) = self.is_lingui_t_call_expr(&tagged_tpl.tag);
+            let (is_t, callee) = is_lingui_t_call_expr(&tagged_tpl.tag);
 
             if is_t {
                 return Expr::Call(self.create_i18n_fn_call_from_tokens(
                     callee,
-                    self.tokenize_tpl(&tagged_tpl.tpl),
+                    tokenize_tpl(&tagged_tpl.tpl),
                 ));
             }
         }
@@ -416,7 +247,6 @@ impl Fold for TransformVisitor {
         expr.fold_children_with(self)
     }
 
-
     fn fold_call_expr(&mut self, expr: CallExpr) -> CallExpr {
         // If no package that we care about is imported, skip the following
         // transformation logic.
@@ -426,7 +256,7 @@ impl Fold for TransformVisitor {
 
         // t({}) / t(i18n)({})
         if let Callee::Expr(callee) = &expr.callee {
-            let (is_t, callee) = self.is_lingui_t_call_expr(callee);
+            let (is_t, callee) = is_lingui_t_call_expr(callee);
 
             if is_t && expr.args.len() == 1 {
                 let descriptor = self.update_msg_descriptor_props(
@@ -438,7 +268,7 @@ impl Fold for TransformVisitor {
         }
 
         // plural / selectOrdinal / select
-        if let Some(tokens) = self.try_tokenize_call_expr_as_icu(&expr) {
+        if let Some(tokens) = try_tokenize_call_expr_as_icu(&expr) {
             return self.create_i18n_fn_call_from_tokens(
                 None,
                 tokens,

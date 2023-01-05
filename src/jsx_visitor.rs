@@ -3,11 +3,12 @@ use swc_core::ecma::{
 };
 use swc_core::ecma::ast::{*};
 use swc_common::DUMMY_SP;
-use crate::ecma_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
+use crate::ast_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
 use crate::is_lingui_jsx_el;
 use crate::tokens::{Icu, IcuChoice, IcuChoiceOrOffset, MsgToken, TagOpening};
 use regex::{Regex};
 use once_cell::sync::Lazy;
+use crate::macro_utils::{tokenize_tpl, try_tokenize_call_expr_as_icu};
 
 pub struct TransJSXVisitor {
     pub tokens: Vec<MsgToken>,
@@ -71,11 +72,9 @@ impl TransJSXVisitor {
                                             tokens.push(MsgToken::String(str.value.clone().to_string()))
                                         }
                                         // some={`# books ${name}`}
-                                        // Expr::Tpl(tpl) => {
-                                        //     let (msg, values) = self.transform_tpl_to_msg_and_values(tpl);
-                                        //     all_values.extend(values);
-                                        //     push_part(&msg);
-                                        // }
+                                        Expr::Tpl(tpl) => {
+                                            tokens.extend(tokenize_tpl(tpl));
+                                        }
                                         // some={`<Books />`}
                                         Expr::JSXElement(exp) => {
                                             let mut visitor = TransJSXVisitor::new();
@@ -117,7 +116,6 @@ impl Visit for TransJSXVisitor {
     fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
         if let JSXElementName::Ident(ident) = &el.name {
             if &ident.sym == "Trans" {
-                println!("alive");
                 el.visit_children_with(self);
                 return;
             }
@@ -181,6 +179,24 @@ impl Visit for TransJSXVisitor {
                 Expr::Lit(Lit::Str(str)) => {
                     self.tokens.push(
                         MsgToken::String(str.value.to_string())
+                    );
+                }
+
+                // todo write tests and validate
+                // support calls to js macro inside JSX, but not to t``
+                Expr::Call(call) => {
+                    if let Some(tokens) = try_tokenize_call_expr_as_icu(call) {
+                        self.tokens.extend(tokens);
+                    } else {
+                        self.tokens.push(
+                            MsgToken::Expression(exp.clone())
+                        );
+                    }
+                }
+
+                Expr::Tpl(tpl) => {
+                    self.tokens.extend(
+                        tokenize_tpl(tpl)
                     );
                 }
                 _ => {
