@@ -1,11 +1,13 @@
 use swc_core::ecma::{
     visit::{Visit, VisitWith},
 };
-use swc_core::ecma::ast::{Expr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXClosingElement, JSXElementName, JSXExpr, JSXExprContainer, JSXOpeningElement, JSXText, Lit, Null};
+use swc_core::ecma::ast::{*};
 use swc_common::DUMMY_SP;
-use crate::ecma_utils::{get_jsx_attr_value};
+use crate::ecma_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
 use crate::is_lingui_jsx_el;
-use crate::tokens::{Icu, IcuChoice, MsgToken, TagOpening};
+use crate::tokens::{Icu, IcuChoice, IcuChoiceOrOffset, MsgToken, TagOpening};
+use regex::{Regex};
+use once_cell::sync::Lazy;
 
 pub struct TransJSXVisitor {
     pub tokens: Vec<MsgToken>,
@@ -19,65 +21,86 @@ impl TransJSXVisitor {
     }
 }
 
+static PLURAL_OPTIONS_WHITELIST: Lazy<Regex> = Lazy::new(|| Regex::new(r"(_[\d\w]+|zero|one|two|few|many|other)").unwrap());
+static NUM_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\d+)").unwrap());
+static WORD_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\w+)").unwrap());
+
+// const pluralRuleRe = /(_[\d\w]+|zero|one|two|few|many|other)/
+// const jsx2icuExactChoice = (value: string) => value.replace(/_(\d+)/, "=$1").replace(/_(\w+)/, "$1")
+
+fn is_allowed_plural_option(key: &str) -> Option<String> {
+    if PLURAL_OPTIONS_WHITELIST.is_match(key) {
+        let key = NUM_OPTION.replace(key, "=$1");
+        let key = WORD_OPTION.replace(&key, "$1");
+
+        return Some(key.to_string());
+    }
+
+    None
+}
+
 impl TransJSXVisitor {
     // <Plural /> <Select /> <SelectOrdinal />
-    fn visit_icu_macro<'a>(&mut self, el: &JSXOpeningElement) -> Vec<IcuChoice> {
-        let mut choices: Vec<IcuChoice> = Vec::new();
+    fn visit_icu_macro<'a>(&mut self, el: &JSXOpeningElement, icu_format: &str) -> Vec<IcuChoiceOrOffset> {
+        let mut choices: Vec<IcuChoiceOrOffset> = Vec::new();
 
         for attr in &el.attrs {
             if let JSXAttrOrSpread::JSXAttr(attr) = attr {
                 if let Some(attr_value) = &attr.value {
                     if let JSXAttrName::Ident(ident) = &attr.name {
-                        // todo: probably need blacklist more properties, or whitelist only selected
-                        if (ident.sym.to_string() == "value") |
-                            (ident.sym.to_string() == "id") {
-                            continue;
-                        }
-
-                        let mut tokens: Vec<MsgToken> = Vec::new();
-
-                        match attr_value {
-                            // some="# books"
-                            JSXAttrValue::Lit(Lit::Str(str)) => {
-                                let string: String = str.value.clone().to_string();
-                                tokens.push(MsgToken::String(string));
+                        if &ident.sym == "offset" && icu_format != "select" {
+                            if let Some(value) = get_jsx_attr_value_as_string(attr_value) {
+                                choices.push(IcuChoiceOrOffset::Offset(value.to_string()))
+                            } else {
+                                // todo: panic offset might be only a number, other forms are not supported
                             }
+                        } else if let Some(key) = is_allowed_plural_option(&ident.sym) {
+                            let mut tokens: Vec<MsgToken> = Vec::new();
 
-                            JSXAttrValue::JSXExprContainer(JSXExprContainer { expr: JSXExpr::Expr(exp), .. }) => {
-                                match exp.as_ref() {
-                                    // some={"# books"}
-                                    Expr::Lit(Lit::Str(str)) => {
-                                        tokens.push(MsgToken::String(str.value.clone().to_string()))
-                                    }
-                                    // some={`# books ${name}`}
-                                    // Expr::Tpl(tpl) => {
-                                    //     let (msg, values) = self.transform_tpl_to_msg_and_values(tpl);
-                                    //     all_values.extend(values);
-                                    //     push_part(&msg);
-                                    // }
-                                    // some={`<Books />`}
-                                    Expr::JSXElement(exp) => {
-                                        let mut visitor = TransJSXVisitor::new();
-                                        exp.visit_children_with(&mut visitor);
+                            match attr_value {
+                                // some="# books"
+                                JSXAttrValue::Lit(Lit::Str(str)) => {
+                                    let string: String = str.value.clone().to_string();
+                                    tokens.push(MsgToken::String(string));
+                                }
 
-                                        tokens.extend(visitor.tokens)
-                                    }
+                                JSXAttrValue::JSXExprContainer(JSXExprContainer { expr: JSXExpr::Expr(exp), .. }) => {
+                                    match exp.as_ref() {
+                                        // some={"# books"}
+                                        Expr::Lit(Lit::Str(str)) => {
+                                            tokens.push(MsgToken::String(str.value.clone().to_string()))
+                                        }
+                                        // some={`# books ${name}`}
+                                        // Expr::Tpl(tpl) => {
+                                        //     let (msg, values) = self.transform_tpl_to_msg_and_values(tpl);
+                                        //     all_values.extend(values);
+                                        //     push_part(&msg);
+                                        // }
+                                        // some={`<Books />`}
+                                        Expr::JSXElement(exp) => {
+                                            let mut visitor = TransJSXVisitor::new();
+                                            exp.visit_children_with(&mut visitor);
 
-                                    _ => {
-                                        // todo: unsupported syntax
+                                            tokens.extend(visitor.tokens)
+                                        }
+
+                                        _ => {
+                                            // todo: unsupported syntax
+                                        }
                                     }
+                                }
+
+                                _ => {
+                                    // todo unsupported syntax
                                 }
                             }
 
-                            _ => {
-                                // todo unsupported syntax
-                            }
+                            choices.push(IcuChoiceOrOffset::IcuChoice(
+                                IcuChoice {
+                                    tokens,
+                                    key: key.to_string(),
+                                }))
                         }
-
-                        choices.push(IcuChoice {
-                            tokens,
-                            key: ident.sym.clone().to_string(),
-                        })
                     }
                 }
             } else {
@@ -100,7 +123,7 @@ impl Visit for TransJSXVisitor {
             }
 
             if is_lingui_jsx_el(&ident.sym) {
-                let value = match get_jsx_attr_value(&el, "value") {
+                let value = match get_jsx_attr(&el, "value").and_then(|attr| attr.value.as_ref()) {
                     Some(
                         JSXAttrValue::JSXExprContainer(
                             JSXExprContainer { expr: JSXExpr::Expr(exp), .. }
@@ -108,10 +131,6 @@ impl Visit for TransJSXVisitor {
                     ) => {
                         exp.clone()
                     }
-                    // todo: support here <Plural value=5 >
-                    // JSXAttrValue::Lit(lit) => {
-                    //     Box::new(Expr::Lit(*lit))
-                    // }
                     _ => {
                         Box::new(Expr::Lit(Lit::Null(Null {
                             span: DUMMY_SP
@@ -119,11 +138,12 @@ impl Visit for TransJSXVisitor {
                     }
                 };
 
-                let choices = self.visit_icu_macro(el);
+                let icu_method = ident.sym.to_lowercase();
+                let choices = self.visit_icu_macro(el, &icu_method);
 
                 self.tokens.push(MsgToken::Icu(Icu {
                     choices,
-                    icu_method: ident.sym.to_lowercase(),
+                    icu_method,
                     value,
                 }));
 

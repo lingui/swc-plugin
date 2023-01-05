@@ -4,18 +4,42 @@ use swc_core::ecma::ast::{*};
 use swc_core::ecma::atoms::JsWord;
 use swc_core::ecma::utils::quote_ident;
 
-pub fn get_jsx_attr_value<'a>(el: &'a JSXOpeningElement, name: &str) -> &'a Option<JSXAttrValue> {
+pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSXAttr> {
     for attr in &el.attrs {
         if let JSXAttrOrSpread::JSXAttr(attr) = &attr {
             if let JSXAttrName::Ident(ident) = &attr.name {
                 if (&ident.sym) == name {
-                    return &attr.value;
+                    return Some(attr);
                 }
             }
         }
     }
 
-    return &None;
+    return None;
+}
+
+pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
+    match val {
+        // offset="5"
+        JSXAttrValue::Lit(Lit::Str(Str {value, ..})) => {
+            return Some(value.to_string());
+        }
+        // offset={..}
+        JSXAttrValue::JSXExprContainer(JSXExprContainer {expr: JSXExpr::Expr(expr), ..}) => {
+            match expr.as_ref() {
+                // offset={"5"}
+                Expr::Lit(Lit::Str(Str {value, ..})) => {
+                    return Some(value.to_string());
+                }
+                // offset={5}
+                Expr::Lit(Lit::Num(Number {value, ..})) => {
+                    return Some(value.to_string());
+                }
+                _ => None
+            }
+        }
+        _ => None
+    }
 }
 
 pub fn pick_jsx_attrs(mut attrs: Vec<JSXAttrOrSpread>, names: HashSet<&str>) -> Vec<JSXAttrOrSpread> {
@@ -34,19 +58,6 @@ pub fn pick_jsx_attrs(mut attrs: Vec<JSXAttrOrSpread>, names: HashSet<&str>) -> 
     attrs
 }
 
-pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSXAttr> {
-    for attr in &el.attrs {
-        if let JSXAttrOrSpread::JSXAttr(attr) = &attr {
-            if let JSXAttrName::Ident(ident) = &attr.name {
-                if (&ident.sym) == name {
-                    return Some(attr);
-                }
-            }
-        }
-    }
-
-    return None;
-}
 
 pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
     JSXAttrOrSpread::JSXAttr(JSXAttr {
@@ -98,11 +109,15 @@ pub fn has_object_prop(props: &Vec<PropOrSpread>, name: &str) -> bool {
 }
 
 pub fn match_prop_key(prop: &KeyValueProp, name: &str) -> bool {
-    if let PropName::Ident(ident) = &prop.key {
-        return ident.sym.to_string() == name;
+    match &prop.key {
+        PropName::Ident(Ident { sym, .. })
+        | PropName::Str(Str { value: sym, .. }) => {
+            sym.to_string() == name
+        }
+        _ => {
+            false
+        }
     }
-
-    false
 }
 
 // pub fn match_jsx_name(el: &JSXOpeningElement, name: &str) -> bool {

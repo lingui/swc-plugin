@@ -6,8 +6,11 @@ use swc_core::{
     },
 };
 
-use crate::{utils};
-use crate::tokens::{Icu, MsgToken};
+use crate::{
+    normalize_witespaces_js::normalize_whitespaces_js,
+    normalize_witespaces_jsx::normalize_whitespaces_jsx
+};
+use crate::tokens::{Icu, IcuChoiceOrOffset, MsgToken};
 
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
     let mut uniques = HashSet::new();
@@ -51,7 +54,7 @@ pub struct MessageBuilder {
 }
 
 impl MessageBuilder {
-    pub fn parse(tokens: Vec<MsgToken>) -> MessageBuilderResult {
+    pub fn parse(tokens: Vec<MsgToken>, jsx: bool) -> MessageBuilderResult {
         let mut builder = MessageBuilder {
             message: String::new(),
             components_stack: Vec::new(),
@@ -61,13 +64,17 @@ impl MessageBuilder {
         };
 
         builder.from_tokens(tokens);
-        builder.to_args()
+        builder.to_args(jsx)
     }
 
-    pub fn to_args(mut self) -> MessageBuilderResult {
+    pub fn to_args(mut self, jsx: bool) -> MessageBuilderResult {
         let message = Box::new(Expr::Lit(Lit::Str(Str {
             span: DUMMY_SP,
-            value: utils::normalize_whitespaces(&self.message).into(),
+            value: if jsx {
+                normalize_whitespaces_jsx(&self.message).into()
+            } else {
+                normalize_whitespaces_js(&self.message).into()
+            },
             raw: None,
         })));
 
@@ -183,11 +190,20 @@ impl MessageBuilder {
         self.push_msg(&format!("{{{value_placeholder}, {method},"));
 
         for choice in icu.choices {
-            let key = choice.key;
+            match choice {
+                // produce offset:{number}
+                IcuChoiceOrOffset::Offset(val) => {
+                    self.push_msg(&format!(" offset:{val}"));
+                }
+                IcuChoiceOrOffset::IcuChoice(choice) => {
+                    let key = choice.key;
 
-            self.push_msg(&format!(" {key} {{"));
-            self.from_tokens(choice.tokens);
-            self.push_msg("}");
+                    self.push_msg(&format!(" {key} {{"));
+                    self.from_tokens(choice.tokens);
+                    self.push_msg("}");
+                }
+            }
+
         }
 
         self.push_msg("}");

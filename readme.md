@@ -36,7 +36,7 @@ cargo test
 - [x] NON Essential `t` macro cases:
     - [x] `t({ message descriptor })` call with message descriptor object
     - [x] Passing other macros as arguments for `t()` eq: `t({message: plural(...)})`
-- [ ] `defineMessage`
+- [x] `defineMessage`
   - [x] Transform
   - [ ] Omit non-essential props on production
 - [x] JS ICU calls (plural, select, selectOrdinal)
@@ -45,7 +45,7 @@ cargo test
   - [x] ``plural(expression(), {one: `${variable} # item`, few: '# items'})`` - expression as parameter
   - [x] dedup values object literal when the same variable appears few time, eq avoid `{name, name, count}`
   - [x] nesting expressions as described here https://lingui.js.org/ref/macro.html#plural
-  - [] Support `offset:1`
+  - [X] Support `offset:1` and exact matches `=1 {...}`
 - [ ] Support JSX transformation
   - [ ] `<Trans>`
     - [x] Simple cases `<Trans>Hello World</Trans>` -> `<Trans message="Hello World" />`
@@ -56,8 +56,8 @@ cargo test
     - [ ] Whitespaces management: stripping, but keeping "forced"
       - [x] Simple cases
       - [ ] escaping forced `\r`
-      - [ ] Port more test cases related to whitespaces from babel version
   - [ ] ICU: `<Plural>` `<SelectOrdinal>` `<Select>`
+    - [x] Support `offset:1` and exact matches `=1 {...}`
 - [x] Support narrowing transformation to only function exported from `@lingui/macro` 
 - [x] Automatic adding  `import { i18n } from @lingui/core`
 - [ ] NON-ESSENTIAL Injecting uniq variables, avoiding collision with existing variables

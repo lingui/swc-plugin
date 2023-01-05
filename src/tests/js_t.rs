@@ -87,19 +87,19 @@ to!(
     "#
 );
 
-//
-// to!(
-//     js_newlines_are_preserved,
-//     r#"
-//        import { t } from '@lingui/macro';
-//          t`Multiline
-//            string`;
-//     "#,
-//      r#"
-//         import { i18n } from "@lingui/core";
-//         i18n._("Multiline\\nstring");
-//      "#
-// );
+
+to!(
+    js_newlines_are_preserved,
+    r#"
+       import { t } from '@lingui/macro';
+         t`Multiline
+           string`;
+    "#,
+     r#"
+        import { i18n } from "@lingui/core";
+        i18n._("Multiline\nstring");
+     "#
+);
 
 to!(
     js_support_message_descriptor_in_t_fn,

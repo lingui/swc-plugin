@@ -5,7 +5,6 @@ use once_cell::sync::Lazy;
 static KEEP_SPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s*(?:\r\n|\r|\n)+\s*").unwrap());
 // remove whitespace before/after tag or expression
 static STRIP_AROUND_TAGS: Lazy<Regex> = Lazy::new(|| Regex::new(r"([>}])(?:\r\n|\r|\n)+\s*|(?:\r\n|\r|\n)+\s*([<{])").unwrap());
-
 static TRAILING_IN_EXPRESSIONS: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\s+})").unwrap());
 
 // JS code for the reference:
@@ -28,7 +27,7 @@ static TRAILING_IN_EXPRESSIONS: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\s+})")
 //   )
 // }
 
-pub fn normalize_whitespaces(str: &str) -> String {
+pub fn normalize_whitespaces_jsx(str: &str) -> String {
     let str = STRIP_AROUND_TAGS.replace_all(&str, "$1$2");
     let str = KEEP_SPACE_RE.replace_all(&str, " ");
 
@@ -45,7 +44,7 @@ mod tests {
     #[test]
     fn test_normalize_whitespaces() {
         assert_eq!(
-            normalize_whitespaces(
+            normalize_whitespaces_jsx(
                 r#"
     Hello <strong>World!</strong><br />
     <p>
@@ -60,7 +59,7 @@ mod tests {
     #[test]
     fn test_normalize_whitespaces2() {
         assert_eq!(
-            normalize_whitespaces(
+            normalize_whitespaces_jsx(
                 r#"
           Property {0},
           function {1},
@@ -76,7 +75,7 @@ mod tests {
     #[test]
     fn remove_trailing_in_icu() {
         assert_eq!(
-            normalize_whitespaces(
+            normalize_whitespaces_jsx(
                 r#"{count, plural, one {
 
               <0>#</0> slot added

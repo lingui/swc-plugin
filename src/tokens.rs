@@ -17,14 +17,17 @@ pub struct Icu {
     pub value: Box<Expr>,
     // todo: JSWord
     pub icu_method: String,
-    pub choices: Vec<IcuChoice>,
+    pub choices: Vec<IcuChoiceOrOffset>,
 }
 
+pub enum IcuChoiceOrOffset {
+    IcuChoice(IcuChoice),
+    Offset(String)
+}
 pub struct IcuChoice {
     pub key: String,
     pub tokens: Vec<MsgToken>,
 }
-
 
 // #[cfg(test)]
 // mod tests {

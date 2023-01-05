@@ -248,3 +248,53 @@ import { Trans, Plural } from '@lingui/macro';
         }} />;
     "#
 );
+
+to!(
+    jsx_icu_with_offset_and_exact_matches,
+     r#"
+       import { Plural } from "@lingui/macro";
+
+        <Plural
+          value={count}
+          offset="1"
+          _0="Zero items"
+          other={<a href="/more">A lot of them</a>}
+        />;
+     "#,
+
+    r#"
+       import { Trans } from "@lingui/react";
+        <Trans id={
+          "{count, plural, offset:1 =0 {Zero items} other {<0>A lot of them</0>}}"
+         }
+         values={{
+          count: count
+        }} components={{
+          0: <a href="/more" />
+        }} />;
+    "#
+);
+
+// to!(
+//     jsx_icu_with_template_literal,
+//      r#"
+//        import { Plural } from "@lingui/macro";
+// 
+//         <Plural
+//           value={count}
+//           one={`${count} items`}
+//           other="..."
+//         />;
+//      "#,
+// 
+//     r#"
+//        import { Trans } from "@lingui/react";
+//         <Trans id={
+//           "{count, plural, one {{count} items} other {...}}}"
+//          }
+//          values={{
+//           count: count
+//         }}
+//         />;
+//     "#
+// );

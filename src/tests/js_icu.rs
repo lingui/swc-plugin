@@ -170,3 +170,40 @@ const message = i18n._("{numBooks, plural, one {} other {Ola!}}", {
 })
     "#
 );
+
+to!(
+    js_plural_with_offset_and_exact_matches,
+     r#"
+        import { plural } from '@lingui/macro'
+        plural(users.length, {
+          offset: 1,
+          0: "No books",
+          1: "1 book",
+          other: "\# books"
+        });
+     "#,
+    r#"
+      import { i18n } from "@lingui/core";
+        i18n._("{0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}", {
+          0: users.length
+        });
+    "#
+);
+
+to!(
+    js_should_not_treat_offset_in_select,
+     r#"
+        import { select } from '@lingui/macro'
+        select(value, {
+          offset: "..",
+          any: "..",
+          other: "..",
+        });
+     "#,
+    r#"
+      import { i18n } from "@lingui/core";
+        i18n._("{value, select, offset {..} any {..} other {..}}", {
+          value: value
+        });
+    "#
+);

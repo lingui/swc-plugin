@@ -15,10 +15,12 @@ use swc_core::{
         proxies::TransformPluginProgramMetadata,
     },
 };
+use swc_core::ecma::atoms::JsWord;
 use swc_core::ecma::utils::quote_ident;
 
 mod tests;
-mod utils;
+mod normalize_witespaces_jsx;
+mod normalize_witespaces_js;
 mod builder;
 mod tokens;
 mod ecma_utils;
@@ -27,7 +29,7 @@ mod jsx_visitor;
 use builder::*;
 use ecma_utils::*;
 use jsx_visitor::TransJSXVisitor;
-use crate::tokens::{Icu, IcuChoice, MsgToken};
+use crate::tokens::{Icu, IcuChoice, IcuChoiceOrOffset, MsgToken};
 
 const LINGUI_T: &str = &"t";
 
@@ -78,7 +80,7 @@ impl TransformVisitor {
     }
 
     fn create_i18n_fn_call_from_tokens(&mut self, callee_obj: Option<Box<Expr>>, tokens: Vec<MsgToken>) -> CallExpr {
-        let parsed = MessageBuilder::parse(tokens);
+        let parsed = MessageBuilder::parse(tokens, false);
 
         let mut args: Vec<ExprOrSpread> = vec![parsed.message.as_arg()];
 
@@ -119,10 +121,11 @@ impl TransformVisitor {
             // ICU Choices
             let arg = expr.args.get(1).unwrap();
             if let Expr::Object(object) = &arg.expr.as_ref() {
-                let choices = self.get_choices_from_obj(&object.props);
+                let icu_method = ident.sym.to_lowercase();
+                let choices = self.get_choices_from_obj(&object.props, &icu_method);
 
                 return Some(vec![MsgToken::Icu(Icu {
-                    icu_method: ident.sym.to_lowercase(),
+                    icu_method,
                     value: icu_value,
                     choices,
                 })]);
@@ -179,36 +182,51 @@ impl TransformVisitor {
         }
     }
 
+    fn get_js_choice_key(&self, prop: &KeyValueProp ) -> Option<JsWord> {
+        match &prop.key {
+            // {one: ""}
+            PropName::Ident(Ident { sym, .. })
+            // {"one": ""}
+            | PropName::Str(Str { value: sym, .. }) => {
+                Some(sym.clone())
+            }
+            // {0: ""} -> `={number}`
+            PropName::Num(Number {value, ..}) => {
+                Some(format!("={value}").into())
+            }
+            _ => {
+                None
+            }
+        }
+    }
+
     // receive ObjectLiteral {few: "..", many: "..", other: ".."} and create tokens
     // If messages passed as TemplateLiterals with variables, it extracts variables
-    fn get_choices_from_obj(&self, props: &Vec<PropOrSpread>) -> Vec<IcuChoice> {
+    fn get_choices_from_obj(&self, props: &Vec<PropOrSpread>, icu_format: &str) -> Vec<IcuChoiceOrOffset> {
         // todo: there might be more props then real choices. Id for example
-        let mut choices: Vec<IcuChoice> = Vec::with_capacity(props.len());
+        let mut choices: Vec<IcuChoiceOrOffset> = Vec::with_capacity(props.len());
 
         for prop_or_spread in props {
             if let PropOrSpread::Prop(prop) = prop_or_spread {
                 if let Prop::KeyValue(prop) = prop.as_ref() {
-                    match &prop.key {
-                        // {one: ""}
-                        // {"one": ""}
-                        PropName::Ident(Ident { sym, .. })
-                        | PropName::Str(Str { value: sym, .. }) => {
+                    if let Some(key) = self.get_js_choice_key(prop) {
+                        if &key == "offset" && icu_format != "select" {
+                            if let Expr::Lit(Lit::Num(Number {value, ..})) = prop.value.as_ref() {
+                                choices.push(IcuChoiceOrOffset::Offset(value.to_string()))
+                            } else {
+                                // todo: panic offset might be only a number, other forms is not supported
+                            }
+                        } else {
                             let tokens = self
                                 .try_tokenize_expr(&prop.value)
                                 .unwrap_or(Vec::new());
 
-                            choices.push(IcuChoice {
+                            choices.push(IcuChoiceOrOffset::IcuChoice(IcuChoice {
                                 tokens,
-                                key: sym.to_string(),
-                            })
+                                key: key.to_string(),
+                            }));
                         }
-                        _ => {}
                     }
-
-                    if let PropName::Ident(ident) = &prop.key {} else {
-                        // todo panic
-                    }
-                    // icuParts.push_str(prop.key)
                 } else {
                     // todo: panic here we could not parse anything else then KeyValue pair
                 }
@@ -231,7 +249,7 @@ impl TransformVisitor {
             el.visit_children_with(&mut trans_visitor);
         }
 
-        let parsed = MessageBuilder::parse(trans_visitor.tokens);
+        let parsed = MessageBuilder::parse(trans_visitor.tokens, true);
         let id_attr = get_jsx_attr(&el.opening, "id");
 
         let mut attrs = vec![
@@ -288,7 +306,7 @@ impl TransformVisitor {
                         if match_prop_key(prop, "message") {
                             let tokens = self.try_tokenize_expr(&prop.value).unwrap();
 
-                            let parsed = MessageBuilder::parse(tokens);
+                            let parsed = MessageBuilder::parse(tokens, false);
 
                             let mut args: Vec<PropOrSpread> = vec![
                                 create_key_value_prop(if has_id { "message" } else { "id" }, parsed.message),
