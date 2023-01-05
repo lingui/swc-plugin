@@ -37,7 +37,7 @@ cargo test
     - [x] `t({ message descriptor })` call with message descriptor object
     - [x] Passing other macros as arguments for `t()` eq: `t({message: plural(...)})`
 - [ ] `defineMessage`
-  - [ ] Basic transform
+  - [x] Transform
   - [ ] Omit non-essential props on production
 - [x] JS ICU calls (plural, select, selectOrdinal)
   - [x] ``plural(count, {one: '# item', few: '# items'})`` - simple strings

@@ -277,7 +277,7 @@ impl TransformVisitor {
         };
     }
 
-    // take {message: "", ...} object literal, process message and return updated props
+    // take {message: "", id: "", ...} object literal, process message and return updated props
     fn update_msg_descriptor_props(&self, expr: Box<Expr>) -> Box<Expr> {
         if let Expr::Object(obj) = *expr {
             let has_id = has_object_prop(&obj.props, "id");
@@ -380,6 +380,18 @@ impl Fold for TransformVisitor {
                     callee,
                     self.tokenize_tpl(&tagged_tpl.tpl),
                 ));
+            }
+        }
+
+        if let Expr::Call(call) = &expr {
+            if let Some(_) = match_callee_name(&call, |n| n == "defineMessage") {
+                if call.args.len() == 1 {
+                    let descriptor = self.update_msg_descriptor_props(
+                        call.args.clone().into_iter().next().unwrap().expr
+                    );
+
+                    return *descriptor;
+                }
             }
         }
 
