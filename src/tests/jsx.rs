@@ -251,7 +251,7 @@ to!(
 
     r#"
         import { Trans } from "@lingui/react";
-        <Trans id={"Keep forced\\n newlines!"} />;
+        <Trans id={"Keep forced\n newlines!"} />;
     "#
 );
 
@@ -267,12 +267,8 @@ to!(
      "#,
 
     r#"
-        import { Trans } from "@lingui/macro";
-        <Trans>
-          Keep multiple{"\\n"}
-          forced{"\\n"}
-          newlines!
-        </Trans>
+        import { Trans } from "@lingui/react";
+        <Trans id={"Keep multiple\n forced\n newlines!"} />;
     "#
 );
 

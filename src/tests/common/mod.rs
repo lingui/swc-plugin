@@ -6,7 +6,7 @@ macro_rules! to {
                 tsx: true,
                 ..Default::default()
             }),
-            |_| $crate::TransformVisitor::default(),
+            |_| $crate::LinguiMacroFolder::default(),
             $name,
             $from,
             $to,

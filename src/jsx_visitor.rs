@@ -160,10 +160,6 @@ impl Visit for TransJSXVisitor {
         }));
     }
 
-    fn visit_jsx_attr_value(&mut self, attr_value: &JSXAttrValue) {
-        println!("Here")
-    }
-
     fn visit_jsx_closing_element(&mut self, _el: &JSXClosingElement) {
         self.tokens.push(
             MsgToken::TagClosing

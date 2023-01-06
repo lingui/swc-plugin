@@ -6,6 +6,7 @@ static KEEP_SPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s*(?:\r\n|\r|\n)+
 // remove whitespace before/after tag or expression
 static STRIP_AROUND_TAGS: Lazy<Regex> = Lazy::new(|| Regex::new(r"([>}])(?:\r\n|\r|\n)+\s*|(?:\r\n|\r|\n)+\s*([<{])").unwrap());
 static TRAILING_IN_EXPRESSIONS: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\s+})").unwrap());
+static KEEP_ESCAPED_NEWLINES_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\\n").unwrap());
 
 // JS code for the reference:
 // // replace whitespace before/after newline with single space
@@ -31,10 +32,11 @@ pub fn normalize_whitespaces_jsx(str: &str) -> String {
     let str = STRIP_AROUND_TAGS.replace_all(&str, "$1$2");
     let str = KEEP_SPACE_RE.replace_all(&str, " ");
 
+    let str = KEEP_ESCAPED_NEWLINES_RE.replace_all(&str, "\n");
     // we remove trailing whitespace inside Plural
-    let str = TRAILING_IN_EXPRESSIONS.replace_all(&str, "}").trim().to_string();
+    let str = TRAILING_IN_EXPRESSIONS.replace_all(&str, "}");
 
-    return str
+    return str.trim().to_string()
 }
 
 #[cfg(test)]
