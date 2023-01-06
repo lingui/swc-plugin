@@ -167,7 +167,6 @@ impl TransformVisitor {
     }
 }
 
-
 impl Fold for TransformVisitor {
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
         let mut has_i18n_import = false;
@@ -278,12 +277,16 @@ impl Fold for TransformVisitor {
         expr
     }
 
-    fn fold_jsx_element(&mut self, el: JSXElement) -> JSXElement {
+    fn fold_jsx_element(&mut self, mut el: JSXElement) -> JSXElement {
         // If no package that we care about is imported, skip the following
         // transformation logic.
         if !self.has_lingui_macro_imports {
             return el;
         }
+
+        // apply this visitor transformations to inner
+        // jsx element before they will be extracted as message components
+        el = el.fold_children_with(self);
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
             if &ident.sym == "Trans" {

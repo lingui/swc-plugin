@@ -112,7 +112,6 @@ impl TransJSXVisitor {
 }
 
 impl Visit for TransJSXVisitor {
-    // todo: how to handle fragments?
     fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
         if let JSXElementName::Ident(ident) = &el.name {
             if &ident.sym == "Trans" {
@@ -161,6 +160,10 @@ impl Visit for TransJSXVisitor {
         }));
     }
 
+    fn visit_jsx_attr_value(&mut self, attr_value: &JSXAttrValue) {
+        println!("Here")
+    }
+
     fn visit_jsx_closing_element(&mut self, _el: &JSXClosingElement) {
         self.tokens.push(
             MsgToken::TagClosing
@@ -192,6 +195,10 @@ impl Visit for TransJSXVisitor {
                             MsgToken::Expression(exp.clone())
                         );
                     }
+                }
+
+                Expr::JSXElement(jsx) => {
+                    jsx.visit_children_with(self);
                 }
 
                 Expr::Tpl(tpl) => {

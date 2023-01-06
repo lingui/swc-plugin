@@ -15,6 +15,7 @@ to!(
     "#
 );
 
+// todo check comment
 to!(
     jsx_preserve_id_and_render_in_trans,
      r#"
@@ -28,7 +29,7 @@ to!(
 );
 
 to!(
-    jsx_interpolation,
+    jsx_expressions_are_converted_to_positional_arguments,
      r#"
        import { Trans } from "@lingui/macro";
        <Trans>
@@ -84,13 +85,15 @@ to!(
      r#"
        import { Trans } from "@lingui/macro";
        <Trans>
-          Hello {foo} and {foo}
+          Hello {foo} and {foo}{" "}
+          {bar}
         </Trans>
      "#,
     r#"
        import { Trans } from "@lingui/react";
-       <Trans id={"Hello {foo} and {foo}"} values={{
+       <Trans id={"Hello {foo} and {foo} {bar}"} values={{
           foo: foo,
+          bar: bar,
         }}/>;
     "#
 );
@@ -111,205 +114,256 @@ to!(
 );
 
 to!(
-    jsx_icu,
+    quoted_jsx_attributes_are_handled,
      r#"
-      import { Plural } from "@lingui/macro";
-
-      <Plural
-       value={count}
-       one="Message"
-       other="Messages"
-      />
+       import { Trans } from '@lingui/macro';
+       <Trans>Speak "friend"!</Trans>;
+       <Trans id="custom-id">Speak "friend"!</Trans>;
      "#,
 
     r#"
-       import { Trans } from "@lingui/react";
-
-       <Trans
-           id={"{count, plural, one {Message} other {Messages}}"}
-           values={{ count: count }}
-        />
+      import { Trans } from "@lingui/react";
+      <Trans id={'Speak "friend"!'} />;
+      <Trans message={'Speak "friend"!'} id="custom-id" />;
     "#
 );
 
 to!(
-    jsx_icu_explicit_id,
+    html_attributes_are_handled,
      r#"
-       import { Plural } from "@lingui/macro";
-
-      <Plural
-       id="plural.id"
-       value={count}
-       one="Message"
-       other="Messages"
-      />
+        import { Trans } from '@lingui/macro';
+        <Trans>
+          <Text>This should work &nbsp;</Text>
+        </Trans>;
      "#,
 
     r#"
-       import { Trans } from "@lingui/react";
-
-       <Trans
-           message={"{count, plural, one {Message} other {Messages}}"}
-           values={{ count: count }}
-           id="plural.id"
-        />
-    "#
-);
-
-to!(
-    jsx_icu_nested,
-     r#"
-       import { Plural } from "@lingui/macro";
-
-       <Trans>
-       You have{" "}
-          <Plural
-           value={count}
-           one="Message"
-           other="Messages"
-          />
-      </Trans>
-     "#,
-
-    r#"
-       import { Trans } from "@lingui/react";
-
-       <Trans
-           id={"You have {count, plural, one {Message} other {Messages}}"}
-           values={{ count: count }}
-        />
-    "#
-);
-
-to!(
-    jsx_trans_inside_plural,
-     r#"
-       import { Trans, Plural } from '@lingui/macro';
-        <Plural
-          value={count}
-          one={
-            <Trans>
-              <strong>#</strong> slot added
-            </Trans>
-          }
-          other={
-            <Trans>
-              <strong>#</strong> slots added
-            </Trans>
-          }
-        />;
-     "#,
-
-    r#"
-        import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, one {<0>#</0> slot added} other {<1>#</1> slots added}}"
-        }
-        values={{
-          count: count
-        }} components={{
-          0: <strong />,
-          1: <strong />
-        }} />;
-
-    "#
-);
-
-to!(
-    jsx_multivelel_nesting,
-     r#"
-import { Trans, Plural } from '@lingui/macro';
-
-<Plural
-  value={count}
-  one={
-    <Trans>
-      <Plural
-        value={count2}
-        one={
-          <Trans>
-            second level one
-          </Trans>
-        }
-        other={
-          <Trans>
-            second level other
-          </Trans>
-        }
-      />
-
-      <strong>#</strong> slot added
-    </Trans>
-  }
-  other={
-    <Trans>
-      <strong>#</strong> slots added
-    </Trans>
-  }
-/>;
-     "#,
-
-    r#"
-        import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, one {{count2, plural, one { second level one} other { second level other}}<0>#</0> slot added} other {<1>#</1> slots added}}"
-        }
-        values={{
-          count: count,
-          count2: count2
-        }} components={{
-          0: <strong />,
-          1: <strong />
-        }} />;
-    "#
-);
-
-to!(
-    jsx_icu_with_offset_and_exact_matches,
-     r#"
-       import { Plural } from "@lingui/macro";
-
-        <Plural
-          value={count}
-          offset="1"
-          _0="Zero items"
-          other={<a href="/more">A lot of them</a>}
-        />;
-     "#,
-
-    r#"
-       import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, offset:1 =0 {Zero items} other {<0>A lot of them</0>}}"
-         }
-         values={{
-          count: count
-        }} components={{
-          0: <a href="/more" />
-        }} />;
-    "#
-);
-
-to!(
-    jsx_icu_with_template_literal,
-     r#"
-       import { Plural } from "@lingui/macro";
-
-        <Plural
-          value={count}
-          one={`${count} items`}
-          other="..."
-        />;
-     "#,
-
-    r#"
-       import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, one {{count} items} other {...}}"
-         }
-         values={{
-          count: count
+     import { Trans } from "@lingui/react";
+     <Trans id={"<0>This should work \xa0</0>"}
+        components={{
+          0: <Text />,
         }}
-        />;
+     />;
     "#
 );
+
+to!(
+    use_decoded_html_entities,
+     r#"
+        import { Trans } from "@lingui/macro";
+        <Trans>&amp;</Trans>
+     "#,
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"&"} />;
+    "#
+);
+
+
+to!(
+    elements_inside_expression_container,
+     r#"
+        import { Trans } from '@lingui/macro';
+        <Trans>{<span>Component inside expression container</span>}</Trans>;
+     "#,
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"<0>Component inside expression container</0>"} components={{
+          0: <span />
+        }} />;
+    "#
+);
+
+to!(
+    elements_without_children,
+     r#"
+        import { Trans } from '@lingui/macro';
+        <Trans>{<br />}</Trans>;
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"<0/>"} components={{
+          0: <br />
+        }} />;
+    "#
+);
+
+// it's better to throw panic here
+// to!(
+//     jsx_spread_child_is_noop,
+//      r#"
+//         import { Trans } from '@lingui/macro';
+//         <Trans>{...spread}</Trans>
+//      "#,
+//     r#"
+//         import { Trans } from "@lingui/react";
+//         <Trans>{...spread}</Trans>
+//     "#
+// );
+
+to!(
+    strip_whitespace_around_arguments,
+     r#"
+        import { Trans } from "@lingui/macro";
+        <Trans>
+          Strip whitespace around arguments: '
+          {name}
+          '
+        </Trans>
+     "#,
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"Strip whitespace around arguments: '{name}'"} values={{
+          name: name
+        }} />;
+    "#
+);
+
+to!(
+    strip_whitespace_around_tags_but_keep_forced_spaces,
+     r#"
+        import { Trans } from "@lingui/macro";
+        <Trans>
+          Strip whitespace around tags, but keep{" "}
+          <strong>forced spaces</strong>
+          !
+        </Trans>
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"Strip whitespace around tags, but keep <0>forced spaces</0>!"} components={{
+          0: <strong />
+        }} />;
+    "#
+);
+
+to!(
+    keep_forced_newlines,
+     r#"
+        import { Trans } from "@lingui/macro";
+        <Trans>
+          Keep forced{"\\n"}
+          newlines!
+        </Trans>
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"Keep forced\\n newlines!"} />;
+    "#
+);
+
+to!(
+    keep_multiple_forced_newlines,
+     r#"
+        import { Trans } from "@lingui/macro";
+        <Trans>
+          Keep multiple{"\\n"}
+          forced{"\\n"}
+          newlines!
+        </Trans>
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/macro";
+        <Trans>
+          Keep multiple{"\\n"}
+          forced{"\\n"}
+          newlines!
+        </Trans>
+    "#
+);
+
+to!(
+    use_js_macro_in_jsx_attrs,
+     r#"
+        import { t, Trans } from '@lingui/macro';
+        <Trans>Read <a href="/more" title={t`Full content of ${articleName}`}>more</a></Trans>
+     "#,
+    r#"
+        import { Trans } from "@lingui/react";
+        import { i18n } from "@lingui/core";
+        <Trans id={"Read <0>more</0>"} components={{
+          0: <a href="/more" title={
+            i18n._("Full content of {articleName}", {
+              articleName: articleName
+            })
+          } />
+        }} />;
+    "#
+);
+
+to!(
+    use_js_plural_in_jsx_attrs,
+     r#"
+        import { plural } from '@lingui/macro';
+        <a href="/about" title={plural(count, {
+          one: "\# book",
+          other: "\# books"
+        })}>About</a>
+     "#,
+
+    r#"
+        import { i18n } from "@lingui/core";
+        <a href="/about" title={
+          i18n._("{count, plural, one {# book} other {# books}}", {
+            count: count
+          })
+        }>About</a>;
+    "#
+);
+
+to!(
+    ignore_jsx_empty_expression,
+     r#"
+        import { Trans } from '@lingui/macro';
+        <Trans>Hello {/* and I cannot stress this enough */} World</Trans>;
+     "#,
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"Hello  World"} />;
+    "#
+);
+
+// to!(
+//     ,
+//      r#"
+//
+//      "#,
+//
+//     r#"
+//
+//     "#
+// );
+
+// //  production: true,
+// to!(
+//     production__only_essential_props_are_kept,
+//      r#"
+//         import { Trans } from '@lingui/macro';
+//         <Trans id="msg.hello" comment="Hello World">Hello World</Trans>
+//      "#,
+//
+//     r#"
+//         import { Trans } from "@lingui/react";
+//         <Trans id="msg.hello" />;
+//     "#
+// );
+
+//   {
+//     name: "production - import_type_doesn't_interference_on_normal_import",
+//     production: true,
+//     useTypescriptPreset: true,
+//     input: `
+//         import { withI18nProps } from '@lingui/react'
+//         import { Trans } from '@lingui/macro';
+//         <Trans id="msg.hello" comment="Hello World">Hello World</Trans>
+//       `,
+//     expected: `
+//         import { withI18nProps, Trans } from "@lingui/react";
+//         <Trans id="msg.hello" />;
+//       `,
+//   },
+
