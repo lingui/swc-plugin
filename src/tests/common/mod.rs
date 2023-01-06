@@ -6,7 +6,20 @@ macro_rules! to {
                 tsx: true,
                 ..Default::default()
             }),
-            |_| $crate::LinguiMacroFolder::default(),
+            |_| {
+                if let Err(_) = swc_core::plugin::errors::HANDLER.inner.set(
+                        swc_core::common::errors::Handler::with_tty_emitter(
+                            swc_core::common::errors::ColorConfig::Auto,
+                            true,
+                            false,
+                            None,
+                        )
+                ) {
+                    // set on a previous run
+                }
+
+                $crate::LinguiMacroFolder::default()
+            },
             $name,
             $from,
             $to,

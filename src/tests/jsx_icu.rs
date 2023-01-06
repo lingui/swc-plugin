@@ -329,3 +329,18 @@ to!(
         }}/>;
     "#
 );
+
+// to!(
+//     jsx_icu_errors,
+//      r#"
+//        import { SelectOrdinal } from "@lingui/macro";
+//        <Plural {...values} />;
+//      "#,
+//
+//     r#"
+//        import { Trans } from "@lingui/react";
+//         <Trans id={"{count, selectordinal, offset:1 =0 { #st} one { #nd} other {#rd}}"} values={{
+//             count: count
+//         }}/>;
+//     "#
+// );

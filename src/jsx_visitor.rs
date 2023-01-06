@@ -8,6 +8,7 @@ use crate::is_lingui_jsx_el;
 use crate::tokens::{Icu, IcuChoice, IcuChoiceOrOffset, MsgToken, TagOpening};
 use regex::{Regex};
 use once_cell::sync::Lazy;
+use swc_core::plugin::errors::HANDLER;
 use crate::macro_utils::{tokenize_tpl, try_tokenize_call_expr_as_icu};
 
 pub struct TransJSXVisitor {
@@ -103,7 +104,11 @@ impl TransJSXVisitor {
                     }
                 }
             } else {
-                // todo here is spread which is not supported
+                HANDLER.with(|h| {
+                    h.struct_span_warn(el.span, "Unsupported Syntax")
+                        .note("The spread expression could not be analyzed at compile time. Consider to use static values.")
+                        .emit()
+                });
             }
         }
 
