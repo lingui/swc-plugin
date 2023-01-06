@@ -5,20 +5,31 @@ to!(
      r#"
       import { Plural } from "@lingui/macro";
 
-      <Plural
+      const ex1 = <Plural
        value={count}
        one="Message"
        other="Messages"
       />
+
+      const ex2 = <div><Plural
+           value={count}
+           one="Message"
+           other="Messages"
+          /></div>
      "#,
 
     r#"
        import { Trans } from "@lingui/react";
 
-       <Trans
+       const ex1 = <Trans
            id={"{count, plural, one {Message} other {Messages}}"}
            values={{ count: count }}
         />
+
+        const ex2 = <div><Trans
+               id={"{count, plural, one {Message} other {Messages}}"}
+               values={{ count: count }}
+            /></div>
     "#
 );
 

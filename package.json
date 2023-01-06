@@ -1,13 +1,30 @@
 {
-    "name": "lingui-macro-plugin",
-    "version": "0.1.0",
+    "name": "@lingui/swc-plugin",
+    "version": "0.0.1",
     "description": "",
-    "author": "",
+    "author": {
+        "name": "Timofei Iatsenko",
+        "email": "ty@road.travel"
+    },
     "license": "ISC",
-    "keywords": ["swc-plugin"],
-    "main": "target/wasm32-wasi/release/lingui-macro-plugin.wasm",
+    "keywords": [
+        "swc-plugin",
+        "swc",
+        "nextjs",
+        "lingui",
+        "lingui-js",
+        "icu",
+        "message-format",
+        "i18n",
+        "internalization"
+    ],
+    "main": "target/wasm32-wasi/release/lingui_macro_plugin.wasm",
+    "exports": {
+        ".": "./target/wasm32-wasi/release/lingui_macro_plugin.wasm",
+    },
     "scripts": {
         "prepublishOnly": "cargo build-wasi --release"
     },
-    "files": []
+    "files": [],
+    "packageManager": "yarn@3.3.1"
 }

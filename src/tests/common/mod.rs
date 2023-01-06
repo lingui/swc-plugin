@@ -18,7 +18,10 @@ macro_rules! to {
                     // set on a previous run
                 }
 
-                $crate::LinguiMacroFolder::default()
+                swc_common::chain!(
+                    swc_core::ecma::transforms::base::resolver(swc_common::Mark::new(), swc_common::Mark::new(), true),
+                    $crate::LinguiMacroFolder::default()
+                )
             },
             $name,
             $from,

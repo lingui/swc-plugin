@@ -7,20 +7,27 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [profile.release]
+# This removes more dead code
+codegen-units = 1
 lto = true
+# Optimize for size
+opt-level = "s"
+# Optimize for performance, this is default so you don't need to specify it
+# opt-level = "z"
 
 [dependencies]
 serde = "1"
-regex = "1"
+regex = "1.7.0"
 once_cell = "1.13.0"
 swc_common = { version = "0.29.19", features = ["concurrent"] }
-swc_core = { version = "0.48.29", features = [
+swc_core = { version = "0.52.8", features = [
     "ecma_plugin_transform",
     "ecma_utils",
     "ecma_visit",
     "ecma_ast",
     "ecma_parser",
     "common",
+    "testing_transform"
 ] }
 # .cargo/config defines few alias to build plugin.
 # cargo build-wasi generates wasm-wasi32 binary

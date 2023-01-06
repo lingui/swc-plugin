@@ -1,32 +1,29 @@
 # A SWC Plugin For LinguiJS
 
-## Disclaimer
-Project is on very early stage. Check the task list to keep track of progress. 
-
 ## Description
-This is a Rust versions for [LinguiJS macro](https://lingui.js.org/ref/macro.html)
-This plugin attempts to mimic most of behaviour from original plugin.
-However, for the first launch only essential subset of syntax and features would be supported.
+This is a Rust versions of [LinguiJS Macro](https://lingui.js.org/ref/macro.html)
 
-This will allow to unblock transition to SWC to the most of the users (me as well) and 
-than we can continue working on the rest of features set. 
+# Usage
 
-## Contributing
-If you want to help, please check issues, i left there question which i could not find answer. 
+`.swcrc`
+https://swc.rs/docs/configuration/swcrc
 
-Also any help related to Rust or SWC plugin architecture would be much appreciated.
-
-If you know Rust and could do a Code Review, please check the code, together we make it better. 
-
-### How to start
-After following rust and swc instructions of installation just call:
-
-```bash
-cargo test
+```json
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "jsc": {
+    "experimental": {
+      "plugins": ["@lingui/swc-plugin"]
+    }
+  }
+}
 ```
 
-### Tasks:
+## Currently not supported features
+- `runtimeConfigModule` settings
+- Stripping non-essential props in production mode
 
+### Tasks:
 - [x] Essential  `t` macro cases:
   - [x] ``t`Some string` ``
   - [x] ``t`Some ${variable} string` ``
@@ -64,10 +61,3 @@ cargo test
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
 - [ ] Building binary and publishing
 - [ ] Support `runtimeConfigModule` settings
-
-### Useful links:
-- AST Playground https://play.swc.rs/
-- SWC Plugin Docs https://swc.rs/docs/plugin/ecmascript/getting-started
-- SWC Plugin FormatJs https://github.com/kwonoj/swc-plugin-formatjs
-- Collection of plugins https://github.com/swc-project/plugins
-- SWC Folder [Docs](https://rustdoc.swc.rs/swc_ecma_visit/fn.fold_jsx_element.html) 

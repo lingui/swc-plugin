@@ -6,14 +6,17 @@ to!(
        import { Trans } from "@lingui/macro";
        const exp1 = <Custom>Refresh inbox</Custom>;
        const exp2 = <Trans>Refresh inbox</Trans>;
+       const exp3 = <div><Trans>Refresh inbox</Trans></div>;
      "#,
     r#"
        import { Trans } from "@lingui/react";
 
        const exp1 = <Custom>Refresh inbox</Custom>;
-       const exp2 = <Trans id={"Refresh inbox"} />
+       const exp2 = <Trans id={"Refresh inbox"} />;
+       const exp3 = <div><Trans id={"Refresh inbox"} /></div>;
     "#
 );
+
 
 to!(
     jsx_with_custom_id,

@@ -196,7 +196,7 @@ impl Fold for LinguiMacroFolder {
             }
         }
 
-        el
+        el.fold_children_with(self)
     }
 }
 
