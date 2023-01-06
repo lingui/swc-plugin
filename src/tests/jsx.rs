@@ -15,16 +15,27 @@ to!(
     "#
 );
 
-// todo check comment
 to!(
-    jsx_preserve_id_and_render_in_trans,
+    jsx_with_custom_id,
      r#"
        import { Trans } from "@lingui/macro";
-       const exp2 = <Trans id="custom.id" render={(v) => v}>Refresh inbox</Trans>;
+       const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
     r#"
        import { Trans } from "@lingui/react";
-       const exp2 = <Trans message={"Refresh inbox"} id="custom.id" render={(v) => v} />
+       const exp2 = <Trans message={"Refresh inbox"} id="custom.id" />
+    "#
+);
+
+to!(
+    jsx_preserve_reserved_attrs,
+     r#"
+       import { Trans } from "@lingui/macro";
+       const exp2 = <Trans comment="Translators Comment" context="Message Context" render={(v) => v}>Refresh inbox</Trans>;
+     "#,
+    r#"
+       import { Trans } from "@lingui/react";
+       const exp2 = <Trans id={"Refresh inbox"} comment="Translators Comment" context="Message Context" render={(v) => v} />
     "#
 );
 

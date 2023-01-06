@@ -47,6 +47,34 @@ to!(
 );
 
 to!(
+    jsx_plural_preserve_reserved_attrs,
+     r#"
+       import { Plural } from "@lingui/macro";
+
+      <Plural
+       comment="Translators Comment"
+       context="Message Context"
+       render={(v) => v}
+       value={count}
+       one="..."
+       other="..."
+      />
+     "#,
+
+    r#"
+       import { Trans } from "@lingui/react";
+
+       <Trans
+           id={"{count, plural, one {...} other {...}}"}
+           values={{ count: count }}
+           comment="Translators Comment"
+           context="Message Context"
+           render={(v) => v}
+        />
+    "#
+);
+
+to!(
     jsx_icu_nested,
      r#"
        import { Plural } from "@lingui/macro";
@@ -155,7 +183,7 @@ import { Trans, Plural } from '@lingui/macro';
 );
 
 to!(
-    jsx_icu_with_offset_and_exact_matches,
+    jsx_plural_with_offset_and_exact_matches,
      r#"
        import { Plural } from "@lingui/macro";
 
@@ -201,5 +229,103 @@ to!(
           count: count
         }}
         />;
+    "#
+);
+
+to!(
+    jsx_select_simple,
+     r#"
+        import { Select } from '@lingui/macro';
+        <Select
+          value={count}
+          _male="He"
+          _female={`She`}
+          other={<strong>Other</strong>}
+        />;
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"{count, select, male {He} female {She} other {<0>Other</0>}}"} values={{
+          count: count
+        }} components={{
+          0: <strong />
+        }} />;
+    "#
+);
+
+to!(
+    jsx_select_with_reserved_attrs,
+     r#"
+        import { Select } from '@lingui/macro';
+        <Select
+          comment="Translators Comment"
+          context="Message Context"
+          render={(v) => v}
+
+          value={count}
+          _male="He"
+          _female={`She`}
+          other={<strong>Other</strong>}
+        />;
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans id={"{count, select, male {He} female {She} other {<0>Other</0>}}"} values={{
+          count: count
+        }} components={{
+          0: <strong />
+        }}
+          comment="Translators Comment"
+          context="Message Context"
+          render={(v) => v}
+           />;
+    "#
+);
+
+// // https://github.com/lingui/js-lingui/issues/1324
+// to!(
+//     jsx_select_options_should_work_without_underscore,
+//      r#"
+//         import { Select } from '@lingui/macro';
+//         <Select
+//           value={count}
+//           male="He"
+//           female={`She`}
+//           other={<strong>Other</strong>}
+//         />;
+//      "#,
+//
+//     r#"
+//         import { Trans } from "@lingui/react";
+//         <Trans id={"{count, select, male {He} female {She} other {<0>Other</0>}}"} values={{
+//           count: count
+//         }} components={{
+//           0: <strong />
+//         }}
+//            />;
+//     "#
+// );
+
+to!(
+    jsx_select_ordinal_with_offset_and_exact_matches,
+     r#"
+       import { SelectOrdinal } from "@lingui/macro";
+
+        <SelectOrdinal
+          value={count}
+          offset="1"
+          _0=" #st"
+          one=" #nd"
+          other='#rd'
+        />;
+     "#,
+
+    r#"
+       import { Trans } from "@lingui/react";
+        <Trans id={"{count, selectordinal, offset:1 =0 { #st} one { #nd} other {#rd}}"} values={{
+            count: count
+        }}/>;
     "#
 );

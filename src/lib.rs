@@ -73,7 +73,7 @@ impl LinguiMacroFolder {
         }
 
         attrs.extend(
-            pick_jsx_attrs(el.opening.attrs, HashSet::from(["id", "render"]))
+            pick_jsx_attrs(el.opening.attrs, HashSet::from(["id", "render", "comment", "context"]))
         );
 
         self.should_add_trans_import = true;
