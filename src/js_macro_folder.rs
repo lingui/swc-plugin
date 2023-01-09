@@ -6,6 +6,7 @@ use swc_core::{
         visit::{Fold, FoldWith},
     },
 };
+use swc_core::ecma::atoms::JsWord;
 use crate::ast_utils::{*};
 use crate::builder::MessageBuilder;
 use crate::macro_utils::{*};
@@ -14,6 +15,7 @@ use crate::tokens::MsgToken;
 #[derive(Debug)]
 pub struct JsMacroFolder<'a> {
     pub should_add_18n_import: &'a mut bool,
+    pub i18_callee_name: JsWord,
 }
 
 impl<'a> JsMacroFolder<'a> {
@@ -37,7 +39,7 @@ impl<'a> JsMacroFolder<'a> {
                 obj: callee_obj.unwrap_or_else(|| {
                     (*self.should_add_18n_import) = true;
 
-                    return Box::new(Ident::new("i18n".into(), DUMMY_SP).into());
+                    return Box::new(Ident::new(self.i18_callee_name.clone().into(), DUMMY_SP).into());
                 }),
                 prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
             }).as_callee(),

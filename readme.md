@@ -8,19 +8,27 @@ This is a Rust versions of [LinguiJS Macro](https://lingui.js.org/ref/macro.html
 `.swcrc`
 https://swc.rs/docs/configuration/swcrc
 
-```json
+```json5
 {
   "$schema": "https://json.schemastore.org/swcrc",
   "jsc": {
     "experimental": {
-      "plugins": ["@lingui/swc-plugin"]
+      "plugins": ["@lingui/swc-plugin", {
+        
+        // Optional
+        // Unlike the JS version this option must be passed as object only.
+        // Docs https://lingui.js.org/ref/conf.html#std-config-runtimeConfigModule
+        "runtimeModules": {
+          "i18n": ["@lingui/core", "i18n"],
+          "trans": ["@lingui/react", "Trans"]
+        }
+      }]
     }
   }
 }
 ```
 
 ## Currently not supported features
-- `runtimeConfigModule` settings
 - Stripping non-essential props in production mode
 
 ### Tasks:
@@ -56,8 +64,8 @@ https://swc.rs/docs/configuration/swcrc
 - [x] Support narrowing transformation to only function exported from `@lingui/macro` 
 - [x] Automatic adding  `import { i18n } from @lingui/core`
 - [x] Unicode escaping, validate how SWC produce values
+- [x] Support `runtimeConfigModule` settings
 - [ ] NON-ESSENTIAL Injecting uniq variables, avoiding collision with existing variables
 - [ ] NON-ESSENTIAL support renamed macro calls `import {t as macroT} from "@lingui/macro"`
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
 - [ ] Building binary and publishing
-- [ ] Support `runtimeConfigModule` settings
