@@ -121,6 +121,30 @@ to!(
 );
 
 to!(
+    production,
+    js_should_kept_only_essential_props,
+    r#"
+        import { t } from '@lingui/macro'
+        const msg = t({
+            message: `Hello ${name}`,
+            id: 'msgId',
+            comment: 'description for translators',
+            context: 'My Context',
+        })
+    "#,
+     r#"
+         import { i18n } from "@lingui/core";
+         const msg = i18n._({
+          values: {
+            name: name,
+          },
+          id: 'msgId',
+          context: 'My Context',
+         });
+     "#
+);
+
+to!(
     js_support_template_strings_in_t_macro_message_with_custom_i18n_instance,
     r#"
     import { t } from '@lingui/macro'

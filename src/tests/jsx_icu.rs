@@ -341,17 +341,34 @@ to!(
     "#
 );
 
-// to!(
-//     jsx_icu_errors,
-//      r#"
-//        import { SelectOrdinal } from "@lingui/macro";
-//        <Plural {...values} />;
-//      "#,
-//
-//     r#"
-//        import { Trans } from "@lingui/react";
-//         <Trans id={"{count, selectordinal, offset:1 =0 { #st} one { #nd} other {#rd}}"} values={{
-//             count: count
-//         }}/>;
-//     "#
-// );
+to!(
+    production,
+    production_only_essential_props_are_kept,
+     r#"
+        import { Plural } from '@lingui/macro';
+
+        <Plural
+          id="custom.id"
+          context="My Context"
+          comment="This is for translators"
+          render="render"
+          i18n="i18n"
+          value={count}
+          offset="1"
+          _0="Zero items"
+          other={<a href="/more">A lot of them</a>}
+          />
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans
+        values={{count: count}}
+        components={{0: <a href="/more"/>}}
+        id="custom.id"
+        context="My Context"
+        render="render"
+        i18n="i18n" />;
+    "#
+);
+

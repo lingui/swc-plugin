@@ -34,11 +34,11 @@ to!(
     jsx_preserve_reserved_attrs,
      r#"
        import { Trans } from "@lingui/macro";
-       const exp2 = <Trans comment="Translators Comment" context="Message Context" render={(v) => v}>Refresh inbox</Trans>;
+       const exp2 = <Trans comment="Translators Comment" context="Message Context" i18n="i18n" render={(v) => v}>Refresh inbox</Trans>;
      "#,
     r#"
        import { Trans } from "@lingui/react";
-       const exp2 = <Trans id={"Refresh inbox"} comment="Translators Comment" context="Message Context" render={(v) => v} />
+       const exp2 = <Trans id={"Refresh inbox"} comment="Translators Comment" context="Message Context" i18n="i18n" render={(v) => v} />
     "#
 );
 
@@ -348,19 +348,31 @@ to!(
 //     "#
 // );
 
-// //  production: true,
-// to!(
-//     production__only_essential_props_are_kept,
-//      r#"
-//         import { Trans } from '@lingui/macro';
-//         <Trans id="msg.hello" comment="Hello World">Hello World</Trans>
-//      "#,
-//
-//     r#"
-//         import { Trans } from "@lingui/react";
-//         <Trans id="msg.hello" />;
-//     "#
-// );
+to!(
+    production,
+    production_only_essential_props_are_kept,
+     r#"
+        import { Trans } from '@lingui/macro';
+        <Trans
+        id="msg.hello"
+        render="render"
+        i18n="i18n"
+        context="My Context"
+        comment="Hello World">Hello <strong>{name}</strong></Trans>
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans
+            values={{name: name}}
+            components={{0: <strong />}}
+            id="msg.hello"
+            render="render"
+            i18n="i18n"
+            context="My Context"
+        />;
+    "#
+);
 
 //   {
 //     name: "production - import_type_doesn't_interference_on_normal_import",

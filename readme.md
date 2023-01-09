@@ -28,9 +28,6 @@ https://swc.rs/docs/configuration/swcrc
 }
 ```
 
-## Currently not supported features
-- Stripping non-essential props in production mode
-
 ### Tasks:
 - [x] Essential  `t` macro cases:
   - [x] ``t`Some string` ``
@@ -43,7 +40,7 @@ https://swc.rs/docs/configuration/swcrc
     - [x] Passing other macros as arguments for `t()` eq: `t({message: plural(...)})`
 - [x] `defineMessage`
   - [x] Transform
-  - [ ] Omit non-essential props on production
+  - [x] Strip non-essential props on production
 - [x] JS ICU calls (plural, select, selectOrdinal)
   - [x] ``plural(count, {one: '# item', few: '# items'})`` - simple strings
   - [x] ``plural(count, {one: `${variable} # item`, few: '# items'})`` - tpls with placeholders
@@ -58,7 +55,7 @@ https://swc.rs/docs/configuration/swcrc
     - [x] Recursive Components interpolation `<Trans>Hello <strong>World!</strong></Trans>`
     - [x] Support edge cases `<Trans>{'Hello World'}</Trans>` and ``<Trans>{`How much is ${expression}? ${count}`}</Trans>``
     - [x] Normalizing whitespaces
-    - [ ] Stripping non-essential props in production
+    - [x] Stripping non-essential props in production
   - [x] ICU: `<Plural>` `<SelectOrdinal>` `<Select>`
     - [x] Support `offset:1` and exact matches `=1 {...}`
 - [x] Support narrowing transformation to only function exported from `@lingui/macro` 

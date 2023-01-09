@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize};
 use swc_common::plugin::metadata::TransformPluginMetadataContextKind;
 use swc_core::{
     ecma::{
@@ -58,7 +58,7 @@ struct RuntimeModulesConfigMapNormalized {
 impl LinguiJsOptions {
     fn to_options(self, env_name: &str) -> LinguiOptions {
         LinguiOptions {
-            strip_extra_fields: !(matches!(env_name, "development")),
+            strip_non_essential_fields: !(matches!(env_name, "development")),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules.as_ref()
@@ -87,14 +87,14 @@ impl LinguiJsOptions {
 
 #[derive(Debug)]
 struct LinguiOptions {
-    strip_extra_fields: bool,
+    strip_non_essential_fields: bool,
     runtime_modules: RuntimeModulesConfigMapNormalized,
 }
 
 impl Default for LinguiOptions {
     fn default() -> LinguiOptions {
         LinguiOptions {
-            strip_extra_fields: false,
+            strip_non_essential_fields: false,
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: ("@lingui/core".into(), "i18n".into()),
                 trans: ("@lingui/react".into(), "Trans".into()),
@@ -155,8 +155,12 @@ impl LinguiMacroFolder {
         }
 
         attrs.extend(
-            pick_jsx_attrs(el.opening.attrs, HashSet::from(["id", "render", "comment", "context"]))
+            pick_jsx_attrs(el.opening.attrs, HashSet::from(["id", "render", "comment", "context", "i18n"]))
         );
+
+        if self.options.strip_non_essential_fields {
+            attrs = pick_jsx_attrs(attrs, HashSet::from(["id", "render", "i18n", "context", "values", "components"]))
+        }
 
         self.should_add_trans_import = true;
 
@@ -238,6 +242,7 @@ impl Fold for LinguiMacroFolder {
         let (_, i18n_export) = self.options.runtime_modules.i18n.clone();
 
         let mut folder = JsMacroFolder {
+            strip_non_essential_fields: self.options.strip_non_essential_fields,
             should_add_18n_import: &mut self.should_add_18n_import,
             i18_callee_name: i18n_export.clone().into(),
         };
@@ -257,6 +262,7 @@ impl Fold for LinguiMacroFolder {
         let (_, i18n_export) = self.options.runtime_modules.i18n.clone();
 
         let mut folder = JsMacroFolder {
+            strip_non_essential_fields: self.options.strip_non_essential_fields,
             should_add_18n_import: &mut self.should_add_18n_import,
             i18_callee_name: i18n_export.clone().into(),
         };
@@ -278,6 +284,7 @@ impl Fold for LinguiMacroFolder {
         // apply JS Macro transformations to jsx elements
         // before they will be extracted as message components
         el = el.fold_with(&mut JsMacroFolder {
+            strip_non_essential_fields: self.options.strip_non_essential_fields,
             should_add_18n_import: &mut self.should_add_18n_import,
             i18_callee_name: i18n_export.clone().into(),
         });

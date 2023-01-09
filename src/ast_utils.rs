@@ -21,18 +21,18 @@ pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSX
 pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
     match val {
         // offset="5"
-        JSXAttrValue::Lit(Lit::Str(Str {value, ..})) => {
+        JSXAttrValue::Lit(Lit::Str(Str { value, .. })) => {
             return Some(value.to_string());
         }
         // offset={..}
-        JSXAttrValue::JSXExprContainer(JSXExprContainer {expr: JSXExpr::Expr(expr), ..}) => {
+        JSXAttrValue::JSXExprContainer(JSXExprContainer { expr: JSXExpr::Expr(expr), .. }) => {
             match expr.as_ref() {
                 // offset={"5"}
-                Expr::Lit(Lit::Str(Str {value, ..})) => {
+                Expr::Lit(Lit::Str(Str { value, .. })) => {
                     return Some(value.to_string());
                 }
                 // offset={5}
-                Expr::Lit(Lit::Num(Number {value, ..})) => {
+                Expr::Lit(Lit::Num(Number { value, .. })) => {
                     return Some(value.to_string());
                 }
                 _ => None
@@ -97,27 +97,33 @@ pub fn to_key_value_prop(prop_or_spread: &PropOrSpread) -> Option<&KeyValueProp>
 }
 
 pub fn has_object_prop(props: &Vec<PropOrSpread>, name: &str) -> bool {
-   for prop_or_spread in props {
-       if let Some(prop) = to_key_value_prop(prop_or_spread) {
-          if  match_prop_key(prop, name) {
-              return true;
-          }
-       }
-   }
-
-    false
+    props.iter().find(|prop_or_spread| {
+        to_key_value_prop(prop_or_spread)
+            .and_then(|prop| get_prop_key(prop))
+            .and_then(|key| {
+                if key == name { Some(key) } else { None }
+            }).is_some()
+    }).is_some()
 }
 
-pub fn match_prop_key(prop: &KeyValueProp, name: &str) -> bool {
+pub fn get_prop_key(prop: &KeyValueProp) -> Option<&JsWord> {
     match &prop.key {
         PropName::Ident(Ident { sym, .. })
         | PropName::Str(Str { value: sym, .. }) => {
-            sym.to_string() == name
+            Some(sym)
         }
         _ => {
-            false
+            None
         }
     }
+}
+
+pub fn match_prop_key(prop: &KeyValueProp, name: &str) -> bool {
+    get_prop_key(prop)
+        .and_then(|key| {
+            if key == name { Some(key) } else { None }
+        })
+        .is_some()
 }
 
 // pub fn match_jsx_name(el: &JSXOpeningElement, name: &str) -> bool {

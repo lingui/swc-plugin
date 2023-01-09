@@ -74,6 +74,29 @@ to!(
     "#
 );
 
+to!(
+    production,
+   should_kept_only_essential_props,
+    r#"
+        import { defineMessage } from '@lingui/macro'
+        const msg = defineMessage({
+            message: `Hello ${name}`,
+            id: 'msgId',
+            comment: 'description for translators',
+            context: 'My Context',
+        })
+    "#,
+     r#"
+         const msg = {
+          values: {
+            name: name,
+          },
+          id: 'msgId',
+          context: 'My Context',
+         };
+     "#
+);
+
 // to!(
 // ,
 //      r#"

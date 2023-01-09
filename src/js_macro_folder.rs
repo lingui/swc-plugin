@@ -14,6 +14,7 @@ use crate::tokens::MsgToken;
 
 #[derive(Debug)]
 pub struct JsMacroFolder<'a> {
+    pub strip_non_essential_fields: bool,
     pub should_add_18n_import: &'a mut bool,
     pub i18_callee_name: JsWord,
 }
@@ -55,31 +56,42 @@ impl<'a> JsMacroFolder<'a> {
         if let Expr::Object(obj) = *expr {
             let has_id = has_object_prop(&obj.props, "id");
 
-            let new_props: Vec<PropOrSpread> = obj.props.into_iter().map(|prop_or_spread| {
-                if let PropOrSpread::Prop(prop1) = &prop_or_spread {
-                    if let Prop::KeyValue(prop) = prop1.as_ref() {
-                        if match_prop_key(prop, "message") {
-                            let tokens = try_tokenize_expr(&prop.value).unwrap();
+            let mut new_props: Vec<PropOrSpread> = obj.props.into_iter().flat_map(|prop_or_spread| {
+                if let Some(prop) = to_key_value_prop(&prop_or_spread) {
+                    if match_prop_key(prop, "message") {
+                        let tokens = try_tokenize_expr(&prop.value).unwrap();
 
-                            let parsed = MessageBuilder::parse(tokens, false);
+                        let parsed = MessageBuilder::parse(tokens, false);
 
-                            let mut args: Vec<PropOrSpread> = vec![
-                                create_key_value_prop(if has_id { "message" } else { "id" }, parsed.message),
-                            ];
+                        let mut args: Vec<PropOrSpread> = vec![
+                            create_key_value_prop(if has_id { "message" } else { "id" }, parsed.message),
+                        ];
 
-                            if let Some(v) = parsed.values {
-                                args.push(
-                                    create_key_value_prop("values", v),
-                                )
-                            }
-
-                            return args;
+                        if let Some(v) = parsed.values {
+                            args.push(
+                                create_key_value_prop("values", v),
+                            )
                         }
+
+                        return args;
                     }
                 }
 
                 return vec![prop_or_spread];
-            }).flatten().collect();
+            }).collect();
+
+            if self.strip_non_essential_fields {
+                new_props = new_props.into_iter().filter(| prop| {
+                    to_key_value_prop(prop)
+                        .and_then(| prop| get_prop_key(prop))
+                        .and_then(| key | {
+                            match key.as_ref() {
+                                "id" | "context" | "values" => Some(true),
+                                _ => None
+                            }
+                        }).is_some()
+                }).collect();
+            }
 
             return Box::new(Expr::Object(ObjectLit {
                 span: DUMMY_SP,
