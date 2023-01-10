@@ -1,9 +1,8 @@
 name: Release
 
-#on:
-#  release:
-#    types: [created]
-on: [pull_request]
+on:
+  release:
+    types: [created]
 
 jobs:
   release:
