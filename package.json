@@ -20,7 +20,7 @@
     ],
     "main": "target/wasm32-wasi/release/lingui_macro_plugin.wasm",
     "exports": {
-        ".": "./target/wasm32-wasi/release/lingui_macro_plugin.wasm",
+        ".": "./target/wasm32-wasi/release/lingui_macro_plugin.wasm"
     },
     "scripts": {
         "prepublishOnly": "cargo build-wasi --release"
