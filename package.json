@@ -1,7 +1,7 @@
 {
     "name": "@lingui/swc-plugin",
-    "version": "0.0.2",
-    "description": "",
+    "version": "0.1.0",
+    "description": "A SWC Plugin for LinguiJS",
     "author": {
         "name": "Timofei Iatsenko",
         "email": "ty@road.travel"

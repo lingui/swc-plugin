@@ -43,6 +43,6 @@ jobs:
 
       - name: Build and publish
         run: |
-          npm publish --dry-run
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
