@@ -3,7 +3,7 @@ name: Release
 #on:
 #  release:
 #    types: [created]
-on: workflow_dispatch
+on: [pull_request]
 
 jobs:
   release:
