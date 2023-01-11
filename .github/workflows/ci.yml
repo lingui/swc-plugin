@@ -1,13 +1,22 @@
-name: Continuous integration
+name: CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - '*'
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
 
 jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -22,7 +31,7 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
