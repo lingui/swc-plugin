@@ -78,4 +78,4 @@ https://swc.rs/docs/configuration/swcrc
 
 ## License
 
-The project is licensed under the [MIT](https://github.com/lingui/swc-lugin/blob/main/LICENSE) license.
+The project is licensed under the [MIT](https://github.com/lingui/swc-plugin/blob/main/LICENSE) license.
