@@ -6,7 +6,7 @@
         "name": "Timofei Iatsenko",
         "email": "ty@road.travel"
     },
-    "license": "ISC",
+    "license": "MIT",
     "keywords": [
         "swc-plugin",
         "swc",

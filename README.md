@@ -1,9 +1,18 @@
 # A SWC Plugin For LinguiJS
 
-## Description
-This is a Rust versions of [LinguiJS Macro](https://lingui.js.org/ref/macro.html)
+<div align="center">
 
-# Usage
+A Rust versions of [LinguiJS Macro](https://lingui.js.org/ref/macro.html) [<img src="https://img.shields.io/badge/beta-yellow"/>](https://github.com/lingui/swc-plugin)
+
+[![npm](https://img.shields.io/npm/v/@lingui/swc-plugin?logo=npm&cacheSeconds=1800)](https://www.npmjs.com/package/@lingui/swc-plugin)
+[![npm](https://img.shields.io/npm/dt/@lingui/swc-plugin?cacheSeconds=500)](https://www.npmjs.com/package/@lingui/swc-plugin)
+[![CI](https://github.com/lingui/swc-plugin/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/lingui/swc-plugin/actions/workflows/ci.yml)
+[![GitHub contributors](https://img.shields.io/github/contributors/lingui/swc-plugin?cacheSeconds=1000)](https://github.com/lingui/swc-plugin/graphs/contributors)
+[![GitHub](https://img.shields.io/github/license/lingui/swc-plugin)](https://github.com/lingui/swc-lugin/blob/main/LICENSE)
+
+</div>
+
+## Usage
 
 `.swcrc`
 https://swc.rs/docs/configuration/swcrc
@@ -28,7 +37,7 @@ https://swc.rs/docs/configuration/swcrc
 }
 ```
 
-### Tasks:
+### Tasks
 - [x] Essential  `t` macro cases:
   - [x] ``t`Some string` ``
   - [x] ``t`Some ${variable} string` ``
@@ -66,3 +75,7 @@ https://swc.rs/docs/configuration/swcrc
 - [ ] NON-ESSENTIAL support renamed macro calls `import {t as macroT} from "@lingui/macro"`
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
 - [ ] Building binary and publishing
+
+## License
+
+The project is licensed under the [MIT](https://github.com/lingui/swc-lugin/blob/main/LICENSE) license.
