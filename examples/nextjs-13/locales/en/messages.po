@@ -1,0 +1,44 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2023-01-13 14:55+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: src/pages/index.tsx:40
+msgid "Date formatter example:"
+msgstr "Date formatter example:"
+
+#: src/pages/index.tsx:31
+msgid "Decrement"
+msgstr "Decrement"
+
+#: src/pages/index.tsx:48
+msgid "I have a balance of {0}"
+msgstr "I have a balance of {0}"
+
+#: src/pages/index.tsx:28
+msgid "Increment"
+msgstr "Increment"
+
+#: src/pages/index.tsx:16
+msgid "Language switcher example:"
+msgstr "Language switcher example:"
+
+#: src/pages/index.tsx:46
+msgid "Number formatter example:"
+msgstr "Number formatter example:"
+
+#: src/pages/index.tsx:25
+msgid "Plurals example:"
+msgstr "Plurals example:"
+
+#: src/pages/index.tsx:42
+msgid "Today is {0}"
+msgstr "Today is {0}"
+
+#: src/pages/index.tsx:34
+msgid "{count, plural, zero {There are no books} one {There's one book} other {There are # books}}"
+msgstr "{count, plural, zero {There are no books} one {There's one book} other {There are # books}}"
