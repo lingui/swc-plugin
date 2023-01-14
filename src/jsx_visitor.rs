@@ -2,7 +2,7 @@ use swc_core::ecma::{
     visit::{Visit, VisitWith},
 };
 use swc_core::ecma::ast::{*};
-use swc_common::DUMMY_SP;
+use swc_core::common::DUMMY_SP;
 use crate::ast_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
 use crate::tokens::{IcuChoice, ChoiceCase, CaseOrOffset, MsgToken, TagOpening};
 use regex::{Regex};
