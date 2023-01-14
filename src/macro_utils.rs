@@ -7,6 +7,7 @@ use swc_core::{
         atoms::JsWord
     },
 };
+use crate::LinguiOptions;
 
 const LINGUI_T: &str = &"t";
 
@@ -16,9 +17,20 @@ pub struct MacroCtx {
     imports_id_map: HashMap<JsWord, Id>,
     // local name -> export name
     imports_id_map_reverted: HashMap<Id, JsWord>,
+
+    pub should_add_18n_import: bool,
+    pub should_add_trans_import: bool,
+    pub options: LinguiOptions,
 }
 
 impl MacroCtx {
+    pub fn new(options: LinguiOptions) -> MacroCtx {
+        MacroCtx {
+            options,
+            ..Default::default()
+        }
+    }
+
     fn is_lingui_fn_choice_cmp(&self, ident: &Ident) -> bool {
         self.is_lingui_ident("plural", ident) ||
             self.is_lingui_ident("select", ident) ||

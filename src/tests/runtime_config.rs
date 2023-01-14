@@ -1,4 +1,5 @@
 use crate::{LinguiOptions, RuntimeModulesConfigMapNormalized};
+
 macro_rules! to {
     ($name:ident, $options:expr, $from:expr, $to:expr) => {
         swc_core::ecma::transforms::testing::test!(
