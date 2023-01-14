@@ -1,3 +1,4 @@
+#[cfg(test)]
 use crate::{LinguiOptions, RuntimeModulesConfigMapNormalized};
 
 macro_rules! to {
@@ -17,6 +18,8 @@ macro_rules! to {
         );
     };
 }
+
+
 
 to!(
     should_use_provided_runtime_modules,

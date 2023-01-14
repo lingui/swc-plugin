@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use swc_common::DUMMY_SP;
+use swc_core::common::DUMMY_SP;
 use swc_core::ecma::ast::{*};
 use swc_core::ecma::atoms::JsWord;
 use swc_core::ecma::utils::quote_ident;

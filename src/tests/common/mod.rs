@@ -18,8 +18,8 @@ macro_rules! to {
                     // set on a previous run
                 }
 
-                swc_common::chain!(
-                    swc_core::ecma::transforms::base::resolver(swc_common::Mark::new(), swc_common::Mark::new(), true),
+                swc_core::common::chain!(
+                    swc_core::ecma::transforms::base::resolver(swc_core::common::Mark::new(), swc_core::common::Mark::new(), true),
                     $crate::LinguiMacroFolder::default()
                 )
             },
@@ -48,8 +48,8 @@ macro_rules! to {
                     // set on a previous run
                 }
 
-                swc_common::chain!(
-                    swc_core::ecma::transforms::base::resolver(swc_common::Mark::new(), swc_common::Mark::new(), true),
+                swc_core::common::chain!(
+                    swc_core::ecma::transforms::base::resolver(swc_core::common::Mark::new(), swc_core::common::Mark::new(), true),
                     $crate::LinguiMacroFolder::new(
                          $crate::LinguiOptions {
                         strip_non_essential_fields: true,

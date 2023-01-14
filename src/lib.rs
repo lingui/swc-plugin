@@ -1,16 +1,16 @@
 use std::collections::HashSet;
-use swc_common::plugin::metadata::TransformPluginMetadataContextKind;
 use swc_core::{
     ecma::{
+        utils::quote_ident,
         ast::*,
         visit::{Fold, FoldWith, VisitWith},
     },
     plugin::{
+        metadata::TransformPluginMetadataContextKind,
         plugin_transform,
         proxies::TransformPluginProgramMetadata,
     },
 };
-use swc_core::ecma::utils::quote_ident;
 
 mod tests;
 mod normalize_witespaces_jsx;
