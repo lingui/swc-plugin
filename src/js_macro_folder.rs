@@ -152,7 +152,7 @@ impl<'a> Fold for JsMacroFolder<'a> {
         }
 
         // plural / selectOrdinal / select
-        if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_icu( &expr) {
+        if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp( &expr) {
             return self.create_i18n_fn_call_from_tokens(
                 None,
                 tokens,

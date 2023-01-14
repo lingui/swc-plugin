@@ -10,7 +10,7 @@ use crate::{
     normalize_witespaces_js::normalize_whitespaces_js,
     normalize_witespaces_jsx::normalize_whitespaces_jsx
 };
-use crate::tokens::{Icu, IcuChoiceOrOffset, MsgToken};
+use crate::tokens::{IcuChoice, CaseOrOffset, MsgToken};
 
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
     let mut uniques = HashSet::new();
@@ -119,7 +119,7 @@ impl MessageBuilder {
                 MsgToken::TagClosing => {
                     self.push_tag_closing();
                 }
-                MsgToken::Icu(icu) => {
+                MsgToken::IcuChoice(icu) => {
                     self.push_icu(icu);
                 }
             }
@@ -184,18 +184,18 @@ impl MessageBuilder {
         }
     }
 
-    fn push_icu(&mut self, icu: Icu) {
+    fn push_icu(&mut self, icu: IcuChoice) {
         let value_placeholder = self.push_exp(icu.value);
-        let method = icu.icu_method;
+        let method = icu.format;
         self.push_msg(&format!("{{{value_placeholder}, {method},"));
 
-        for choice in icu.choices {
+        for choice in icu.cases {
             match choice {
                 // produce offset:{number}
-                IcuChoiceOrOffset::Offset(val) => {
+                CaseOrOffset::Offset(val) => {
                     self.push_msg(&format!(" offset:{val}"));
                 }
-                IcuChoiceOrOffset::IcuChoice(choice) => {
+                CaseOrOffset::Case(choice) => {
                     let key = choice.key;
 
                     self.push_msg(&format!(" {key} {{"));
