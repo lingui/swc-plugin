@@ -6,20 +6,22 @@ use swc_core::{
         visit::{Fold, FoldWith},
     },
 };
-use swc_core::ecma::atoms::JsWord;
 use crate::ast_utils::{*};
 use crate::builder::MessageBuilder;
 use crate::macro_utils::{*};
 use crate::tokens::MsgToken;
 
 pub struct JsMacroFolder<'a> {
-    pub strip_non_essential_fields: bool,
-    pub should_add_18n_import: &'a mut bool,
-    pub i18_callee_name: JsWord,
-    pub ctx: &'a MacroCtx,
+    pub ctx: &'a mut MacroCtx,
 }
 
 impl<'a> JsMacroFolder<'a> {
+    pub fn new(ctx: &'a mut MacroCtx) -> JsMacroFolder<'a> {
+        JsMacroFolder {
+            ctx,
+        }
+    }
+
     fn create_i18n_fn_call_from_tokens(&mut self, callee_obj: Option<Box<Expr>>, tokens: Vec<MsgToken>) -> CallExpr {
         let parsed = MessageBuilder::parse(tokens, false);
 
@@ -38,9 +40,10 @@ impl<'a> JsMacroFolder<'a> {
             callee: Expr::Member(MemberExpr {
                 span: DUMMY_SP,
                 obj: callee_obj.unwrap_or_else(|| {
-                    (*self.should_add_18n_import) = true;
+                    self.ctx.should_add_18n_import = true;
+                    let (_, i18n_export) = &self.ctx.options.runtime_modules.i18n;
 
-                    return Box::new(Ident::new(self.i18_callee_name.clone().into(), DUMMY_SP).into());
+                    return Box::new(Ident::new(i18n_export.clone().into(), DUMMY_SP).into());
                 }),
                 prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
             }).as_callee(),
@@ -80,7 +83,7 @@ impl<'a> JsMacroFolder<'a> {
                 return vec![prop_or_spread];
             }).collect();
 
-            if self.strip_non_essential_fields {
+            if self.ctx.options.strip_non_essential_fields {
                 new_props = new_props.into_iter().filter(| prop| {
                     to_key_value_prop(prop)
                         .and_then(| prop| get_prop_key(prop))
