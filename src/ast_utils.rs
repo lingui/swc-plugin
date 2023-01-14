@@ -74,10 +74,10 @@ pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
     })
 }
 
-pub fn match_callee_name<F: Fn(&JsWord) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
+pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
     if let Callee::Expr(expr) = &call.callee {
         if let Expr::Ident(ident) = expr.as_ref() {
-            if predicate(&ident.sym) {
+            if predicate(&ident) {
                 return Some(ident);
             }
         }

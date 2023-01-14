@@ -1,4 +1,4 @@
-# A SWC Plugin For LinguiJS
+# <div align="center">A SWC Plugin For LinguiJS</div>
 
 <div align="center">
 
@@ -27,14 +27,33 @@ https://swc.rs/docs/configuration/swcrc
         // Optional
         // Unlike the JS version this option must be passed as object only.
         // Docs https://lingui.js.org/ref/conf.html#std-config-runtimeConfigModule
-        "runtimeModules": {
-          "i18n": ["@lingui/core", "i18n"],
-          "trans": ["@lingui/react", "Trans"]
-        }
+        // "runtimeModules": {
+        //   "i18n": ["@lingui/core", "i18n"],
+        //   "trans": ["@lingui/react", "Trans"]
+        // }
       }]
     }
   }
 }
+```
+
+Or Next JS Usage:
+
+`next.config.js`
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    swcPlugins: [
+      ['@lingui/swc-plugin', {
+       // the same options as in .swcrc
+      }],
+    ],
+  },
+};
+
+module.exports = nextConfig;
 ```
 
 ### Tasks
@@ -72,9 +91,9 @@ https://swc.rs/docs/configuration/swcrc
 - [x] Unicode escaping, validate how SWC produce values
 - [x] Support `runtimeConfigModule` settings
 - [ ] NON-ESSENTIAL Injecting uniq variables, avoiding collision with existing variables
-- [ ] NON-ESSENTIAL support renamed macro calls `import {t as macroT} from "@lingui/macro"`
+- [x] NON-ESSENTIAL support renamed macro calls `import {t as macroT} from "@lingui/macro"`
 - [ ] Error handling: how to properly behave to do if user passed something not expected [HANDLER](https://rustdoc.swc.rs/swc_common/errors/struct.Handler.html)
-- [ ] Building binary and publishing
+- [x] Building binary and publishing
 
 ## License
 
