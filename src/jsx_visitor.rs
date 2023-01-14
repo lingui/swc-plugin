@@ -4,9 +4,10 @@ use swc_core::ecma::{
 use swc_core::ecma::ast::{*};
 use swc_common::DUMMY_SP;
 use crate::ast_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
-use crate::tokens::{Icu, IcuChoice, IcuChoiceOrOffset, MsgToken, TagOpening};
+use crate::tokens::{IcuChoice, ChoiceCase, CaseOrOffset, MsgToken, TagOpening};
 use regex::{Regex};
 use once_cell::sync::Lazy;
+use swc_core::ecma::atoms::JsWord;
 use swc_core::plugin::errors::HANDLER;
 use crate::macro_utils::{ MacroCtx};
 
@@ -31,12 +32,12 @@ static WORD_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\w+)").unwrap());
 // const pluralRuleRe = /(_[\d\w]+|zero|one|two|few|many|other)/
 // const jsx2icuExactChoice = (value: string) => value.replace(/_(\d+)/, "=$1").replace(/_(\w+)/, "$1")
 
-fn is_allowed_plural_option(key: &str) -> Option<String> {
+fn is_allowed_plural_option(key: &str) -> Option<JsWord> {
     if PLURAL_OPTIONS_WHITELIST.is_match(key) {
         let key = NUM_OPTION.replace(key, "=$1");
         let key = WORD_OPTION.replace(&key, "$1");
 
-        return Some(key.to_string());
+        return Some(key.to_string().into());
     }
 
     None
@@ -44,8 +45,8 @@ fn is_allowed_plural_option(key: &str) -> Option<String> {
 
 impl<'a> TransJSXVisitor<'a> {
     // <Plural /> <Select /> <SelectOrdinal />
-    fn visit_icu_macro(&mut self, el: &JSXOpeningElement, icu_format: &str) -> Vec<IcuChoiceOrOffset> {
-        let mut choices: Vec<IcuChoiceOrOffset> = Vec::new();
+    fn visit_icu_macro(&mut self, el: &JSXOpeningElement, icu_format: &str) -> Vec<CaseOrOffset> {
+        let mut choices: Vec<CaseOrOffset> = Vec::new();
 
         for attr in &el.attrs {
             if let JSXAttrOrSpread::JSXAttr(attr) = attr {
@@ -53,7 +54,7 @@ impl<'a> TransJSXVisitor<'a> {
                     if let JSXAttrName::Ident(ident) = &attr.name {
                         if &ident.sym == "offset" && icu_format != "select" {
                             if let Some(value) = get_jsx_attr_value_as_string(attr_value) {
-                                choices.push(IcuChoiceOrOffset::Offset(value.to_string()))
+                                choices.push(CaseOrOffset::Offset(value.to_string()))
                             } else {
                                 // todo: panic offset might be only a number, other forms are not supported
                             }
@@ -96,10 +97,10 @@ impl<'a> TransJSXVisitor<'a> {
                                 }
                             }
 
-                            choices.push(IcuChoiceOrOffset::IcuChoice(
-                                IcuChoice {
+                            choices.push(CaseOrOffset::Case(
+                                ChoiceCase {
                                     tokens,
-                                    key: key.to_string(),
+                                    key,
                                 }))
                         }
                     }
@@ -144,9 +145,9 @@ impl<'a> Visit for TransJSXVisitor<'a> {
                 let icu_method = self.ctx.get_ident_export_name(ident).unwrap().to_lowercase();
                 let choices = self.visit_icu_macro(el, &icu_method);
 
-                self.tokens.push(MsgToken::Icu(Icu {
-                    choices,
-                    icu_method,
+                self.tokens.push(MsgToken::IcuChoice(IcuChoice {
+                    cases: choices,
+                    format: icu_method.into(),
                     value,
                 }));
 
@@ -190,7 +191,7 @@ impl<'a> Visit for TransJSXVisitor<'a> {
                 // todo write tests and validate
                 // support calls to js macro inside JSX, but not to t``
                 Expr::Call(call) => {
-                    if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_icu(call) {
+                    if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(call) {
                         self.tokens.extend(tokens);
                     } else {
                         self.tokens.push(

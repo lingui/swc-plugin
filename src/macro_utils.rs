@@ -16,7 +16,7 @@ pub struct MacroCtx {
     // export name -> local name
     imports_id_map: HashMap<JsWord, Id>,
     // local name -> export name
-    imports_id_map_reverted: HashMap<Id, JsWord>,
+    imports_id_map_inverted: HashMap<Id, JsWord>,
 
     pub should_add_18n_import: bool,
     pub should_add_trans_import: bool,
@@ -31,12 +31,14 @@ impl MacroCtx {
         }
     }
 
+    /// is given ident exported from @lingui/macro? and one of choice functions?
     fn is_lingui_fn_choice_cmp(&self, ident: &Ident) -> bool {
         self.is_lingui_ident("plural", ident) ||
             self.is_lingui_ident("select", ident) ||
             self.is_lingui_ident("selectOrdinal", ident)
     }
 
+    /// is given ident exported from @lingui/macro?
     pub fn is_lingui_ident(&self, name: &str, ident: &Ident) -> bool {
         if let Some(imp) = self.imports_id_map.get(&name.into()) {
             return ident.to_id() == *imp;
@@ -45,8 +47,10 @@ impl MacroCtx {
         false
     }
 
+    /// given import {plural as i18nPlural} from "@lingui/macro";
+    /// get_ident_export_name("i18nPlural") would return `plural`
     pub fn get_ident_export_name(&self, ident: &Ident) -> Option<&JsWord> {
-        if let Some(name) = self.imports_id_map_reverted.get(&ident.to_id()) {
+        if let Some(name) = self.imports_id_map_inverted.get(&ident.to_id()) {
             return Some(name);
         }
 
@@ -64,10 +68,10 @@ impl MacroCtx {
             if let ImportSpecifier::Named(spec) = spec {
                 if let Some(ModuleExportName::Ident(ident)) = &spec.imported {
                     self.imports_id_map.insert(ident.sym.clone(), spec.local.to_id());
-                    self.imports_id_map_reverted.insert(spec.local.to_id(), ident.sym.clone());
+                    self.imports_id_map_inverted.insert(spec.local.to_id(), ident.sym.clone());
                 } else {
                     self.imports_id_map.insert(spec.local.sym.clone(), spec.local.to_id());
-                    self.imports_id_map_reverted.insert(spec.local.to_id(), spec.local.sym.clone());
+                    self.imports_id_map_inverted.insert(spec.local.to_id(), spec.local.sym.clone());
 
                 }
             }
@@ -105,7 +109,7 @@ impl MacroCtx {
 
             if let Some(exp) = tpl.exprs.get(i) {
                 if let Expr::Call(call) = exp.as_ref() {
-                    if let Some(call_tokens) = self.try_tokenize_call_expr_as_icu(call) {
+                    if let Some(call_tokens) = self.try_tokenize_call_expr_as_choice_cmp(call) {
                         tokens.extend(call_tokens);
                         continue;
                     }
@@ -120,7 +124,7 @@ impl MacroCtx {
 
     /// Try to tokenize call expression as ICU Choice macro
     /// Return None if this call is not related to macros or is not parsable
-    pub fn try_tokenize_call_expr_as_icu(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
+    pub fn try_tokenize_call_expr_as_choice_cmp(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
         if let Some(ident) = match_callee_name(&expr, |name| self.is_lingui_fn_choice_cmp(name)) {
             if expr.args.len() != 2 {
                 // malformed plural call, exit
@@ -131,16 +135,16 @@ impl MacroCtx {
             let arg = expr.args.get(0).unwrap();
             let icu_value = arg.expr.clone();
 
-            // ICU Choices
+            // ICU Choice Cases
             let arg = expr.args.get(1).unwrap();
             if let Expr::Object(object) = &arg.expr.as_ref() {
-                let icu_method = self.get_ident_export_name(ident).unwrap().to_lowercase();
-                let choices = self.get_choices_from_obj(&object.props, &icu_method);
+                let format = self.get_ident_export_name(ident).unwrap().to_lowercase();
+                let cases = self.get_choice_cases_from_obj(&object.props, &format);
 
-                return Some(vec![MsgToken::Icu(Icu {
-                    icu_method,
+                return Some(vec![MsgToken::IcuChoice(IcuChoice {
+                    format: format.into(),
                     value: icu_value,
-                    choices,
+                    cases,
                 })]);
             } else {
                 // todo passed not an ObjectLiteral,
@@ -169,7 +173,7 @@ impl MacroCtx {
 
             // Call Expression: {one: plural(numArticles, {...})}
             Expr::Call(expr) => {
-                self.try_tokenize_call_expr_as_icu(expr)
+                self.try_tokenize_call_expr_as_choice_cmp(expr)
             }
             _ => None
         }
@@ -177,7 +181,7 @@ impl MacroCtx {
 
     /// Take KeyValueProp and return Key as string if parsable
     /// If key is numeric, return an exact match syntax `={number}`
-    pub fn get_js_choice_key(&self, prop: &KeyValueProp) -> Option<JsWord> {
+    pub fn get_js_choice_case_key(&self, prop: &KeyValueProp) -> Option<JsWord> {
         match &prop.key {
             // {one: ""}
             PropName::Ident(Ident { sym, .. })
@@ -195,21 +199,19 @@ impl MacroCtx {
         }
     }
 
-
-
     /// receive ObjectLiteral {few: "..", many: "..", other: ".."} and create tokens
     /// If messages passed as TemplateLiterals with variables, it extracts variables
-    pub fn get_choices_from_obj(&self, props: &Vec<PropOrSpread>, icu_format: &str) -> Vec<IcuChoiceOrOffset> {
+    pub fn get_choice_cases_from_obj(&self, props: &Vec<PropOrSpread>, icu_format: &str) -> Vec<CaseOrOffset> {
         // todo: there might be more props then real choices. Id for example
-        let mut choices: Vec<IcuChoiceOrOffset> = Vec::with_capacity(props.len());
+        let mut choices: Vec<CaseOrOffset> = Vec::with_capacity(props.len());
 
         for prop_or_spread in props {
             if let PropOrSpread::Prop(prop) = prop_or_spread {
                 if let Prop::KeyValue(prop) = prop.as_ref() {
-                    if let Some(key) = self.get_js_choice_key(prop) {
+                    if let Some(key) = self.get_js_choice_case_key(prop) {
                         if &key == "offset" && icu_format != "select" {
                             if let Expr::Lit(Lit::Num(Number { value, .. })) = prop.value.as_ref() {
-                                choices.push(IcuChoiceOrOffset::Offset(value.to_string()))
+                                choices.push(CaseOrOffset::Offset(value.to_string()))
                             } else {
                                 // todo: panic offset might be only a number, other forms is not supported
                             }
@@ -217,9 +219,9 @@ impl MacroCtx {
                             let tokens = self.try_tokenize_expr(&prop.value)
                                 .unwrap_or(Vec::new());
 
-                            choices.push(IcuChoiceOrOffset::IcuChoice(IcuChoice {
+                            choices.push(CaseOrOffset::Case(ChoiceCase {
                                 tokens,
-                                key: key.to_string(),
+                                key,
                             }));
                         }
                     }

@@ -1,11 +1,12 @@
 use swc_core::ecma::ast::{Expr, JSXOpeningElement};
+use swc_core::ecma::atoms::JsWord;
 
 pub enum MsgToken {
     String(String),
     Expression(Box<Expr>),
     TagOpening(TagOpening),
     TagClosing,
-    Icu(Icu),
+    IcuChoice(IcuChoice),
 }
 
 pub struct TagOpening {
@@ -13,19 +14,19 @@ pub struct TagOpening {
     pub el: JSXOpeningElement,
 }
 
-pub struct Icu {
+pub struct IcuChoice {
     pub value: Box<Expr>,
-    // todo: JSWord
-    pub icu_method: String,
-    pub choices: Vec<IcuChoiceOrOffset>,
+    /// plural | select | selectOrdinal
+    pub format: JsWord,
+    pub cases: Vec<CaseOrOffset>,
 }
 
-pub enum IcuChoiceOrOffset {
-    IcuChoice(IcuChoice),
+pub enum CaseOrOffset {
+    Case(ChoiceCase),
     Offset(String)
 }
-pub struct IcuChoice {
-    pub key: String,
+pub struct ChoiceCase {
+    pub key: JsWord,
     pub tokens: Vec<MsgToken>,
 }
 
