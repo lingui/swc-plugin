@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet};
 use serde::{Deserialize};
 use swc_common::plugin::metadata::TransformPluginMetadataContextKind;
 use swc_core::{
@@ -109,6 +109,8 @@ pub struct LinguiMacroFolder {
     has_lingui_macro_imports: bool,
     should_add_18n_import: bool,
     should_add_trans_import: bool,
+
+    ctx: MacroCtx,
 }
 
 impl LinguiMacroFolder {
@@ -122,7 +124,7 @@ impl LinguiMacroFolder {
     // <Trans>Message</Trans>
     // <Plural />
     fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
-        let mut trans_visitor = TransJSXVisitor::new();
+        let mut trans_visitor = TransJSXVisitor::new(&self.ctx);
 
         if is_trans_el {
             el.children.visit_children_with(&mut trans_visitor);
@@ -196,6 +198,7 @@ impl Fold for LinguiMacroFolder {
                 // drop macro imports
                 if &imp.src.value == "@lingui/macro" {
                     self.has_lingui_macro_imports = true;
+                    self.ctx.register_macro_import(imp);
                     return false;
                 }
 
@@ -218,6 +221,8 @@ impl Fold for LinguiMacroFolder {
 
             true
         });
+
+        // println!("{:?}", self.ctx.imports_id_map);
 
         n = n.fold_children_with(self);
 
@@ -245,6 +250,7 @@ impl Fold for LinguiMacroFolder {
             strip_non_essential_fields: self.options.strip_non_essential_fields,
             should_add_18n_import: &mut self.should_add_18n_import,
             i18_callee_name: i18n_export.clone().into(),
+            ctx: &self.ctx
         };
 
         folder
@@ -265,6 +271,7 @@ impl Fold for LinguiMacroFolder {
             strip_non_essential_fields: self.options.strip_non_essential_fields,
             should_add_18n_import: &mut self.should_add_18n_import,
             i18_callee_name: i18n_export.clone().into(),
+            ctx: &self.ctx
         };
 
         folder
@@ -287,14 +294,15 @@ impl Fold for LinguiMacroFolder {
             strip_non_essential_fields: self.options.strip_non_essential_fields,
             should_add_18n_import: &mut self.should_add_18n_import,
             i18_callee_name: i18n_export.clone().into(),
+            ctx: &self.ctx
         });
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
-            if &ident.sym == "Trans" {
+            if self.ctx.is_lingui_ident("Trans", &ident) {
                 return self.transform_jsx_macro(el, true);
             }
 
-            if is_lingui_jsx_el(&ident.sym) {
+            if self.ctx.is_lingui_jsx_choice_cmp(&ident) {
                 return self.transform_jsx_macro(el, false);
             }
         }

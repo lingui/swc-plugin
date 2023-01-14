@@ -165,7 +165,7 @@ to!(
 to!(
     support_id_and_comment_in_t_macro_as_call_expression,
     r#"
-        import { t } from '@lingui/macro'
+        import { t, plural } from '@lingui/macro'
         const msg = t({ id: 'msgId', comment: 'description for translators', message: plural(val, { one: '...', other: '...' }) })
     "#,
     r#"

@@ -12,11 +12,11 @@ use crate::builder::MessageBuilder;
 use crate::macro_utils::{*};
 use crate::tokens::MsgToken;
 
-#[derive(Debug)]
 pub struct JsMacroFolder<'a> {
     pub strip_non_essential_fields: bool,
     pub should_add_18n_import: &'a mut bool,
     pub i18_callee_name: JsWord,
+    pub ctx: &'a MacroCtx,
 }
 
 impl<'a> JsMacroFolder<'a> {
@@ -59,7 +59,7 @@ impl<'a> JsMacroFolder<'a> {
             let mut new_props: Vec<PropOrSpread> = obj.props.into_iter().flat_map(|prop_or_spread| {
                 if let Some(prop) = to_key_value_prop(&prop_or_spread) {
                     if match_prop_key(prop, "message") {
-                        let tokens = try_tokenize_expr(&prop.value).unwrap();
+                        let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_else(|| Vec::new());
 
                         let parsed = MessageBuilder::parse(tokens, false);
 
@@ -107,18 +107,20 @@ impl<'a> JsMacroFolder<'a> {
 impl<'a> Fold for JsMacroFolder<'a> {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
-            let (is_t, callee) = is_lingui_t_call_expr(&tagged_tpl.tag);
+            let (is_t, callee) = self.ctx.is_lingui_t_call_expr(&tagged_tpl.tag);
 
             if is_t {
                 return Expr::Call(self.create_i18n_fn_call_from_tokens(
                     callee,
-                    tokenize_tpl(&tagged_tpl.tpl),
+                    self.ctx.tokenize_tpl(&tagged_tpl.tpl),
                 ));
             }
         }
 
         if let Expr::Call(call) = &expr {
-            if let Some(_) = match_callee_name(&call, |n| n == "defineMessage") {
+            if let Some(_) = match_callee_name(&call, |n| self.ctx.is_lingui_ident(
+                 "defineMessage", n
+            )) {
                 if call.args.len() == 1 {
                     let descriptor = self.update_msg_descriptor_props(
                         call.args.clone().into_iter().next().unwrap().expr
@@ -135,7 +137,7 @@ impl<'a> Fold for JsMacroFolder<'a> {
     fn fold_call_expr(&mut self, expr: CallExpr) -> CallExpr {
         // t({}) / t(i18n)({})
         if let Callee::Expr(callee) = &expr.callee {
-            let (is_t, callee) = is_lingui_t_call_expr(callee);
+            let (is_t, callee) = self.ctx.is_lingui_t_call_expr(callee);
 
             if is_t && expr.args.len() == 1 {
                 let descriptor = self.update_msg_descriptor_props(
@@ -147,7 +149,7 @@ impl<'a> Fold for JsMacroFolder<'a> {
         }
 
         // plural / selectOrdinal / select
-        if let Some(tokens) = try_tokenize_call_expr_as_icu(&expr) {
+        if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_icu( &expr) {
             return self.create_i18n_fn_call_from_tokens(
                 None,
                 tokens,

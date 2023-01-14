@@ -88,15 +88,15 @@ to!(
 to!(
     jsx_icu_nested,
      r#"
-       import { Plural } from "@lingui/macro";
+       import { Plural, Trans } from "@lingui/macro";
 
        <Trans>
-       You have{" "}
-          <Plural
-           value={count}
-           one="Message"
-           other="Messages"
-          />
+           You have{" "}
+              <Plural
+               value={count}
+               one="Message"
+               other="Messages"
+              />
       </Trans>
      "#,
 

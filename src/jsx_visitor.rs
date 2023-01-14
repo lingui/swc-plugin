@@ -4,21 +4,22 @@ use swc_core::ecma::{
 use swc_core::ecma::ast::{*};
 use swc_common::DUMMY_SP;
 use crate::ast_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
-use crate::is_lingui_jsx_el;
 use crate::tokens::{Icu, IcuChoice, IcuChoiceOrOffset, MsgToken, TagOpening};
 use regex::{Regex};
 use once_cell::sync::Lazy;
 use swc_core::plugin::errors::HANDLER;
-use crate::macro_utils::{tokenize_tpl, try_tokenize_call_expr_as_icu};
+use crate::macro_utils::{ MacroCtx};
 
-pub struct TransJSXVisitor {
+pub struct TransJSXVisitor<'a> {
     pub tokens: Vec<MsgToken>,
+    ctx: &'a MacroCtx,
 }
 
-impl TransJSXVisitor {
-    pub fn new() -> TransJSXVisitor {
+impl<'a> TransJSXVisitor<'a> {
+    pub fn new(ctx: &'a MacroCtx) -> TransJSXVisitor<'a> {
         TransJSXVisitor {
             tokens: Vec::new(),
+            ctx
         }
     }
 }
@@ -41,9 +42,9 @@ fn is_allowed_plural_option(key: &str) -> Option<String> {
     None
 }
 
-impl TransJSXVisitor {
+impl<'a> TransJSXVisitor<'a> {
     // <Plural /> <Select /> <SelectOrdinal />
-    fn visit_icu_macro<'a>(&mut self, el: &JSXOpeningElement, icu_format: &str) -> Vec<IcuChoiceOrOffset> {
+    fn visit_icu_macro(&mut self, el: &JSXOpeningElement, icu_format: &str) -> Vec<IcuChoiceOrOffset> {
         let mut choices: Vec<IcuChoiceOrOffset> = Vec::new();
 
         for attr in &el.attrs {
@@ -74,11 +75,11 @@ impl TransJSXVisitor {
                                         }
                                         // some={`# books ${name}`}
                                         Expr::Tpl(tpl) => {
-                                            tokens.extend(tokenize_tpl(tpl));
+                                            tokens.extend(self.ctx.tokenize_tpl(tpl));
                                         }
                                         // some={`<Books />`}
                                         Expr::JSXElement(exp) => {
-                                            let mut visitor = TransJSXVisitor::new();
+                                            let mut visitor = TransJSXVisitor::new(&self.ctx);
                                             exp.visit_children_with(&mut visitor);
 
                                             tokens.extend(visitor.tokens)
@@ -116,15 +117,15 @@ impl TransJSXVisitor {
     }
 }
 
-impl Visit for TransJSXVisitor {
+impl<'a> Visit for TransJSXVisitor<'a> {
     fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
         if let JSXElementName::Ident(ident) = &el.name {
-            if &ident.sym == "Trans" {
+            if self.ctx.is_lingui_ident("Trans", &ident) {
                 el.visit_children_with(self);
                 return;
             }
 
-            if is_lingui_jsx_el(&ident.sym) {
+            if self.ctx.is_lingui_jsx_choice_cmp(&ident) {
                 let value = match get_jsx_attr(&el, "value").and_then(|attr| attr.value.as_ref()) {
                     Some(
                         JSXAttrValue::JSXExprContainer(
@@ -140,7 +141,7 @@ impl Visit for TransJSXVisitor {
                     }
                 };
 
-                let icu_method = ident.sym.to_lowercase();
+                let icu_method = self.ctx.get_ident_export_name(ident).unwrap().to_lowercase();
                 let choices = self.visit_icu_macro(el, &icu_method);
 
                 self.tokens.push(MsgToken::Icu(Icu {
@@ -189,7 +190,7 @@ impl Visit for TransJSXVisitor {
                 // todo write tests and validate
                 // support calls to js macro inside JSX, but not to t``
                 Expr::Call(call) => {
-                    if let Some(tokens) = try_tokenize_call_expr_as_icu(call) {
+                    if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_icu(call) {
                         self.tokens.extend(tokens);
                     } else {
                         self.tokens.push(
@@ -204,7 +205,7 @@ impl Visit for TransJSXVisitor {
 
                 Expr::Tpl(tpl) => {
                     self.tokens.extend(
-                        tokenize_tpl(tpl)
+                        self.ctx.tokenize_tpl(tpl)
                     );
                 }
                 _ => {
