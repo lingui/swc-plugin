@@ -1,30 +1,35 @@
 {
-    "name": "@lingui/swc-plugin",
-    "version": "0.2.0",
-    "description": "A SWC Plugin for LinguiJS",
-    "author": {
-        "name": "Timofei Iatsenko",
-        "email": "ty@road.travel"
-    },
-    "license": "MIT",
-    "keywords": [
-        "swc-plugin",
-        "swc",
-        "nextjs",
-        "lingui",
-        "lingui-js",
-        "icu",
-        "message-format",
-        "i18n",
-        "internalization"
-    ],
-    "main": "target/wasm32-wasi/release/lingui_macro_plugin.wasm",
-    "exports": {
-        ".": "./target/wasm32-wasi/release/lingui_macro_plugin.wasm"
-    },
-    "scripts": {
-        "prepublishOnly": "cargo build-wasi --release"
-    },
-    "files": [],
-    "packageManager": "yarn@3.3.1"
+  "name": "@lingui/swc-plugin",
+  "version": "0.2.0",
+  "description": "A SWC Plugin for LinguiJS",
+  "author": {
+    "name": "Timofei Iatsenko",
+    "email": "ty@road.travel"
+  },
+  "repository": "lingui/swc-plugin",
+  "bugs": "https://github.com/lingui/swc-plugin/issues",
+  "license": "MIT",
+  "keywords": [
+    "swc-plugin",
+    "swc",
+    "nextjs",
+    "lingui",
+    "lingui-js",
+    "icu",
+    "message-format",
+    "i18n",
+    "internalization"
+  ],
+  "main": "target/wasm32-wasi/release/lingui_macro_plugin.wasm",
+  "exports": {
+    ".": "./target/wasm32-wasi/release/lingui_macro_plugin.wasm"
+  },
+  "scripts": {
+    "prepublishOnly": "cargo build-wasi --release"
+  },
+  "files": [],
+  "packageManager": "yarn@3.3.1",
+  "peerDependencies": {
+    "@lingui/macro": "3 < 4"
+  }
 }
