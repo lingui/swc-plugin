@@ -6,6 +6,7 @@ static KEEP_SPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s*(?:\r\n|\r|\n)+
 // remove whitespace before/after tag or expression
 static STRIP_AROUND_TAGS: Lazy<Regex> = Lazy::new(|| Regex::new(r"([>}])(?:\r\n|\r|\n)+\s*|(?:\r\n|\r|\n)+\s*([<{])").unwrap());
 static TRAILING_IN_EXPRESSIONS: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\s+})").unwrap());
+static LEADING_IN_EXPRESSIONS: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\{\s+)").unwrap());
 static KEEP_ESCAPED_NEWLINES_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\\n").unwrap());
 
 // JS code for the reference:
@@ -24,6 +25,8 @@ static KEEP_ESCAPED_NEWLINES_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"\\n").u
 //       .replace(/\\s/g, " ")
 //       // we remove trailing whitespace inside Plural
 //       .replace(/(\s+})/gm, "}")
+//       // we remove leading whitespace inside Plural
+//       .replace(/({\s+)/gm, "{")
 //       .trim()
 //   )
 // }
@@ -35,6 +38,8 @@ pub fn normalize_whitespaces_jsx(str: &str) -> String {
     let str = KEEP_ESCAPED_NEWLINES_RE.replace_all(&str, "\n");
     // we remove trailing whitespace inside Plural
     let str = TRAILING_IN_EXPRESSIONS.replace_all(&str, "}");
+    // we remove leading whitespace inside Plural
+    let str = LEADING_IN_EXPRESSIONS.replace_all(&str, "{");
 
     return str.trim().to_string()
 }
@@ -90,5 +95,23 @@ mod tests {
 "#
             ),
             r#"{count, plural, one {<0>#</0> slot added} other {<1>#</1> slots added}}"#)
+    }
+
+    #[test]
+    fn remove_leading_in_icu() {
+        assert_eq!(
+            normalize_whitespaces_jsx(
+                r#"{count, plural, one {
+
+              One hello
+
+            } other {
+
+              Other hello
+
+            }}
+"#
+            ),
+            r#"{count, plural, one {One hello} other {Other hello}}"#)
     }
 }

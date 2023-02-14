@@ -181,7 +181,7 @@ import { Trans, Plural } from '@lingui/macro';
     r#"
         import { Trans } from "@lingui/react";
         <Trans id={
-          "{count, plural, one {{count2, plural, one { second level one} other { second level other}}<0>#</0> slot added} other {<1>#</1> slots added}}"
+          "{count, plural, one {{count2, plural, one {second level one} other {second level other}}<0>#</0> slot added} other {<1>#</1> slots added}}"
         }
         values={{
           count: count,
@@ -335,7 +335,7 @@ to!(
 
     r#"
        import { Trans } from "@lingui/react";
-        <Trans id={"{count, selectordinal, offset:1 =0 { #st} one { #nd} other {#rd}}"} values={{
+        <Trans id={"{count, selectordinal, offset:1 =0 {#st} one {#nd} other {#rd}}"} values={{
             count: count
         }}/>;
     "#
