@@ -20,7 +20,9 @@ to!(
           message: "Test"
         });
 
-        <Trans id={"{value, plural, one {...} other {...}}"} values={{
+        <Trans  message={"{value, plural, one {...} other {...}}"}
+        id={"kwTAtG"}
+        values={{
           value: value
         }}/>;
         <Trans>Untouched</Trans>
@@ -47,7 +49,8 @@ to!(
        import { Select } from "./my-select-cmp";
 
        ;<Trans
-           id={"{count, plural, one {Message} other {Messages}}"}
+            message={"{count, plural, one {Message} other {Messages}}"}
+            id={"V4EO9s"}
            values={{ count: count }}
         />
 
@@ -74,7 +77,8 @@ to!(
        import { Trans } from "@lingui/react";
 
        ;<Trans
-           id={"{count, plural, one {Message} other {Messages}}"}
+            message={"{count, plural, one {Message} other {Messages}}"}
+            id={"V4EO9s"}
            values={{ count: count }}
         />
        ;<Trans>Should be untouched</Trans>
@@ -172,10 +176,10 @@ to!(
     r#"
         import { Trans } from "@lingui/react";
 
-        ;<Trans id={"{count, plural, one {Message} other {Messages}}"} values={{
+        ;<Trans  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
             count: count
         }}/>
 
-        ;<Trans id={"Hello!"}/>
+        ;<Trans message={"Hello!"} id={"mAYvqA"}/>;
     "#
 );
