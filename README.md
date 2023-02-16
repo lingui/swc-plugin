@@ -37,10 +37,10 @@ https://swc.rs/docs/configuration/swcrc
 
 ```json5
 {
-  $schema: "https://json.schemastore.org/swcrc",
-  jsc: {
-    experimental: {
-      plugins: [
+  "$schema": "https://json.schemastore.org/swcrc",
+  "jsc": {
+    "experimental": {
+      "plugins": [
         [
           "@lingui/swc-plugin",
           {
