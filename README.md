@@ -15,6 +15,7 @@ A Rust versions of [LinguiJS Macro](https://lingui.dev/ref/macro) [<img src="htt
 ## Installation
 
 Install plugin:
+
 ```bash
 npm install --save-dev @lingui/swc-plugin
 # or
@@ -22,6 +23,7 @@ yarn add -D @lingui/swc-plugin
 ```
 
 You still need to install `@lingui/macro` for typings support:
+
 ```bash
 npm install @lingui/macro
 # or
@@ -35,36 +37,44 @@ https://swc.rs/docs/configuration/swcrc
 
 ```json5
 {
-  "$schema": "https://json.schemastore.org/swcrc",
-  "jsc": {
-    "experimental": {
-      "plugins": ["@lingui/swc-plugin", {
-
-        // Optional
-        // Unlike the JS version this option must be passed as object only.
-        // Docs https://lingui.dev/ref/conf#runtimeconfigmodule
-        // "runtimeModules": {
-        //   "i18n": ["@lingui/core", "i18n"],
-        //   "trans": ["@lingui/react", "Trans"]
-        // }
-      }]
-    }
-  }
+  $schema: "https://json.schemastore.org/swcrc",
+  jsc: {
+    experimental: {
+      plugins: [
+        [
+          "@lingui/swc-plugin",
+          {
+            // Optional
+            // Unlike the JS version this option must be passed as object only.
+            // Docs https://lingui.dev/ref/conf#runtimeconfigmodule
+            // "runtimeModules": {
+            //   "i18n": ["@lingui/core", "i18n"],
+            //   "trans": ["@lingui/react", "Trans"]
+            // }
+          },
+        ],
+      ],
+    },
+  },
 }
 ```
 
 Or Next JS Usage:
 
 `next.config.js`
+
 ```js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
     swcPlugins: [
-      ['@lingui/swc-plugin', {
-       // the same options as in .swcrc
-      }],
+      [
+        "@lingui/swc-plugin",
+        {
+          // the same options as in .swcrc
+        },
+      ],
     ],
   },
 };
