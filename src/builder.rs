@@ -7,8 +7,8 @@ use swc_core::{
 };
 
 use crate::{
-    normalize_witespaces_js::normalize_whitespaces_js,
-    normalize_witespaces_jsx::normalize_whitespaces_jsx
+  normalize_witespaces_js::normalize_whitespaces_js,
+  normalize_witespaces_jsx::normalize_whitespaces_jsx,
 };
 use crate::tokens::{IcuChoice, CaseOrOffset, MsgToken};
 
@@ -38,9 +38,10 @@ impl ValueWithPlaceholder {
 }
 
 pub struct MessageBuilderResult {
-    pub message: Box<Expr>,
-    pub values: Option<Box<Expr>>,
-    pub components: Option<Box<Expr>>,
+  pub message_str: String,
+  pub message: Box<Expr>,
+  pub values: Option<Box<Expr>>,
+  pub components: Option<Box<Expr>>,
 }
 
 pub struct MessageBuilder {
@@ -68,24 +69,26 @@ impl MessageBuilder {
     }
 
     pub fn to_args(mut self, jsx: bool) -> MessageBuilderResult {
-        let message = Box::new(Expr::Lit(Lit::Str(Str {
-            span: DUMMY_SP,
-            value: if jsx {
-                normalize_whitespaces_jsx(&self.message).into()
-            } else {
-                normalize_whitespaces_js(&self.message).into()
-            },
-            raw: None,
-        })));
+      let message_str = if jsx {
+        normalize_whitespaces_jsx(&self.message)
+      } else {
+        normalize_whitespaces_js(&self.message)
+      };
 
-        self.values.append(&mut self.values_indexed);
+      let message = Box::new(Expr::Lit(Lit::Str(Str {
+        span: DUMMY_SP,
+        value: message_str.clone().into(),
+        raw: None,
+      })));
 
-        let values = if self.values.len() > 0 {
-            Some(Box::new(Expr::Object(ObjectLit {
-                span: DUMMY_SP,
-                props: dedup_values(self.values).into_iter().map(|item| item.to_prop()).collect(),
-            })))
-        } else { None };
+      self.values.append(&mut self.values_indexed);
+
+      let values = if self.values.len() > 0 {
+        Some(Box::new(Expr::Object(ObjectLit {
+          span: DUMMY_SP,
+          props: dedup_values(self.values).into_iter().map(|item| item.to_prop()).collect(),
+        })))
+      } else { None };
 
         let components = if self.components.len() > 0 {
             Some(Box::new(Expr::Object(ObjectLit {
@@ -95,9 +98,10 @@ impl MessageBuilder {
         } else { None };
 
         MessageBuilderResult {
-            message,
-            values,
-            components,
+          message_str: message_str.to_string(),
+          message,
+          values,
+          components,
         }
     }
 

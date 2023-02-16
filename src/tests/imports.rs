@@ -15,9 +15,13 @@ to!(
         import { i18n } from "@lingui/core";
         import { Trans } from "@lingui/react";
 
-        i18n._("Test");
+        i18n._({
+          id: "NnH3pK",
+          message: "Test"
+        });
+
         <Trans id={"{value, plural, one {...} other {...}}"} values={{
-            value: value
+          value: value
         }}/>;
         <Trans>Untouched</Trans>
     "#
@@ -92,9 +96,14 @@ to!(
        import { t } from "./custom-t";
 
        t`Don't touch me!`
-       i18n._("{value, plural, one {...} other {...}}", {
-            value: value
-        });
+       i18n._({
+          id: "kwTAtG",
+          message: "{value, plural, one {...} other {...}}",
+          values: {
+              value: value
+          }
+       });
+
     "#
 );
 
@@ -112,7 +121,11 @@ to!(
        import { i18n } from "@lingui/core";
        import { plural } from "./custom-plural";
 
-       i18n._("Hello World!")
+       i18n._({
+          id: "0IkKj6",
+          message: "Hello World!"
+       });
+
        plural(value, {one: "...", other: "..."});
     "#
 );
@@ -128,13 +141,18 @@ to!(
      "#,
 
     r#"
-       import { i18n } from "@lingui/core";
-
-       i18n._("Hello World!")
-       i18n._("{value, plural, one {...} other {...}}", {
+    import { i18n } from "@lingui/core";
+    i18n._({
+        id: "0IkKj6",
+        message: "Hello World!"
+    });
+    i18n._({
+        id: "kwTAtG",
+        message: "{value, plural, one {...} other {...}}",
+        values: {
             value: value
-        });
-
+        }
+    });
     "#
 );
 to!(

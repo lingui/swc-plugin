@@ -22,14 +22,26 @@ to!(
      "#,
     r#"
     import { i18n } from "@lingui/core";
-    const messagePlural = i18n._("{count, plural, one {# Book} other {# Books}}", {
-      count: count
+    const messagePlural = i18n._({
+        id: "V/M0Vc",
+        message: "{count, plural, one {# Book} other {# Books}}",
+        values: {
+            count: count
+        }
     });
-    const messageSelect = i18n._("{gender, select, male {he} female {she} other {they}}", {
-      gender: gender
+    const messageSelect = i18n._({
+        id: "VRptzI",
+        message: "{gender, select, male {he} female {she} other {they}}",
+        values: {
+            gender: gender
+        }
     });
-    const messageSelectOrdinal = i18n._("{count, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}", {
-      count: count
+    const messageSelectOrdinal = i18n._({
+        id: "Q9Q8Bj",
+        message: "{count, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+        values: {
+            count: count
+        }
     });
     "#
 );
@@ -37,7 +49,7 @@ to!(
 to!(
     js_icu_diffrent_object_literal_syntax,
      r#"
-         import { plural } from "@lingui/macro";
+        import { plural } from "@lingui/macro";
 
         const messagePlural = plural(count, {
            one: '# Book',
@@ -48,8 +60,12 @@ to!(
     r#"
       import { i18n } from "@lingui/core";
 
-      const messagePlural = i18n._("{count, plural, one {# Book} other {# Books} few {# Books}}", {
-        count: count
+      const messagePlural = i18n._({
+          id: "2y/Fr5",
+          message: "{count, plural, one {# Book} other {# Books} few {# Books}}",
+          values: {
+              count: count
+          }
       });
     "#
 );
@@ -83,10 +99,14 @@ to!(
      "#,
     r#"
     import { i18n } from "@lingui/core";
-    const message = i18n._("{count, plural, one {{name} has # friend} other {{name} has # friends}}", {
-      count: count,
-      name: name,
-    })
+    const message = i18n._({
+        id: "CvuUwE",
+        message: "{count, plural, one {{name} has # friend} other {{name} has # friends}}",
+        values: {
+            count: count,
+            name: name
+        }
+    });
     "#
 );
 
@@ -103,10 +123,14 @@ to!(
     r#"
     import { i18n } from "@lingui/core";
 
-    const message = i18n._("{count, plural, one {{name} has {count} friend} other {{name} has {count} friends}}", {
-      count: count,
-      name: name,
-    })
+    const message = i18n._({
+        id: "tK7kAV",
+        message: "{count, plural, one {{name} has {count} friend} other {{name} has {count} friends}}",
+        values: {
+            count: count,
+            name: name
+        }
+    });
     "#
 );
 
@@ -124,8 +148,12 @@ to!(
     r#"
       import { i18n } from "@lingui/core";
 
-      i18n._("This is my {count, selectordinal, one {st} two {nd} other {rd}} cat", {
-        count: count
+      i18n._({
+          id: "LF3Ndn",
+          message: "This is my {count, selectordinal, one {st} two {nd} other {rd}} cat",
+          values: {
+              count: count
+          }
       });
     "#
 );
@@ -147,10 +175,14 @@ const message = plural(numBooks, {
      "#,
     r#"
 import { i18n } from "@lingui/core"
-const message = i18n._("{numBooks, plural, one {{numArticles, plural, one {1 book and 1 article} other {1 book and {numArticles} articles}}} other {{numArticles, plural, one {{numBooks} books and 1 article} other {{numBooks} books and {numArticles} articles}}}}", {
-    numBooks: numBooks,
-    numArticles: numArticles
-})
+const message = i18n._({
+    id: "AA3wsz",
+    message: "{numBooks, plural, one {{numArticles, plural, one {1 book and 1 article} other {1 book and {numArticles} articles}}} other {{numArticles, plural, one {{numBooks} books and 1 article} other {{numBooks} books and {numArticles} articles}}}}",
+    values: {
+        numBooks: numBooks,
+        numArticles: numArticles
+    }
+});
     "#
 );
 
@@ -165,8 +197,12 @@ const message = plural(numBooks, {
      "#,
     r#"
 import { i18n } from "@lingui/core"
-const message = i18n._("{numBooks, plural, one {} other {Ola!}}", {
-    numBooks: numBooks,
+const message = i18n._({
+    id: "fffyKD",
+    message: "{numBooks, plural, one {} other {Ola!}}",
+    values: {
+        numBooks: numBooks
+    }
 })
     "#
 );
@@ -184,9 +220,13 @@ to!(
      "#,
     r#"
       import { i18n } from "@lingui/core";
-        i18n._("{0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}", {
-          0: users.length
-        });
+      i18n._({
+          id: "CF5t+7",
+          message: "{0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}",
+          values: {
+              0: users.length
+          }
+      });
     "#
 );
 
@@ -202,8 +242,12 @@ to!(
      "#,
     r#"
       import { i18n } from "@lingui/core";
-        i18n._("{value, select, offset {..} any {..} other {..}}", {
-          value: value
-        });
+      i18n._({
+          id: "QHtFym",
+          message: "{value, select, offset {..} any {..} other {..}}",
+          values: {
+              value: value
+          }
+      });
     "#
 );

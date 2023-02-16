@@ -42,11 +42,33 @@ to!(
     // output after transform
     r#"
     import { i18n } from "@lingui/core";
-
-    i18n._("Refresh inbox")
-    i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
-    i18n._("Refresh {0} inbox {bar}", {bar: bar, 0: foo.bar})
-    i18n._("Refresh {0}", {0: expr()})
+    i18n._({
+        id: "EsCV2T",
+        message: "Refresh inbox"
+    });
+    i18n._({
+        id: "JPS+Xq",
+        message: "Refresh {foo} inbox {bar}",
+        values: {
+            foo: foo,
+            bar: bar
+        }
+    });
+    i18n._({
+        id: "xplbye",
+        message: "Refresh {0} inbox {bar}",
+        values: {
+            bar: bar,
+            0: foo.bar
+        }
+    });
+    i18n._({
+        id: "+NCjg/",
+        message: "Refresh {0}",
+        values: {
+            0: expr()
+        }
+    });
     "#
 );
 
@@ -60,7 +82,14 @@ to!(
     // output after transform
     r#"
     import { i18n } from "@lingui/core";
-    i18n._("Refresh {foo} inbox {foo}", {foo: foo})
+    i18n._({
+      id: "YZhODz",
+      message: "Refresh {foo} inbox {foo}",
+      values: {
+          foo: foo
+      }
+    });
+
     "#
 );
 
@@ -79,14 +108,35 @@ to!(
     // output after transform
     r#"
     import { custom_i18n } from "./i18n";
-
-    custom_i18n._("Refresh inbox")
-    custom_i18n._("Refresh {foo} inbox {bar}", {foo: foo, bar: bar})
-    custom_i18n._("Refresh {0} inbox {bar}", {bar: bar, 0: foo.bar})
-    custom_i18n._("Refresh {0}", {0: expr()})
+    custom_i18n._({
+        id: "EsCV2T",
+        message: "Refresh inbox"
+    });
+    custom_i18n._({
+        id: "JPS+Xq",
+        message: "Refresh {foo} inbox {bar}",
+        values: {
+            foo: foo,
+            bar: bar
+        }
+    });
+    custom_i18n._({
+        id: "xplbye",
+        message: "Refresh {0} inbox {bar}",
+        values: {
+            bar: bar,
+            0: foo.bar
+        }
+    });
+    custom_i18n._({
+        id: "+NCjg/",
+        message: "Refresh {0}",
+        values: {
+            0: expr()
+        }
+    });
     "#
 );
-
 
 to!(
     js_newlines_are_preserved,
@@ -97,7 +147,10 @@ to!(
     "#,
      r#"
         import { i18n } from "@lingui/core";
-        i18n._("Multiline\nstring");
+        i18n._({
+            id: "EfogM+",
+            message: "Multiline\nstring"
+        });
      "#
 );
 
@@ -110,12 +163,11 @@ to!(
      r#"
          import { i18n } from "@lingui/core";
          const msg = i18n._({
+          id: "msgId",
           message: "Hello {name}",
           values: {
             name: name,
           },
-          id: 'msgId',
-          comment: 'description for translators',
          });
      "#
 );
@@ -135,11 +187,10 @@ to!(
      r#"
          import { i18n } from "@lingui/core";
          const msg = i18n._({
+          id: "msgId",
           values: {
             name: name,
           },
-          id: 'msgId',
-          context: 'My Context',
          });
      "#
 );
@@ -154,7 +205,8 @@ to!(
     r#"
     import { i18n_custom } from './lingui';
     const msg = i18n_custom._({
-      id: "Hello {name}",
+      id: "OVaF9k",
+      message: "Hello {name}",
       values: {
         name: name,
       },
@@ -171,8 +223,7 @@ to!(
     r#"
     import { i18n } from "@lingui/core";
     const msg = i18n._({
-      id: 'msgId',
-      comment: 'description for translators',
+      id: "msgId",
       message: "{val, plural, one {...} other {...}}",
       values: {
         val: val,
@@ -190,7 +241,33 @@ to!(
     r#"
         import { i18n } from "@lingui/core";
         const msg = i18n._({
-          id: `msgId`
+          id: "msgId"
+        });
+    "#
+);
+
+
+to!(
+    should_generate_diffrent_id_when_context_provided,
+    r#"
+        import { t } from '@lingui/macro'
+        t({ message: 'Ola' })
+        t({ message: 'Ola', context: "My Context"})
+        t({ message: 'Ola', context: `My Context`})
+    "#,
+    r#"
+       import { i18n } from "@lingui/core";
+       i18n._({
+            id: "l1LkPs",
+            message: "Ola"
+        });
+        i18n._({
+            id: "7hFP9A",
+            message: "Ola"
+        });
+        i18n._({
+            id: "7hFP9A",
+            message: "Ola"
         });
     "#
 );

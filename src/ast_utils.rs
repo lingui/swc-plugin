@@ -42,6 +42,24 @@ pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
     }
 }
 
+pub fn get_expr_as_string(val: &Box<Expr>) -> Option<String> {
+  match val.as_ref() {
+    // "Hello"
+    Expr::Lit(Lit::Str(Str { value, .. })) => {
+      return Some(value.to_string());
+    }
+
+    // `Hello`
+    Expr::Tpl(Tpl {quasis, ..}) => {
+      if quasis.len() == 1 {
+        return Some(quasis.get(0).unwrap().raw.to_string());
+      } else { None }
+    }
+
+    _ => None
+  }
+}
+
 pub fn pick_jsx_attrs(mut attrs: Vec<JSXAttrOrSpread>, names: HashSet<&str>) -> Vec<JSXAttrOrSpread> {
     attrs.retain(|attr| {
         if let JSXAttrOrSpread::JSXAttr(attr) = attr {
@@ -87,23 +105,24 @@ pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -
 }
 
 pub fn to_key_value_prop(prop_or_spread: &PropOrSpread) -> Option<&KeyValueProp> {
-    if let PropOrSpread::Prop(prop) = prop_or_spread {
-        if let Prop::KeyValue(prop) = prop.as_ref() {
-            return Some(prop);
-        }
+  if let PropOrSpread::Prop(prop) = prop_or_spread {
+    if let Prop::KeyValue(prop) = prop.as_ref() {
+      return Some(prop);
     }
+  }
 
-    None
+  None
 }
 
-pub fn has_object_prop(props: &Vec<PropOrSpread>, name: &str) -> bool {
-    props.iter().find(|prop_or_spread| {
-        to_key_value_prop(prop_or_spread)
-            .and_then(|prop| get_prop_key(prop))
-            .and_then(|key| {
-                if key == name { Some(key) } else { None }
-            }).is_some()
-    }).is_some()
+pub fn get_object_prop<'a>(props: &'a Vec<PropOrSpread>, name: &str) -> Option<&'a KeyValueProp> {
+  props.iter()
+    .filter_map(|prop_or_spread| to_key_value_prop(prop_or_spread))
+    .find(|prop| {
+      get_prop_key(prop)
+        .and_then(|key| {
+          if key == name { Some(key) } else { None }
+        }).is_some()
+    })
 }
 
 pub fn get_prop_key(prop: &KeyValueProp) -> Option<&JsWord> {
@@ -117,21 +136,6 @@ pub fn get_prop_key(prop: &KeyValueProp) -> Option<&JsWord> {
         }
     }
 }
-
-pub fn match_prop_key(prop: &KeyValueProp, name: &str) -> bool {
-    get_prop_key(prop)
-        .and_then(|key| {
-            if key == name { Some(key) } else { None }
-        })
-        .is_some()
-}
-
-// pub fn match_jsx_name(el: &JSXOpeningElement, name: &str) -> bool {
-//     if let JSXElementName::Ident(ident) = &el.name {
-//         return ident.sym.to_string() == name;
-//     }
-//     return false;
-// }
 
 pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     return PropOrSpread::Prop(Box::new(Prop::KeyValue(

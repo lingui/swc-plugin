@@ -10,6 +10,7 @@ use crate::ast_utils::{*};
 use crate::builder::MessageBuilder;
 use crate::macro_utils::{*};
 use crate::tokens::MsgToken;
+use crate::generate_id::generate_message_id;
 
 pub struct JsMacroFolder<'a> {
     pub ctx: &'a mut MacroCtx,
@@ -23,86 +24,103 @@ impl<'a> JsMacroFolder<'a> {
     }
 
     fn create_i18n_fn_call_from_tokens(&mut self, callee_obj: Option<Box<Expr>>, tokens: Vec<MsgToken>) -> CallExpr {
-        let parsed = MessageBuilder::parse(tokens, false);
+      let parsed = MessageBuilder::parse(tokens, false);
 
-        let mut args: Vec<ExprOrSpread> = vec![parsed.message.as_arg()];
+      let mut props: Vec<PropOrSpread> = vec![
+        create_key_value_prop("id", generate_message_id(&parsed.message_str, "").into()),
+        create_key_value_prop("message", parsed.message),
+      ];
 
-        if let Some(v) = parsed.values {
-            args.push(v.as_arg())
-        }
+      if let Some(v) = parsed.values {
+        props.push(
+          create_key_value_prop("values", v),
+        )
+      }
 
-        return self.create_i18n_fn_call(callee_obj, args);
+      let message_descriptor = Box::new(Expr::Object(ObjectLit {
+        span: DUMMY_SP,
+        props,
+      }));
+
+      return self.create_i18n_fn_call(callee_obj, vec![message_descriptor.as_arg()]);
     }
 
     fn create_i18n_fn_call(&mut self, callee_obj: Option<Box<Expr>>, args: Vec<ExprOrSpread>) -> CallExpr {
-        let t = CallExpr {
-            span: DUMMY_SP,
-            callee: Expr::Member(MemberExpr {
-                span: DUMMY_SP,
-                obj: callee_obj.unwrap_or_else(|| {
-                    self.ctx.should_add_18n_import = true;
-                    let (_, i18n_export) = &self.ctx.options.runtime_modules.i18n;
+      CallExpr {
+        span: DUMMY_SP,
+        callee: Expr::Member(MemberExpr {
+          span: DUMMY_SP,
+          obj: callee_obj.unwrap_or_else(|| {
+            self.ctx.should_add_18n_import = true;
+            let (_, i18n_export) = &self.ctx.options.runtime_modules.i18n;
 
-                    return Box::new(Ident::new(i18n_export.clone().into(), DUMMY_SP).into());
-                }),
-                prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
-            }).as_callee(),
-            args,
-            type_args: None,
-        };
-
-        t
+            return Box::new(Ident::new(i18n_export.clone().into(), DUMMY_SP).into());
+          }),
+          prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
+        }).as_callee(),
+        args,
+        type_args: None,
+      }
     }
 
     // take {message: "", id: "", ...} object literal, process message and return updated props
     fn update_msg_descriptor_props(&self, expr: Box<Expr>) -> Box<Expr> {
-        if let Expr::Object(obj) = *expr {
-            let has_id = has_object_prop(&obj.props, "id");
+      if let Expr::Object(obj) = *expr {
+        let id_prop = get_object_prop(&obj.props, "id");
 
-            let mut new_props: Vec<PropOrSpread> = obj.props.into_iter().flat_map(|prop_or_spread| {
-                if let Some(prop) = to_key_value_prop(&prop_or_spread) {
-                    if match_prop_key(prop, "message") {
-                        let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_else(|| Vec::new());
+        let context_val = get_object_prop(&obj.props, "context")
+          .and_then(|prop| get_expr_as_string(&prop.value));
 
-                        let parsed = MessageBuilder::parse(tokens, false);
+        let message_prop = get_object_prop(&obj.props, "message");
 
-                        let mut args: Vec<PropOrSpread> = vec![
-                            create_key_value_prop(if has_id { "message" } else { "id" }, parsed.message),
-                        ];
+        let mut new_props: Vec<PropOrSpread> = vec![];
 
-                        if let Some(v) = parsed.values {
-                            args.push(
-                                create_key_value_prop("values", v),
-                            )
-                        }
-
-                        return args;
-                    }
-                }
-
-                return vec![prop_or_spread];
-            }).collect();
-
-            if self.ctx.options.strip_non_essential_fields {
-                new_props = new_props.into_iter().filter(| prop| {
-                    to_key_value_prop(prop)
-                        .and_then(| prop| get_prop_key(prop))
-                        .and_then(| key | {
-                            match key.as_ref() {
-                                "id" | "context" | "values" => Some(true),
-                                _ => None
-                            }
-                        }).is_some()
-                }).collect();
-            }
-
-            return Box::new(Expr::Object(ObjectLit {
-                span: DUMMY_SP,
-                props: new_props,
-            }));
+        if let Some(prop) = id_prop {
+          if let Some(value) = get_expr_as_string(&prop.value) {
+            new_props.push(create_key_value_prop(
+              "id",
+              value.into(),
+            ));
+          }
         }
 
-        expr
+        if let Some(prop) = message_prop {
+          let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_else(|| Vec::new());
+
+          let parsed = MessageBuilder::parse(tokens, false);
+
+          if !id_prop.is_some() {
+            new_props.push(
+              create_key_value_prop(
+                "id",
+                generate_message_id(
+                  &parsed.message_str,
+                  &(context_val.unwrap_or_default()),
+                ).into(),
+              ),
+            )
+          }
+
+          if !self.ctx.options.strip_non_essential_fields {
+            new_props.push(
+              create_key_value_prop("message", parsed.message),
+            );
+          }
+
+          if let Some(v) = parsed.values {
+            new_props.push(
+              create_key_value_prop("values", v),
+            )
+          }
+        }
+
+        return Box::new(Expr::Object(ObjectLit {
+          span: DUMMY_SP,
+          props: new_props,
+        }));
+      }
+
+      expr
     }
 }
 

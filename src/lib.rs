@@ -22,6 +22,7 @@ mod macro_utils;
 mod jsx_visitor;
 mod js_macro_folder;
 mod options;
+mod generate_id;
 
 use builder::*;
 use ast_utils::*;
@@ -145,8 +146,6 @@ impl<'a> Fold for LinguiMacroFolder {
 
             true
         });
-
-        // println!("{:?}", self.ctx.imports_id_map);
 
         n = n.fold_children_with(self);
 

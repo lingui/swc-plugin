@@ -296,12 +296,14 @@ to!(
         import { Trans } from "@lingui/react";
         import { i18n } from "@lingui/core";
         <Trans id={"Read <0>more</0>"} components={{
-          0: <a href="/more" title={
-            i18n._("Full content of {articleName}", {
-              articleName: articleName
-            })
-          } />
-        }} />;
+            0: <a href="/more" title={i18n._({
+                id: "qzc3IN",
+                message: "Full content of {articleName}",
+                values: {
+                    articleName: articleName
+                }
+            })}/>
+        }}/>;
     "#
 );
 
@@ -317,11 +319,14 @@ to!(
 
     r#"
         import { i18n } from "@lingui/core";
-        <a href="/about" title={
-          i18n._("{count, plural, one {# book} other {# books}}", {
-            count: count
-          })
-        }>About</a>;
+        <a href="/about" title={i18n._({
+          id: "esnaQO",
+          message: "{count, plural, one {# book} other {# books}}",
+          values: {
+              count: count
+          }
+      })}>About</a>;
+
     "#
 );
 
@@ -336,17 +341,6 @@ to!(
         <Trans id={"Hello  World"} />;
     "#
 );
-
-// to!(
-//     ,
-//      r#"
-//
-//      "#,
-//
-//     r#"
-//
-//     "#
-// );
 
 to!(
     production,
