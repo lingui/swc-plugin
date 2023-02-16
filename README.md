@@ -15,7 +15,6 @@ A Rust versions of [LinguiJS Macro](https://lingui.dev/ref/macro) [<img src="htt
 ## Installation
 
 Install plugin:
-
 ```bash
 npm install --save-dev @lingui/swc-plugin
 # or
@@ -23,7 +22,6 @@ yarn add -D @lingui/swc-plugin
 ```
 
 You still need to install `@lingui/macro` for typings support:
-
 ```bash
 npm install @lingui/macro
 # or
@@ -62,19 +60,15 @@ https://swc.rs/docs/configuration/swcrc
 Or Next JS Usage:
 
 `next.config.js`
-
 ```js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
     swcPlugins: [
-      [
-        "@lingui/swc-plugin",
-        {
-          // the same options as in .swcrc
-        },
-      ],
+      ['@lingui/swc-plugin', {
+       // the same options as in .swcrc
+      }],
     ],
   },
 };
