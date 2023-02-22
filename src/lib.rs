@@ -22,6 +22,7 @@ mod macro_utils;
 mod jsx_visitor;
 mod js_macro_folder;
 mod options;
+mod generate_id;
 
 use builder::*;
 use ast_utils::*;
@@ -29,6 +30,7 @@ use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
 use crate::macro_utils::{*};
 use crate::options::{*};
+use crate::generate_id::{*};
 
 
 #[derive(Default)]
@@ -56,36 +58,50 @@ impl LinguiMacroFolder {
             el.visit_children_with(&mut trans_visitor);
         }
 
-        let parsed = MessageBuilder::parse(trans_visitor.tokens, true);
-        let id_attr = get_jsx_attr(&el.opening, "id");
+      let parsed = MessageBuilder::parse(trans_visitor.tokens, true);
+      let id_attr = get_jsx_attr(&el.opening, "id");
 
-        let mut attrs = vec![
-            create_jsx_attribute(
-                if let Some(_) = id_attr { "message" } else { "id" }.into(),
-                parsed.message,
-            ),
-        ];
+      let context_attr_val = get_jsx_attr(&el.opening, "context")
+        .and_then(|attr| attr.value.as_ref())
+        .and_then(|value| get_jsx_attr_value_as_string(value));
 
-        if let Some(exp) = parsed.values {
-            attrs.push(create_jsx_attribute(
-                "values",
-                exp,
-            ));
-        }
+      let mut attrs = vec![
+        create_jsx_attribute(
+          "message".into(),
+          parsed.message,
+        ),
+      ];
 
-        if let Some(exp) = parsed.components {
-            attrs.push(create_jsx_attribute(
-                "components",
+      if !id_attr.is_some() {
+        attrs.push(create_jsx_attribute(
+          "id",
+          generate_message_id(
+            &parsed.message_str,
+            &context_attr_val.unwrap_or_default()
+          ).into(),
+        ));
+      }
+
+      if let Some(exp) = parsed.values {
+        attrs.push(create_jsx_attribute(
+          "values",
+          exp,
+        ));
+      }
+
+      if let Some(exp) = parsed.components {
+        attrs.push(create_jsx_attribute(
+          "components",
                 exp,
             ));
         }
 
         attrs.extend(
-            pick_jsx_attrs(el.opening.attrs, HashSet::from(["id", "render", "comment", "context", "i18n"]))
+            pick_jsx_attrs(el.opening.attrs, HashSet::from(["id", "render", "i18n"]))
         );
 
         if self.ctx.options.strip_non_essential_fields {
-            attrs = pick_jsx_attrs(attrs, HashSet::from(["id", "render", "i18n", "context", "values", "components"]))
+            attrs = pick_jsx_attrs(attrs, HashSet::from(["id", "render", "i18n", "values", "components"]))
         }
 
         self.ctx.should_add_trans_import = true;
@@ -145,8 +161,6 @@ impl<'a> Fold for LinguiMacroFolder {
 
             true
         });
-
-        // println!("{:?}", self.ctx.imports_id_map);
 
         n = n.fold_children_with(self);
 

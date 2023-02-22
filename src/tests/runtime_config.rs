@@ -40,7 +40,11 @@ to!(
     import { CustomTrans } from "./custom-react";
     import { customI18n } from "./custom-core";
 
-    customI18n._("Refresh inbox");
+    customI18n._({
+        id: "EsCV2T",
+        message: "Refresh inbox"
+    });
+
     const exp2 = <CustomTrans message={"Refresh inbox"} id="custom.id"/>;
     "#
 );

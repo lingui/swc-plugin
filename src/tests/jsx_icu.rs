@@ -3,33 +3,31 @@ use crate::{to};
 to!(
     jsx_icu,
      r#"
-      import { Plural } from "@lingui/macro";
+import { Plural } from "@lingui/macro";
 
-      const ex1 = <Plural
-       value={count}
-       one="Message"
-       other="Messages"
-      />
+const ex1 = <Plural
+ value={count}
+ one="Message"
+ other="Messages"
+/>
 
-      const ex2 = <div><Plural
-           value={count}
-           one="Message"
-           other="Messages"
-          /></div>
+const ex2 = <div><Plural
+value={count}
+one="Message"
+other="Messages"
+/></div>
      "#,
 
     r#"
-       import { Trans } from "@lingui/react";
+import { Trans } from "@lingui/react";
 
-       const ex1 = <Trans
-           id={"{count, plural, one {Message} other {Messages}}"}
-           values={{ count: count }}
-        />
+const ex1 = <Trans message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
+    count: count
+}}/>;
+const ex2 = <div ><Trans message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
+    count: count
+}}/></div>;
 
-        const ex2 = <div><Trans
-               id={"{count, plural, one {Message} other {Messages}}"}
-               values={{ count: count }}
-            /></div>
     "#
 );
 
@@ -76,10 +74,9 @@ to!(
        import { Trans } from "@lingui/react";
 
        <Trans
-           id={"{count, plural, one {...} other {...}}"}
+           message={"{count, plural, one {...} other {...}}"}
+           id={"8I55rI"}
            values={{ count: count }}
-           comment="Translators Comment"
-           context="Message Context"
            render={(v) => v}
         />
     "#
@@ -104,7 +101,8 @@ to!(
        import { Trans } from "@lingui/react";
 
        <Trans
-           id={"You have {count, plural, one {Message} other {Messages}}"}
+           message={"You have {count, plural, one {Message} other {Messages}}"}
+           id={"dzhU0t"}
            values={{ count: count }}
         />
     "#
@@ -131,9 +129,7 @@ to!(
 
     r#"
         import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, one {<0>#</0> slot added} other {<1>#</1> slots added}}"
-        }
+        <Trans message={"{count, plural, one {<0>#</0> slot added} other {<1>#</1> slots added}}"} id={"X8eyr1"}
         values={{
           count: count
         }} components={{
@@ -180,9 +176,9 @@ import { Trans, Plural } from '@lingui/macro';
 
     r#"
         import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, one {{count2, plural, one {second level one} other {second level other}}<0>#</0> slot added} other {<1>#</1> slots added}}"
-        }
+        <Trans
+        message={"{count, plural, one {{count2, plural, one {second level one} other {second level other}}<0>#</0> slot added} other {<1>#</1> slots added}}"}
+        id={"bDgQmM"}
         values={{
           count: count,
           count2: count2
@@ -208,9 +204,8 @@ to!(
 
     r#"
        import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, offset:1 =0 {Zero items} other {<0>A lot of them</0>}}"
-         }
+        <Trans message={"{count, plural, offset:1 =0 {Zero items} other {<0>A lot of them</0>}}"}
+         id={"ZFknU1"}
          values={{
           count: count
         }} components={{
@@ -233,9 +228,9 @@ to!(
 
     r#"
        import { Trans } from "@lingui/react";
-        <Trans id={
-          "{count, plural, one {{count} items} other {...}}"
-         }
+        <Trans
+        message={"{count, plural, one {{count} items} other {...}}"}
+        id={"+hE+5/"}
          values={{
           count: count
         }}
@@ -257,7 +252,7 @@ to!(
 
     r#"
         import { Trans } from "@lingui/react";
-        <Trans id={"{count, select, male {He} female {She} other {<0>Other</0>}}"} values={{
+        <Trans message={"{count, select, male {He} female {She} other {<0>Other</0>}}"} id={"Imwef9"} values={{
           count: count
         }} components={{
           0: <strong />
@@ -283,13 +278,11 @@ to!(
 
     r#"
         import { Trans } from "@lingui/react";
-        <Trans id={"{count, select, male {He} female {She} other {<0>Other</0>}}"} values={{
+        <Trans message={"{count, select, male {He} female {She} other {<0>Other</0>}}"} id={"4jX4Bx"} values={{
           count: count
         }} components={{
           0: <strong />
         }}
-          comment="Translators Comment"
-          context="Message Context"
           render={(v) => v}
            />;
     "#
@@ -335,7 +328,7 @@ to!(
 
     r#"
        import { Trans } from "@lingui/react";
-        <Trans id={"{count, selectordinal, offset:1 =0 {#st} one {#nd} other {#rd}}"} values={{
+        <Trans message={"{count, selectordinal, offset:1 =0 {#st} one {#nd} other {#rd}}"} id={"6kK4rC"} values={{
             count: count
         }}/>;
     "#
@@ -366,7 +359,6 @@ to!(
         values={{count: count}}
         components={{0: <a href="/more"/>}}
         id="custom.id"
-        context="My Context"
         render="render"
         i18n="i18n" />;
     "#

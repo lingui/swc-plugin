@@ -15,9 +15,15 @@ to!(
         import { i18n } from "@lingui/core";
         import { Trans } from "@lingui/react";
 
-        i18n._("Test");
-        <Trans id={"{value, plural, one {...} other {...}}"} values={{
-            value: value
+        i18n._({
+          id: "NnH3pK",
+          message: "Test"
+        });
+
+        <Trans  message={"{value, plural, one {...} other {...}}"}
+        id={"kwTAtG"}
+        values={{
+          value: value
         }}/>;
         <Trans>Untouched</Trans>
     "#
@@ -43,7 +49,8 @@ to!(
        import { Select } from "./my-select-cmp";
 
        ;<Trans
-           id={"{count, plural, one {Message} other {Messages}}"}
+            message={"{count, plural, one {Message} other {Messages}}"}
+            id={"V4EO9s"}
            values={{ count: count }}
         />
 
@@ -70,7 +77,8 @@ to!(
        import { Trans } from "@lingui/react";
 
        ;<Trans
-           id={"{count, plural, one {Message} other {Messages}}"}
+            message={"{count, plural, one {Message} other {Messages}}"}
+            id={"V4EO9s"}
            values={{ count: count }}
         />
        ;<Trans>Should be untouched</Trans>
@@ -92,9 +100,14 @@ to!(
        import { t } from "./custom-t";
 
        t`Don't touch me!`
-       i18n._("{value, plural, one {...} other {...}}", {
-            value: value
-        });
+       i18n._({
+          id: "kwTAtG",
+          message: "{value, plural, one {...} other {...}}",
+          values: {
+              value: value
+          }
+       });
+
     "#
 );
 
@@ -112,7 +125,11 @@ to!(
        import { i18n } from "@lingui/core";
        import { plural } from "./custom-plural";
 
-       i18n._("Hello World!")
+       i18n._({
+          id: "0IkKj6",
+          message: "Hello World!"
+       });
+
        plural(value, {one: "...", other: "..."});
     "#
 );
@@ -128,13 +145,18 @@ to!(
      "#,
 
     r#"
-       import { i18n } from "@lingui/core";
-
-       i18n._("Hello World!")
-       i18n._("{value, plural, one {...} other {...}}", {
+    import { i18n } from "@lingui/core";
+    i18n._({
+        id: "0IkKj6",
+        message: "Hello World!"
+    });
+    i18n._({
+        id: "kwTAtG",
+        message: "{value, plural, one {...} other {...}}",
+        values: {
             value: value
-        });
-
+        }
+    });
     "#
 );
 to!(
@@ -154,10 +176,10 @@ to!(
     r#"
         import { Trans } from "@lingui/react";
 
-        ;<Trans id={"{count, plural, one {Message} other {Messages}}"} values={{
+        ;<Trans  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
             count: count
         }}/>
 
-        ;<Trans id={"Hello!"}/>
+        ;<Trans message={"Hello!"} id={"mAYvqA"}/>;
     "#
 );

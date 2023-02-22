@@ -10,10 +10,10 @@ to!(
         })
      "#,
     r#"
-        const message = {
-          comment: "Description",
-          id: "Message"
-        }
+      const message = {
+        id: "xDAtGP",
+        message: "Message"
+      };
     "#
 );
 
@@ -29,7 +29,6 @@ to!(
      "#,
     r#"
         const message = {
-          comment: "Description",
           id: "custom.id",
           message: "Message"
         }
@@ -45,12 +44,13 @@ to!(
         })
      "#,
     r#"
-        const message = {
-          id: "Hello {name}",
+      const message = {
+          id: "OVaF9k",
+          message: "Hello {name}",
           values: {
-            name: name,
+              name: name
           }
-        }
+      };
     "#
 );
 
@@ -64,13 +64,13 @@ to!(
         })
      "#,
     r#"
-        const message = {
-          comment: "Description",
-          id: "{count, plural, one {book} other {books}}",
-          values: {
+      const message = {
+        id: "AJdPPy",
+        message: "{count, plural, one {book} other {books}}",
+        values: {
             count: count
-          }
         }
+      };
     "#
 );
 
@@ -88,20 +88,10 @@ to!(
     "#,
      r#"
          const msg = {
+          id: "msgId",
           values: {
             name: name,
           },
-          id: 'msgId',
-          context: 'My Context',
          };
      "#
 );
-
-// to!(
-// ,
-//      r#"
-//
-//      "#,
-//     r#"
-//     "#
-// );
