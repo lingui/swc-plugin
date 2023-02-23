@@ -117,12 +117,16 @@ impl<'a> Fold for LinguiMacroFolder {
         let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
 
+        let mut insert_index: usize = 0;
+        let mut index = 0;
+
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 // drop macro imports
                 if &imp.src.value == "@lingui/macro" {
                     self.has_lingui_macro_imports = true;
                     self.ctx.register_macro_import(imp);
+                    insert_index = index;
                     return false;
                 }
 
@@ -143,23 +147,11 @@ impl<'a> Fold for LinguiMacroFolder {
                 }
             }
 
+          index +=1;
           true
         });
 
       n = n.fold_children_with(self);
-
-      // has `use client`; statement at the top
-      let has_directive_prologue = n.iter().enumerate().any(|(index, m)| {
-        if let ModuleItem::Stmt(Stmt::Expr(ExprStmt { expr, .. })) = m {
-          if let Expr::Lit(Lit::Str(..)) = expr.as_ref() {
-            return index == 0;
-          }
-        }
-
-        return false
-      });
-
-      let insert_index = if has_directive_prologue { 1 } else { 0 };
 
       if !has_i18n_import && self.ctx.should_add_18n_import {
         n.insert(insert_index, create_import(i18n_source.into(), quote_ident!(i18n_export[..])));
