@@ -143,22 +143,33 @@ impl<'a> Fold for LinguiMacroFolder {
                 }
             }
 
-            true
+          true
         });
 
-        // println!("{:?}", self.ctx.imports_id_map);
+      n = n.fold_children_with(self);
 
-        n = n.fold_children_with(self);
-
-        if !has_i18n_import && self.ctx.should_add_18n_import {
-            n.insert(0, create_import(i18n_source.into(), quote_ident!(i18n_export[..])));
+      // has `use client`; statement at the top
+      let has_directive_prologue = n.iter().enumerate().any(|(index, m)| {
+        if let ModuleItem::Stmt(Stmt::Expr(ExprStmt { expr, .. })) = m {
+          if let Expr::Lit(Lit::Str(..)) = expr.as_ref() {
+            return index == 0;
+          }
         }
 
-        if !has_trans_import && self.ctx.should_add_trans_import {
-            n.insert(0, create_import(trans_source.into(), quote_ident!(trans_export[..])));
-        }
+        return false
+      });
 
-        n
+      let insert_index = if has_directive_prologue { 1 } else { 0 };
+
+      if !has_i18n_import && self.ctx.should_add_18n_import {
+        n.insert(insert_index, create_import(i18n_source.into(), quote_ident!(i18n_export[..])));
+      }
+
+      if !has_trans_import && self.ctx.should_add_trans_import {
+        n.insert(insert_index, create_import(trans_source.into(), quote_ident!(trans_export[..])));
+      }
+
+      n
     }
 
     fn fold_expr(&mut self, expr: Expr) -> Expr {
