@@ -2,7 +2,7 @@ name: Release
 
 on:
   release:
-    types: [created]
+    types: [released, prereleased]
 
 jobs:
   release:
@@ -40,8 +40,16 @@ jobs:
 #          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 #          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Build and publish
+      - name: Build and publish 'latest' tag
+        if: ${{ github.event.action == 'released' }}
         run: |
           npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Build and publish 'next' tag
+        if: ${{ github.event.action == 'prereleased' }}
+        run: |
+          npm publish --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
