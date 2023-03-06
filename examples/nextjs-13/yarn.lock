@@ -394,10 +394,10 @@
     "@babel/runtime" "^7.20.13"
     "@lingui/core" "^4.0.0-next.0"
 
-"@lingui/swc-plugin@^4.0.0-next.0":
-  version "4.0.0-next.0"
-  resolved "https://registry.yarnpkg.com/@lingui/swc-plugin/-/swc-plugin-4.0.0-next.0.tgz#05e7931069b1fca97e2c85b113a4ce9876283831"
-  integrity sha512-GKN85je8dmc1cLrCRNQ0DIhwHByBBpay0FahkgocfLkF5GZe0b0wLT7YQ98Wlpalp6uhoMjHMIC1fnbX03sqRA==
+"@lingui/swc-plugin@^4.0.0-next.1":
+  version "4.0.0-next.1"
+  resolved "https://registry.yarnpkg.com/@lingui/swc-plugin/-/swc-plugin-4.0.0-next.1.tgz#69d651649eda25f034621095a278c04494096ae4"
+  integrity sha512-WtkQ5QY0EOWV58mr1ef+moMVvIdvfTPUd1XSoOdFYDaAXNeyhNLFt6ObqJw5tbkwJFATXJO8MMLYB7KcEsY3OA==
 
 "@messageformat/parser@^5.0.0":
   version "5.0.0"
