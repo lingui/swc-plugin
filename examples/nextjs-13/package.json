@@ -26,6 +26,6 @@
     "@lingui/cli": "^4.0.0-next.0",
     "@lingui/loader": "^4.0.0-next.0",
     "@lingui/macro": "^4.0.0-next.0",
-    "@lingui/swc-plugin": "^4.0.0-next.0"
+    "@lingui/swc-plugin": "^4.0.0-next.1"
   }
 }
