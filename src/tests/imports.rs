@@ -197,6 +197,9 @@ to!(
       "use client";
       import { i18n } from "@lingui/core";
       import foo from "bar";
-      i18n._("Text");
+      i18n._({
+        id: "xeiujy",
+        message: "Text"
+      });
     "#
 );
