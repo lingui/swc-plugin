@@ -183,3 +183,20 @@ to!(
         ;<Trans message={"Hello!"} id={"mAYvqA"}/>;
     "#
 );
+to!(
+    // https://github.com/lingui/swc-plugin/issues/21
+    should_add_imports_after_directive_prologues,
+     r#"
+     "use client";
+      import {t} from "@lingui/macro"
+      import foo from "bar"
+      t`Text`
+     "#,
+
+    r#"
+      "use client";
+      import { i18n } from "@lingui/core";
+      import foo from "bar";
+      i18n._("Text");
+    "#
+);
