@@ -6,39 +6,54 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
 
-#: src/pages/index.tsx:40
-msgid "Date formatter example:"
-msgstr "Date formatter example:"
-
-#: src/pages/index.tsx:31
-msgid "Decrement"
-msgstr "Decrement"
-
-#: src/pages/index.tsx:48
-msgid "I have a balance of {0}"
-msgstr "I have a balance of {0}"
-
-#: src/pages/index.tsx:28
-msgid "Increment"
-msgstr "Increment"
-
-#: src/pages/index.tsx:16
-msgid "Language switcher example:"
-msgstr "Language switcher example:"
-
-#: src/pages/index.tsx:46
-msgid "Number formatter example:"
-msgstr "Number formatter example:"
-
-#: src/pages/index.tsx:25
-msgid "Plurals example:"
-msgstr "Plurals example:"
-
-#: src/pages/index.tsx:42
+#. js-lingui-id: 2aJT27
+#: src/pages/index.tsx:53
 msgid "Today is {0}"
 msgstr "Today is {0}"
 
-#: src/pages/index.tsx:34
+#. js-lingui-id: IM9nhj
+#: src/pages/index.tsx:59
+msgid "I have a balance of {0}"
+msgstr "I have a balance of {0}"
+
+#. js-lingui-id: JvTdAL
+#: src/pages/index.tsx:42
+msgid "Decrement"
+msgstr "Decrement"
+
+#. js-lingui-id: ZXBDaP
+#: src/pages/index.tsx:27
+msgid "Language switcher example:"
+msgstr "Language switcher example:"
+
+#. js-lingui-id: Zk/eXS
+#: src/pages/index.tsx:57
+msgid "Number formatter example:"
+msgstr "Number formatter example:"
+
+#. js-lingui-id: dw5/c3
+#: src/pages/index.tsx:36
+msgid "Plurals example:"
+msgstr "Plurals example:"
+
+#. js-lingui-id: g6SXvR
+#: src/pages/index.tsx:45
 msgid "{count, plural, zero {There are no books} one {There's one book} other {There are # books}}"
 msgstr "{count, plural, zero {There are no books} one {There's one book} other {There are # books}}"
+
+#. js-lingui-id: kdkZBD
+#: src/pages/index.tsx:39
+msgid "Increment"
+msgstr "Increment"
+
+#. js-lingui-id: r7eO9I
+#: src/pages/index.tsx:51
+msgid "Date formatter example:"
+msgstr "Date formatter example:"
