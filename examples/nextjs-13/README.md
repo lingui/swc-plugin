@@ -17,7 +17,7 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## LinguiJS Integration
-LinguiJs integrated with standard nextjs i18n support. Nextjs do routing for every language, 
+LinguiJs integrated with standard nextjs i18n support. Nextjs do routing for every language,
 LinguiJs activated with `router.locale`.
 
 Open [http://localhost:3000/cs](http://localhost:3000/cs) with your browser to prerender page in different language.
@@ -35,7 +35,7 @@ pnpm lingui:extract
 
 ## Important Notes
 - You **should not have** a babel config in the project, otherwise Next will turn off SWC compiler in favor of babel.
-- All babel dependencies used only for lingui extractor. The actual code is compiled with SWC + Lingui SWC plugin.
+- The actual code is compiled with SWC + Lingui SWC plugin.
 
 ## Learn More
 

@@ -5,13 +5,6 @@ const nextConfig = require('./next.config');
 module.exports = {
   locales: nextConfig.i18n.locales,
   sourceLocale: nextConfig.i18n.defaultLocale,
-  // this is crucial to make `lingui extract` work in nextjs with swc compiler
-  extractBabelOptions: {
-    "presets": [
-      "@babel/preset-typescript",
-      "@babel/preset-react",
-    ],
-  },
   catalogs: [
     {
       path: "<rootDir>/locales/{locale}/messages",

@@ -30,6 +30,6 @@
   "files": [],
   "packageManager": "yarn@3.3.1",
   "peerDependencies": {
-    "@lingui/macro": "3 < 4"
+    "@lingui/macro": "4"
   }
 }
