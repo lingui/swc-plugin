@@ -104,6 +104,7 @@ to!(
      t(custom_i18n)`Refresh ${foo} inbox ${bar}`
      t(custom_i18n)`Refresh ${foo.bar} inbox ${bar}`
      t(custom_i18n)`Refresh ${expr()}`
+     t(custom.i18n)`Refresh ${expr()}`
      "#,
     // output after transform
     r#"
@@ -134,6 +135,13 @@ to!(
         values: {
             0: expr()
         }
+    });
+    custom.i18n._({
+      id: "+NCjg/",
+      message: "Refresh {0}",
+      values: {
+          0: expr()
+      }
     });
     "#
 );
@@ -169,6 +177,25 @@ to!(
             name: name,
           },
          });
+     "#
+);
+
+to!(
+    js_t_fn_wrapped_in_call_expr,
+    r#"
+        import { t } from '@lingui/macro'
+        const msg = message.error(t({message: "dasd"}))
+    "#,
+     r#"
+        import { i18n } from "@lingui/core";
+        const msg = message.error(
+          i18n._(
+            {
+              id: "9ZMZjU",
+              message: "dasd",
+            }
+          )
+        );
      "#
 );
 
