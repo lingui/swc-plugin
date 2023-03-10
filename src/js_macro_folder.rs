@@ -23,7 +23,7 @@ impl<'a> JsMacroFolder<'a> {
         }
     }
 
-    fn create_i18n_fn_call_from_tokens(&mut self, callee_obj: Option<Box<Expr>>, tokens: Vec<MsgToken>) -> CallExpr {
+    fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>) -> Expr {
       let parsed = MessageBuilder::parse(tokens, false);
 
       let mut props: Vec<PropOrSpread> = vec![
@@ -37,11 +37,16 @@ impl<'a> JsMacroFolder<'a> {
         )
       }
 
-      let message_descriptor = Box::new(Expr::Object(ObjectLit {
+      let message_descriptor = Expr::Object(ObjectLit {
         span: DUMMY_SP,
         props,
-      }));
+      });
 
+      return message_descriptor;
+    }
+
+    fn create_i18n_fn_call_from_tokens(&mut self, callee_obj: Option<Box<Expr>>, tokens: Vec<MsgToken>) -> CallExpr {
+      let message_descriptor = Box::new(self.create_message_descriptor_from_tokens(tokens));
       return self.create_i18n_fn_call(callee_obj, vec![message_descriptor.as_arg()]);
     }
 
@@ -127,6 +132,7 @@ impl<'a> JsMacroFolder<'a> {
 
 impl<'a> Fold for JsMacroFolder<'a> {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
+        // t`Message`
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
             let (is_t, callee) = self.ctx.is_lingui_t_call_expr(&tagged_tpl.tag);
 
@@ -138,10 +144,19 @@ impl<'a> Fold for JsMacroFolder<'a> {
             }
         }
 
+        // defineMessage`Message`
+        if let Expr::TaggedTpl(tagged_tpl) = &expr {
+          if let Expr::Ident(ident) = tagged_tpl.tag.as_ref() {
+            if self.ctx.is_define_message_ident(&ident) {
+              let tokens = self.ctx.tokenize_tpl(&tagged_tpl.tpl);
+              return self.create_message_descriptor_from_tokens(tokens);
+            }
+          }
+        }
+
+        // defineMessage({message: "Message"})
         if let Expr::Call(call) = &expr {
-            if let Some(_) = match_callee_name(&call, |n| self.ctx.is_lingui_ident(
-                 "defineMessage", n
-            )) {
+            if let Some(_) = match_callee_name(&call, |n| self.ctx.is_define_message_ident(n)) {
                 if call.args.len() == 1 {
                     let descriptor = self.update_msg_descriptor_props(
                         call.args.clone().into_iter().next().unwrap().expr
