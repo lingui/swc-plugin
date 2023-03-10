@@ -3,14 +3,41 @@ use crate::{to};
 to!(
     should_transform_define_message,
      r#"
-        import { defineMessage, plural, arg } from '@lingui/macro';
-        const message = defineMessage({
+        import { defineMessage, msg } from '@lingui/macro';
+        const message1 = defineMessage({
+          comment: "Description",
+          message: "Message"
+        })
+        const message2 = msg({
           comment: "Description",
           message: "Message"
         })
      "#,
     r#"
-      const message = {
+      const message1 = {
+        id: "xDAtGP",
+        message: "Message"
+      };
+      const message2 = {
+        id: "xDAtGP",
+        message: "Message"
+      };
+    "#
+);
+
+to!(
+    define_message_should_support_template_literal,
+     r#"
+        import { defineMessage, msg } from '@lingui/macro';
+        const message1 = defineMessage`Message`;
+        const message2 = msg`Message`
+     "#,
+    r#"
+      const message1 = {
+        id: "xDAtGP",
+        message: "Message"
+      };
+       const message2 = {
         id: "xDAtGP",
         message: "Message"
       };

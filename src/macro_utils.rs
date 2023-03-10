@@ -47,6 +47,11 @@ impl MacroCtx {
         false
     }
 
+    pub fn is_define_message_ident(&self, ident: &Ident) -> bool {
+      return self.is_lingui_ident("defineMessage", &ident)
+        || self.is_lingui_ident("msg", &ident)
+    }
+
     /// given import {plural as i18nPlural} from "@lingui/macro";
     /// get_ident_export_name("i18nPlural") would return `plural`
     pub fn get_ident_export_name(&self, ident: &Ident) -> Option<&JsWord> {
