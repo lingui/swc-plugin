@@ -204,22 +204,27 @@ to!(
     js_should_kept_only_essential_props,
     r#"
         import { t } from '@lingui/macro'
-        const msg = t({
+        const msg1 = t`Message`
+        const msg2 = t({
             message: `Hello ${name}`,
             id: 'msgId',
             comment: 'description for translators',
             context: 'My Context',
         })
     "#,
-     r#"
-         import { i18n } from "@lingui/core";
-         const msg = i18n._({
-          id: "msgId",
-          values: {
-            name: name,
-          },
-         });
-     "#
+    r#"
+        import { i18n } from "@lingui/core";
+        const msg1 = i18n._({
+             id: "xDAtGP"
+        });
+
+        const msg2 = i18n._({
+         id: "msgId",
+         values: {
+           name: name,
+         },
+        });
+    "#
 );
 
 to!(
