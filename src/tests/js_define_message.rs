@@ -103,10 +103,11 @@ to!(
 
 to!(
     production,
-   should_kept_only_essential_props,
+    should_kept_only_essential_props,
     r#"
         import { defineMessage } from '@lingui/macro'
-        const msg = defineMessage({
+        const message1 = defineMessage`Message`;
+        const message2 = defineMessage({
             message: `Hello ${name}`,
             id: 'msgId',
             comment: 'description for translators',
@@ -114,11 +115,15 @@ to!(
         })
     "#,
      r#"
-         const msg = {
-          id: "msgId",
-          values: {
-            name: name,
-          },
-         };
+       const message1 = {
+         id: "xDAtGP",
+       };
+
+       const message2 = {
+        id: "msgId",
+        values: {
+          name: name,
+        },
+       };
      "#
 );

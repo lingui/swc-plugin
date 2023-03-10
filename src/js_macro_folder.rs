@@ -28,8 +28,14 @@ impl<'a> JsMacroFolder<'a> {
 
       let mut props: Vec<PropOrSpread> = vec![
         create_key_value_prop("id", generate_message_id(&parsed.message_str, "").into()),
-        create_key_value_prop("message", parsed.message),
+
       ];
+
+      if !self.ctx.options.strip_non_essential_fields {
+        props.push(
+          create_key_value_prop("message", parsed.message),
+        );
+      }
 
       if let Some(v) = parsed.values {
         props.push(
