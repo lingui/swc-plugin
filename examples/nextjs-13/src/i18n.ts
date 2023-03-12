@@ -1,5 +1,7 @@
-import { i18n } from '@lingui/core';
+import { i18n, Messages } from '@lingui/core';
 import { en, cs } from 'make-plural/plurals';
+import { useRef, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export const locales = [
   { twoLettersCode: 'en', label: 'English' },
@@ -18,8 +20,24 @@ export async function loadCatalog(locale: string) {
 
 }
 
-// If not we can just load all the catalogs and do a simple i18n.active(localeToActive)
-// i18n.load({
-//   en: messagesEn,
-//   cs: messagesCs,
-// });
+export function useLinguiInit(messages: Messages) {
+  const router = useRouter()
+  const locale = router.locale || router.defaultLocale!
+  const firstRender = useRef(true)
+
+  // run only once on the first render (for server side)
+  if (messages && firstRender.current) {
+    i18n.load(locale, messages)
+    i18n.activate(locale)
+    firstRender.current = false
+  }
+
+  useEffect(() => {
+    if (messages) {
+      i18n.load(locale, messages)
+      i18n.activate(locale)
+    }
+  }, [locale, messages])
+
+  return i18n;
+}
