@@ -15,7 +15,6 @@ i18n.loadLocaleData({
 export async function loadCatalog(locale: string) {
   const { messages } = await import(`@lingui/loader!../locales/${locale}/messages.po`);
   return messages;
-
 }
 
 // If not we can just load all the catalogs and do a simple i18n.active(localeToActive)
