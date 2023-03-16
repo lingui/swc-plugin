@@ -176,10 +176,16 @@ impl MacroCtx {
                 self.try_tokenize_expr(expr)
             }
 
+            // Indentifiers: 'one: someOnetext'
+            Expr::Ident(_) => {
+                Some(vec!(MsgToken::Expression(expr.clone())))
+            }
+
             // Call Expression: {one: plural(numArticles, {...})}
             Expr::Call(expr) => {
                 self.try_tokenize_call_expr_as_choice_cmp(expr)
             }
+
             _ => None
         }
     }

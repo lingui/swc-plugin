@@ -6,10 +6,11 @@ to!(
     import { plural, select, selectOrdinal } from "@lingui/macro";
     const messagePlural = plural(count, {
        one: '# Book',
+       two: twoText,
        other: '# Books'
     })
     const messageSelect = select(gender, {
-       male: 'he',
+       male: hePronoun,
        female: 'she',
        other: 'they'
     })
@@ -23,17 +24,19 @@ to!(
     r#"
     import { i18n } from "@lingui/core";
     const messagePlural = i18n._({
-        id: "V/M0Vc",
-        message: "{count, plural, one {# Book} other {# Books}}",
+        id: "OLx7g8",
+        message: "{count, plural, one {# Book} two {{twoText}} other {# Books}}",
         values: {
-            count: count
+            count: count,
+            twoText: twoText
         }
     });
     const messageSelect = i18n._({
-        id: "VRptzI",
-        message: "{gender, select, male {he} female {she} other {they}}",
+        id: "U9tGen",
+        message: "{gender, select, male {{hePronoun}} female {she} other {they}}",
         values: {
-            gender: gender
+            gender: gender,
+            hePronoun: hePronoun
         }
     });
     const messageSelectOrdinal = i18n._({
