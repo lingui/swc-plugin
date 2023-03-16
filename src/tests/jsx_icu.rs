@@ -261,6 +261,31 @@ to!(
 );
 
 to!(
+    jsx_select_with_expressions_in_cases,
+     r#"
+        import { Select } from '@lingui/macro';
+        <Select
+          value={count}
+          _male={variable}
+          _third={foo.bar}
+          _female={`She`}
+          other={<strong>Other</strong>}
+        />;
+     "#,
+
+    r#"
+        import { Trans } from "@lingui/react";
+        <Trans message={"{count, select, male {{variable}} third {{0}} female {She} other {<0>Other</0>}}"} id={"/7RSeH"} values={{
+          count: count,
+          variable: variable,
+          0: foo.bar
+        }} components={{
+          0: <strong />
+        }} />;
+    "#
+);
+
+to!(
     jsx_select_with_reserved_attrs,
      r#"
         import { Select } from '@lingui/macro';
