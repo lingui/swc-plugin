@@ -71,6 +71,45 @@ to!(
 );
 
 to!(
+    js_choices_may_contain_expressions,
+     r#"
+import { plural, select, selectOrdinal } from "@lingui/macro";
+const messagePlural = plural(count, {
+   one: foo.bar,
+   other: variable
+})
+const messageSelect = select(gender, {
+   male: 'he',
+   female: variable,
+   third: fn(),
+   other: foo.bar
+})
+     "#,
+    r#"
+import { i18n } from "@lingui/core";
+const messagePlural = i18n._({
+    id: "l6reUi",
+    message: "{count, plural, one {{0}} other {{variable}}}",
+    values: {
+        count: count,
+        variable: variable,
+        0: foo.bar
+    }
+});
+const messageSelect = i18n._({
+    id: "M4Fisk",
+    message: "{gender, select, male {he} female {{variable}} third {{0}} other {{1}}}",
+    values: {
+        gender: gender,
+        variable: variable,
+        0: fn(),
+        1: foo.bar
+    }
+});
+    "#
+);
+
+to!(
     js_should_not_touch_non_lungui_fns,
      r#"
     import { plural } from "@lingui/macro";
@@ -183,27 +222,6 @@ const message = i18n._({
         numArticles: numArticles
     }
 });
-    "#
-);
-
-to!(
-    js_icu_nesting_unsupported_call,
-     r#"
-import { plural } from "@lingui/macro"
-const message = plural(numBooks, {
-   one: myFn(),
-   other: 'Ola!'
-})
-     "#,
-    r#"
-import { i18n } from "@lingui/core"
-const message = i18n._({
-    id: "fffyKD",
-    message: "{numBooks, plural, one {} other {Ola!}}",
-    values: {
-        numBooks: numBooks
-    }
-})
     "#
 );
 

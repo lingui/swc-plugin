@@ -87,7 +87,7 @@ impl<'a> TransJSXVisitor<'a> {
                                         }
 
                                         _ => {
-                                            // todo: unsupported syntax
+                                          tokens.push(MsgToken::Expression(exp.clone()))
                                         }
                                     }
                                 }

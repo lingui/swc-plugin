@@ -222,7 +222,7 @@ impl MacroCtx {
                             }
                         } else {
                             let tokens = self.try_tokenize_expr(&prop.value)
-                                .unwrap_or(Vec::new());
+                                .unwrap_or(vec!(MsgToken::Expression(prop.value.clone())));
 
                             choices.push(CaseOrOffset::Case(ChoiceCase {
                                 tokens,
