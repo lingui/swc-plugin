@@ -10,8 +10,8 @@
     "lingui:extract": "lingui extract"
   },
   "dependencies": {
-    "@lingui/core": "^4.0.0-next.0",
-    "@lingui/react": "^4.0.0-next.0",
+    "@lingui/core": "^4.0.0-next.2",
+    "@lingui/react": "^4.0.0-next.2",
     "@next/font": "13.1.2",
     "@types/node": "18.11.18",
     "@types/react": "18.0.26",
@@ -23,9 +23,9 @@
     "typescript": "4.9.4"
   },
   "devDependencies": {
-    "@lingui/cli": "^4.0.0-next.0",
-    "@lingui/loader": "^4.0.0-next.0",
-    "@lingui/macro": "^4.0.0-next.0",
-    "@lingui/swc-plugin": "^4.0.0-next.1"
+    "@lingui/cli": "^4.0.0-next.2",
+    "@lingui/loader": "^4.0.0-next.2",
+    "@lingui/macro": "^4.0.0-next.2",
+    "@lingui/swc-plugin": "^4.0.0-next.2"
   }
 }

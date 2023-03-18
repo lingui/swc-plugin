@@ -1,5 +1,4 @@
 import { i18n, Messages } from '@lingui/core';
-import { en, cs } from 'make-plural/plurals';
 import { useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
@@ -7,12 +6,6 @@ export const locales = [
   { twoLettersCode: 'en', label: 'English' },
   { twoLettersCode: 'cs', label: 'Česky' },
 ];
-
-
-i18n.loadLocaleData({
-  en: { plurals: en },
-  cs: { plurals: cs },
-});
 
 export async function loadCatalog(locale: string) {
   const { messages } = await import(`@lingui/loader!../locales/${locale}/messages.po`);
