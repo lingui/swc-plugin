@@ -7,7 +7,7 @@ const nextConfig = {
   },
   experimental: {
     swcPlugins: [
-      ['@lingui/swc-plugin', {}],
+      ['@lingui/swc-plugin/swc-059', {}],
     ],
   },
 };

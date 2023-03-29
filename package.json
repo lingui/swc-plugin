@@ -22,14 +22,18 @@
   ],
   "main": "target/wasm32-wasi/release/lingui_macro_plugin.wasm",
   "exports": {
-    ".": "./target/wasm32-wasi/release/lingui_macro_plugin.wasm"
+    ".": "./target/swc-core-069/wasm32-wasi/release/lingui_macro_plugin.wasm",
+    "./swc-069": "./target/swc-core-069/wasm32-wasi/release/lingui_macro_plugin.wasm",
+    "./swc-059": "./target/swc-core-059/wasm32-wasi/release/lingui_macro_plugin.wasm"
   },
   "scripts": {
-    "prepublishOnly": "cargo build-wasi --release"
+    "prepublishOnly": "yarn build-swc-069 && yarn build-swc-059",
+    "build-swc-069": "RUSTFLAGS=\"--cfg swc_core_069\" cargo build-wasi --release --target-dir target/swc-core-069",
+    "build-swc-059": "RUSTFLAGS=\"--cfg swc_core_059\" cargo build-wasi --release --target-dir target/swc-core-059"
   },
   "files": [],
   "packageManager": "yarn@3.3.1",
   "peerDependencies": {
-    "@lingui/macro": "4"
+    "@lingui/macro": "4.0.0-next - 5"
   }
 }

@@ -25,9 +25,9 @@ jobs:
           node-version: 14.x
 
       - uses: Swatinem/rust-cache@v2
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+#      - name: Get yarn cache directory path
+#        id: yarn-cache-dir-path
+#        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
 
 #      - name: Install semantic-release-rust
 #        run: cargo install --git https://github.com/arlyon/semantic-release-rust.git
