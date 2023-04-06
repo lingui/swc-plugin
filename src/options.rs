@@ -29,7 +29,7 @@ pub struct RuntimeModulesConfigMapNormalized {
 impl LinguiJsOptions {
     pub fn to_options(self, env_name: &str) -> LinguiOptions {
         LinguiOptions {
-            strip_non_essential_fields: !(matches!(env_name, "development")),
+            strip_non_essential_fields: matches!(env_name, "production"),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules.as_ref()
