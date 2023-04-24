@@ -1,10 +1,10 @@
 {
   "name": "@lingui/swc-plugin",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "A SWC Plugin for LinguiJS",
   "author": {
     "name": "Timofei Iatsenko",
-    "email": "ty@road.travel"
+    "email": "timiatsenko@gmail.com"
   },
   "repository": "lingui/swc-plugin",
   "bugs": "https://github.com/lingui/swc-plugin/issues",

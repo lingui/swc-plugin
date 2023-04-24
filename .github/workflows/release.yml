@@ -14,9 +14,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.65.0
           target: wasm32-wasi
-          override: true
 
       - name: Set up Node 14
         uses: actions/setup-node@v3
@@ -25,9 +23,9 @@ jobs:
           node-version: 14.x
 
       - uses: Swatinem/rust-cache@v2
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+#      - name: Get yarn cache directory path
+#        id: yarn-cache-dir-path
+#        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
 
 #      - name: Install semantic-release-rust
 #        run: cargo install --git https://github.com/arlyon/semantic-release-rust.git
