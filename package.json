@@ -4,7 +4,7 @@
   "description": "A SWC Plugin for LinguiJS",
   "author": {
     "name": "Timofei Iatsenko",
-    "email": "ty@road.travel"
+    "email": "timiatsenko@gmail.com"
   },
   "repository": "lingui/swc-plugin",
   "bugs": "https://github.com/lingui/swc-plugin/issues",
