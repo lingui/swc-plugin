@@ -89,13 +89,12 @@ So you need to select an appropriate version of the plugin to match compatible `
 |------------------------------------------|-----------------|-----------------------------------------------------------------------------------------------|
 | `0.1.0`, `4.0.0-next.0`                  | `0.52.8`        | `next@13.0.0` ~ `next@13.2.3`                                                                 |
 | `0.2.*`, `4.0.0-next.1` ~ `4.0.0-next.3` | `0.56.1`        | `@swc/core@1.3.29` ~ `@swc/core@1.3.37` <br/> `next@13.2.4-canary.0` ~ `next@13.2.5-canary.5` |
-| `0.3.*`, `4.0.0`                         | `0.75.33`       | `@swc/core@1.3.49 ~` <br/> `v13.3.1-canary.12` ~                                              |                                             |
+| `4.0.0`                                  | `0.75.33`       | `@swc/core@1.3.49 ~` <br/> `next@v13.3.1-canary.12` ~                                         |                                             |
 
 Please also see the [Selecting the version](https://swc.rs/docs/plugin/selecting-swc-core) article to choose the right version of a plugin for your project.
 
 > **Note**
 > next `v13.2.4` ~ `v13.3.1` cannot execute SWC Wasm plugins, due to a [bug of next-swc](https://github.com/vercel/next.js/issues/46989#issuecomment-1486989081).
-
 
 - Version `0.1.0` ~ `0.*` compatible with `@lingui/core@3.*`
 - Version `4.*` compatible with `@lingui/core@4.*`
