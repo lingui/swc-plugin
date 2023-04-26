@@ -559,7 +559,7 @@ checksum = "db6d7e329c562c5dfab7a46a2afabc8b987ab9a4834c9d1ca04dc54c1546cef8"
 
 [[package]]
 name = "lingui_macro_plugin"
-version = "4.0.0-next.3"
+version = "4.0.0"
 dependencies = [
  "data-encoding",
  "once_cell",
