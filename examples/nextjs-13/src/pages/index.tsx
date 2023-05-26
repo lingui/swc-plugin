@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Trans, Plural } from "@lingui/macro";
-import { i18n } from "@lingui/core";
 
 import { locales, loadCatalog } from '../i18n';
 import { useRouter } from 'next/router';
 import { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
+import { useLingui } from '@lingui/react';
 
 export async function getServerSideProps(ctx: GetServerSidePropsContext): Promise<GetServerSidePropsResult<any>> {
   return {
@@ -19,6 +19,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext): Promis
 function Home() {
   const router = useRouter();
   const [count, setCount] = useState(0);
+  const { i18n } = useLingui();
 
   return (
     <div className="App">
