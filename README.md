@@ -86,15 +86,15 @@ SWC Plugin support is still experimental. They do not guarantee a semver backwar
 So you need to select an appropriate version of the plugin to match compatible `swc_core`.
 
 | Plugin Version                           | used `swc_core` | Compatibility                                                                                        |
-|------------------------------------------|---------------|------------------------------------------------------------------------------------------------------|
-| `0.1.0`, `4.0.0-next.0`                  | `0.52.8`      | `next@13.0.0` ~ `next@13.2.3`                                                                        |
-| `0.2.*`, `4.0.0-next.1` ~ `4.0.0-next.3` | `0.56.1`      | `@swc/core@1.3.29` ~ `@swc/core@1.3.37` <br/> `next@13.2.4-canary.0` ~ `next@13.2.5-canary.5`        |
-| `4.0.0`                                  | `0.75.33`     | `@swc/core@1.3.49` ~ `@swc/core@1.3.57` <br/> `next@v13.3.1-canary.12` ~ `next@v13.4.3-canary.1`     |
-| `4.0.1`                                  | `0.76.0`      | broken due to [`lto = true`](https://github.com/swc-project/swc/issues/7470#issuecomment-1571585905) |
-| `4.0.2`                                  | `0.76.41`     | `@swc/core@1.3.58` ~ `@swc/core@1.3.62` <br/> `next@v13.4.3-canary.2` ~                              |
-| `4.0.3`                                  | `0.78.28`     | `@swc/core@1.3.63` ~ `@swc/core@1.3.67` <br/>  `next@v13.4.8 ~ next@v13.4.10-canary.0`               |
-| `4.0.4`                                  | `0.79.x`      | `@swc/core@1.3.68` ~ `@swc/core@1.3.80`  <br/> `next@v13.4.10-canary.1` ~                            |
-| n/a                                      | `0.82.x`      | `@swc/core@1.3.81` ~                                                                                 |
+|------------------------------------------|-----------------|------------------------------------------------------------------------------------------------------|
+| `0.1.0`, `4.0.0-next.0`                  | `0.52.8`        | `next@13.0.0` ~ `next@13.2.3`                                                                        |
+| `0.2.*`, `4.0.0-next.1` ~ `4.0.0-next.3` | `0.56.1`        | `@swc/core@1.3.29` ~ `@swc/core@1.3.37` <br/> `next@13.2.4-canary.0` ~ `next@13.2.5-canary.5`        |
+| `4.0.0`                                  | `0.75.33`       | `@swc/core@1.3.49` ~ `@swc/core@1.3.57` <br/> `next@v13.3.1-canary.12` ~ `next@v13.4.3-canary.1`     |
+| `4.0.1`                                  | `0.76.0`        | broken due to [`lto = true`](https://github.com/swc-project/swc/issues/7470#issuecomment-1571585905) |
+| `4.0.2`                                  | `0.76.41`       | `@swc/core@1.3.58` ~ `@swc/core@1.3.62` <br/> `next@v13.4.3-canary.2` ~                              |
+| `4.0.3`                                  | `0.78.28`       | `@swc/core@1.3.63` ~ `@swc/core@1.3.67` <br/>  `next@v13.4.8 ~ next@v13.4.10-canary.0`               |
+| `4.0.4`                                  | `0.79.x`        | `@swc/core@1.3.68` ~ `@swc/core@1.3.80`  <br/> `next@v13.4.10-canary.1` ~                            |
+| `4.0.5`                                  | `0.87.x`        | `@swc/core@1.3.81 ~ @swc/core@1.3.105`  <br /> `~ next@v14.1.0`                                      |
 
 This table may become outdated. If you don't see a particular version of `@swc/core` or `next` check the compatibility by referring to the upstream's [Selecting the version](https://swc.rs/docs/plugin/selecting-swc-core) article.
 This will help you select the appropriate plugin version for your project.
