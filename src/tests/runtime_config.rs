@@ -3,7 +3,7 @@ use crate::{LinguiOptions, RuntimeModulesConfigMapNormalized};
 
 macro_rules! to {
     ($name:ident, $options:expr, $from:expr, $to:expr) => {
-        swc_core::ecma::transforms::testing::test!(
+        swc_core::ecma::transforms::testing::test_inline!(
             swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsConfig {
                 tsx: true,
                 ..Default::default()
@@ -13,13 +13,10 @@ macro_rules! to {
             },
             $name,
             $from,
-            $to,
-            ok_if_code_eq
+            $to
         );
     };
 }
-
-
 
 to!(
     should_use_provided_runtime_modules,

@@ -162,7 +162,7 @@ pub fn create_import(source: JsWord, specifier: Ident) -> ModuleItem {
             value: source,
             raw: None,
         }),
-        asserts: None,
+        with: None,
         type_only: false,
     }))
 }
