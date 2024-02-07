@@ -11,7 +11,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext): Promis
     props: {
       // we need to pass catalog to the client side to be able to **synchronously** consume it
       // on hydration phase. Otherwise, hydration mismatch would happend.
-      i18n: await loadCatalog(ctx.locale as string),
+      translation: await loadCatalog(ctx.locale as string),
     }
   };
 }
