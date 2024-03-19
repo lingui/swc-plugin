@@ -347,13 +347,13 @@ to!(
           offset="1"
           _0=" #st"
           one=" #nd"
-          other='#rd'
+          other=' #rd'
         />;
      "#,
 
     r#"
        import { Trans } from "@lingui/react";
-        <Trans message={"{count, selectordinal, offset:1 =0 {#st} one {#nd} other {#rd}}"} id={"6kK4rC"} values={{
+        <Trans message={"{count, selectordinal, offset:1 =0 { #st} one { #nd} other { #rd}}"} id={"cp8FR4"} values={{
             count: count
         }}/>;
     "#
