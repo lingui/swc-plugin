@@ -173,7 +173,7 @@ to!(
 
     r#"
      import { Trans } from "@lingui/react";
-     <Trans message={"<0>This should work \xa0</0>"} id={"K/1Xpr"}
+     <Trans message={"<0>This should work  </0>"} id={"K/1Xpr"}
         components={{
           0: <Text />,
         }}
@@ -277,35 +277,19 @@ to!(
 );
 
 to!(
-    keep_forced_newlines,
-     r#"
-        import { Trans } from "@lingui/macro";
-        <Trans>
-          Keep forced{"\\n"}
-          newlines!
-        </Trans>
-     "#,
-
-    r#"
-        import { Trans } from "@lingui/react";
-       <Trans message={"Keep forced\n newlines!"} id={"3zXXNh"}/>;
-    "#
-);
-
-to!(
     keep_multiple_forced_newlines,
      r#"
         import { Trans } from "@lingui/macro";
         <Trans>
-          Keep multiple{"\\n"}
-          forced{"\\n"}
+          Keep multiple{"\n"}
+          forced{"\n"}
           newlines!
         </Trans>
      "#,
 
     r#"
         import { Trans } from "@lingui/react";
-        <Trans message={"Keep multiple\n forced\n newlines!"} id={"fP0nx0"}/>;
+        <Trans message={"Keep multiple\nforced\nnewlines!"} id={"9xE5pD"}/>;
     "#
 );
 
@@ -389,7 +373,34 @@ to!(
         />;
     "#
 );
+to!(
+    strip_whitespaces_in_jsxtext_but_keep_in_jsx_expression_containers,
+     r#"
+      import { Trans } from "@lingui/macro";
+        <Trans>
+        {"Wonderful framework "}
+        <a href="https://nextjs.org">Next.js</a>
+        {" say hi. And "}
+        <a href="https://nextjs.org">Next.js</a>
+        {" say hi."}
+      </Trans>
+     "#,
 
+    r#"
+      import { Trans } from "@lingui/react";
+
+      <Trans
+        message={
+          "Wonderful framework <0>Next.js</0> say hi. And <1>Next.js</1> say hi."
+        }
+        id={"3YVd0H"}
+        components={{
+          0: <a href="https://nextjs.org" />,
+          1: <a href="https://nextjs.org" />,
+        }}
+      />;
+    "#
+);
 //   {
 //     name: "production - import_type_doesn't_interference_on_normal_import",
 //     production: true,

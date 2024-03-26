@@ -8,7 +8,6 @@ use swc_core::{
 
 use crate::{
   normalize_witespaces_js::normalize_whitespaces_js,
-  normalize_witespaces_jsx::normalize_whitespaces_jsx,
 };
 use crate::tokens::{IcuChoice, CaseOrOffset, MsgToken};
 
@@ -70,7 +69,7 @@ impl MessageBuilder {
 
     pub fn to_args(mut self, jsx: bool) -> MessageBuilderResult {
       let message_str = if jsx {
-        normalize_whitespaces_jsx(&self.message)
+        self.message
       } else {
         normalize_whitespaces_js(&self.message)
       };

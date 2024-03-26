@@ -13,7 +13,6 @@ use swc_core::{
 };
 
 mod tests;
-mod normalize_witespaces_jsx;
 mod normalize_witespaces_js;
 mod builder;
 mod tokens;
