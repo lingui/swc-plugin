@@ -34,8 +34,6 @@ static WORD_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\w+)").unwrap());
 
 // taken from babel repo -> packages/babel-types/src/utils/react/cleanJSXElementLiteralChild.ts
 fn clean_jsx_element_literal_child(value: &str) -> String {
-  println!("bla {}", value);
-
   let lines: Vec<&str> = value.split('\n').collect();
   let mut last_non_empty_line = 0;
 
