@@ -24,7 +24,7 @@ impl<'a> JsMacroFolder<'a> {
     }
 
     fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>) -> Expr {
-      let parsed = MessageBuilder::parse(tokens, false);
+      let parsed = MessageBuilder::parse(tokens);
 
       let mut props: Vec<PropOrSpread> = vec![
         create_key_value_prop("id", generate_message_id(&parsed.message_str, "").into()),
@@ -98,7 +98,7 @@ impl<'a> JsMacroFolder<'a> {
         if let Some(prop) = message_prop {
           let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_else(|| Vec::new());
 
-          let parsed = MessageBuilder::parse(tokens, false);
+          let parsed = MessageBuilder::parse(tokens);
 
           if !id_prop.is_some() {
             new_props.push(
