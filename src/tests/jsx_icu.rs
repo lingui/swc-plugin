@@ -3,7 +3,7 @@ use crate::{to};
 to!(
     jsx_icu,
      r#"
-import { Plural } from "@lingui/macro";
+import { Plural } from "@lingui/react/macro";
 
 const ex1 = <Plural
  value={count}
@@ -34,7 +34,7 @@ const ex2 = <div ><Trans message={"{count, plural, one {Message} other {Messages
 to!(
     jsx_icu_explicit_id,
      r#"
-       import { Plural } from "@lingui/macro";
+       import { Plural } from "@lingui/react/macro";
 
       <Plural
        id="plural.id"
@@ -58,7 +58,7 @@ to!(
 to!(
     jsx_plural_preserve_reserved_attrs,
      r#"
-       import { Plural } from "@lingui/macro";
+       import { Plural } from "@lingui/react/macro";
 
       <Plural
        comment="Translators Comment"
@@ -85,7 +85,7 @@ to!(
 to!(
     jsx_icu_nested,
      r#"
-       import { Plural, Trans } from "@lingui/macro";
+       import { Plural, Trans } from "@lingui/react/macro";
 
        <Trans>
            You have{" "}
@@ -192,7 +192,7 @@ import { Trans, Plural } from '@lingui/macro';
 to!(
     jsx_plural_with_offset_and_exact_matches,
      r#"
-       import { Plural } from "@lingui/macro";
+       import { Plural } from "@lingui/react/macro";
 
         <Plural
           value={count}
@@ -217,7 +217,7 @@ to!(
 to!(
     jsx_icu_with_template_literal,
      r#"
-       import { Plural } from "@lingui/macro";
+       import { Plural } from "@lingui/react/macro";
 
         <Plural
           value={count}
@@ -340,7 +340,7 @@ to!(
 to!(
     jsx_select_ordinal_with_offset_and_exact_matches,
      r#"
-       import { SelectOrdinal } from "@lingui/macro";
+       import { SelectOrdinal } from "@lingui/react/macro";
 
         <SelectOrdinal
           value={count}
