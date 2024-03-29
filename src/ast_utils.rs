@@ -149,6 +149,7 @@ pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
 pub fn create_import(source: JsWord, specifier: Ident) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
         span: DUMMY_SP,
+        phase: ImportPhase::default(),
         specifiers: vec![
             ImportSpecifier::Named(ImportNamedSpecifier {
                 span: DUMMY_SP,

@@ -156,12 +156,46 @@ to!(
      r#"
         import { i18n } from "@lingui/core";
         i18n._({
-            id: "EfogM+",
-            message: "Multiline\nstring"
+            id: "amQF7O",
+            message: "Multiline\n           string"
         });
      "#
 );
 
+to!(
+    js_continuation_character,
+    r#"
+       import { t } from '@lingui/macro';
+         t`Multiline\
+           string`;
+    "#,
+     r#"
+        import { i18n } from "@lingui/core";
+        i18n._({
+            id: "d1nA7b",
+            message: "Multiline           string"
+        });
+     "#
+);
+to!(
+    unicode_characters_interpreted,
+    r#"
+       import { t } from '@lingui/macro';
+       t`Message \u0020`;
+       t`Bienvenue\xA0!`
+    "#,
+     r#"
+        import { i18n } from "@lingui/core";
+        i18n._({
+            id: "dZXeyN",
+            message: "Message  "
+        });
+        i18n._({
+            id: "9K3RGd",
+            message: "Bienvenue !"
+        });
+     "#
+);
 to!(
     js_support_message_descriptor_in_t_fn,
     r#"

@@ -32,6 +32,49 @@ static WORD_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\w+)").unwrap());
 // const pluralRuleRe = /(_[\d\w]+|zero|one|two|few|many|other)/
 // const jsx2icuExactChoice = (value: string) => value.replace(/_(\d+)/, "=$1").replace(/_(\w+)/, "$1")
 
+// taken from babel repo -> packages/babel-types/src/utils/react/cleanJSXElementLiteralChild.ts
+fn clean_jsx_element_literal_child(value: &str) -> String {
+  let lines: Vec<&str> = value.split('\n').collect();
+  let mut last_non_empty_line = 0;
+
+  for (i, line) in lines.iter().enumerate() {
+    if line.trim().len() > 0 {
+      last_non_empty_line = i;
+    }
+  }
+
+  let mut result = String::new();
+
+  for (i, line) in lines.iter().enumerate() {
+    let is_first_line = i == 0;
+    let is_last_line = i == lines.len() - 1;
+    let is_last_non_empty_line = i == last_non_empty_line;
+
+    // replace rendered whitespace tabs with spaces
+    let mut trimmed_line = line.replace("\t", " ");
+
+    // trim whitespace touching a newline
+    if !is_first_line {
+      trimmed_line = trimmed_line.trim_start().to_string();
+    }
+
+    // trim whitespace touching an endline
+    if !is_last_line {
+      trimmed_line = trimmed_line.trim_end().to_string();
+    }
+
+    if !trimmed_line.is_empty() {
+      if !is_last_non_empty_line {
+        trimmed_line.push(' ');
+      }
+
+      result.push_str(&trimmed_line);
+    }
+  }
+
+  result
+}
+
 fn is_allowed_plural_option(key: &str) -> Option<JsWord> {
     if PLURAL_OPTIONS_WHITELIST.is_match(key) {
         let key = NUM_OPTION.replace(key, "=$1");
@@ -174,8 +217,9 @@ impl<'a> Visit for TransJSXVisitor<'a> {
     }
 
     fn visit_jsx_text(&mut self, el: &JSXText) {
+
         self.tokens.push(
-            MsgToken::String(el.value.to_string())
+            MsgToken::String(clean_jsx_element_literal_child(&el.raw.to_string()))
         );
     }
 

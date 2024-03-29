@@ -110,7 +110,7 @@ impl MacroCtx {
         let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
-            tokens.push(MsgToken::String(tpl_element.raw.to_string()));
+            tokens.push(MsgToken::String(tpl_element.cooked.as_ref().unwrap_or(&tpl_element.raw).to_string()));
 
             if let Some(exp) = tpl.exprs.get(i) {
                 if let Expr::Call(call) = exp.as_ref() {
