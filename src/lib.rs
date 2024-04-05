@@ -137,7 +137,7 @@ impl<'a> Fold for LinguiMacroFolder {
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 // drop macro imports
-                if &imp.src.value == "@lingui/macro" {
+                if &imp.src.value == "@lingui/macro" || &imp.src.value == "@lingui/core/macro" || &imp.src.value == "@lingui/react/macro" {
                     self.has_lingui_macro_imports = true;
                     self.ctx.register_macro_import(imp);
                     insert_index = index;

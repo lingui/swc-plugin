@@ -16,7 +16,7 @@ to!(
     js_should_not_touch_not_related_tagget_tpls,
     // input
      r#"
-     import { t } from "@lingui/macro";
+     import { t } from "@lingui/core/macro";
 
      b`Refresh inbox`;
      b(i18n)`Refresh inbox`;
@@ -29,10 +29,29 @@ to!(
 );
 
 to!(
-    js_substitution_in_tpl_literal,
+    js_should_work_with_legacy_import,
     // input
      r#"
      import { t } from "@lingui/macro";
+
+    t`Refresh inbox`;
+     "#,
+    // output after transform
+    r#"
+  import { i18n } from "@lingui/core";
+  i18n._({
+      id: "EsCV2T",
+      message: "Refresh inbox"
+  });
+
+    "#
+);
+
+to!(
+    js_substitution_in_tpl_literal,
+    // input
+     r#"
+     import { t } from "@lingui/core/macro";
 
      t`Refresh inbox`
      t`Refresh ${foo} inbox ${bar}`
@@ -76,7 +95,7 @@ to!(
     js_dedup_values_in_tpl_literal,
     // input
      r#"
-     import { t } from "@lingui/macro";
+     import { t } from "@lingui/core/macro";
      t`Refresh ${foo} inbox ${foo}`
      "#,
     // output after transform
@@ -97,7 +116,7 @@ to!(
     js_custom_i18n_passed,
     // input
      r#"
-     import { t } from "@lingui/macro";
+     import { t } from "@lingui/core/macro";
      import { custom_i18n } from "./i18n";
 
      t(custom_i18n)`Refresh inbox`
@@ -149,7 +168,7 @@ to!(
 to!(
     js_newlines_are_preserved,
     r#"
-       import { t } from '@lingui/macro';
+       import { t } from '@lingui/core/macro';
          t`Multiline
            string`;
     "#,
@@ -165,7 +184,7 @@ to!(
 to!(
     js_continuation_character,
     r#"
-       import { t } from '@lingui/macro';
+       import { t } from '@lingui/core/macro';
          t`Multiline\
            string`;
     "#,
@@ -180,7 +199,7 @@ to!(
 to!(
     unicode_characters_interpreted,
     r#"
-       import { t } from '@lingui/macro';
+       import { t } from '@lingui/core/macro';
        t`Message \u0020`;
        t`Bienvenue\xA0!`
     "#,
@@ -199,7 +218,7 @@ to!(
 to!(
     js_support_message_descriptor_in_t_fn,
     r#"
-        import { t } from '@lingui/macro'
+        import { t } from '@lingui/core/macro'
         const msg = t({ message: `Hello ${name}`, id: 'msgId', comment: 'description for translators'  })
     "#,
      r#"
@@ -217,7 +236,7 @@ to!(
 to!(
     js_t_fn_wrapped_in_call_expr,
     r#"
-        import { t } from '@lingui/macro'
+        import { t } from '@lingui/core/macro'
         const msg = message.error(t({message: "dasd"}))
     "#,
      r#"
@@ -237,7 +256,7 @@ to!(
     production,
     js_should_kept_only_essential_props,
     r#"
-        import { t } from '@lingui/macro'
+        import { t } from '@lingui/core/macro'
         const msg1 = t`Message`
         const msg2 = t({
             message: `Hello ${name}`,
@@ -264,7 +283,7 @@ to!(
 to!(
     js_support_template_strings_in_t_macro_message_with_custom_i18n_instance,
     r#"
-    import { t } from '@lingui/macro'
+    import { t } from '@lingui/core/macro'
     import { i18n_custom } from './lingui'
     const msg = t(i18n_custom)({ message: `Hello ${name}` })
     "#,
@@ -283,7 +302,7 @@ to!(
 to!(
     support_id_and_comment_in_t_macro_as_call_expression,
     r#"
-        import { t, plural } from '@lingui/macro'
+        import { t, plural } from '@lingui/core/macro'
         const msg = t({ id: 'msgId', comment: 'description for translators', message: plural(val, { one: '...', other: '...' }) })
     "#,
     r#"
@@ -301,7 +320,7 @@ to!(
 to!(
     support_id_in_template_literal,
     r#"
-        import { t } from '@lingui/macro'
+        import { t } from '@lingui/core/macro'
         const msg = t({ id: `msgId` })
     "#,
     r#"
@@ -316,7 +335,7 @@ to!(
 to!(
     should_generate_diffrent_id_when_context_provided,
     r#"
-        import { t } from '@lingui/macro'
+        import { t } from '@lingui/core/macro'
         t({ message: 'Ola' })
         t({ message: 'Ola', context: "My Context"})
         t({ message: 'Ola', context: `My Context`})

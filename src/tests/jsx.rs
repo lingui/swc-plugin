@@ -3,7 +3,7 @@ use crate::{to};
 to!(
     jsx_simple_jsx,
      r#"
-import { Trans } from "@lingui/macro";
+import { Trans } from "@lingui/react/macro";
 const exp1 = <Custom>Refresh inbox</Custom>;
 const exp2 = <Trans>Refresh inbox</Trans>;
 const exp3 = <div><Trans>Refresh inbox</Trans></div>;
@@ -16,11 +16,22 @@ const exp3 = <div><Trans message={"Refresh inbox"} id={"EsCV2T"}/></div>;
     "#
 );
 
+to!(
+    jsx_should_suppor_legacy_import,
+     r#"
+import { Trans } from "@lingui/macro";
+const exp2 = <Trans>Refresh inbox</Trans>;
+     "#,
+    r#"
+import { Trans } from "@lingui/react";
+const exp2 = <Trans message={"Refresh inbox"} id={"EsCV2T"}/>;
+    "#
+);
 
 to!(
     jsx_with_custom_id,
      r#"
-       import { Trans } from "@lingui/macro";
+       import { Trans } from "@lingui/react/macro";
        const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
     r#"
@@ -32,7 +43,7 @@ to!(
 to!(
     jsx_with_context,
      r#"
-       import { Trans } from "@lingui/macro";
+       import { Trans } from "@lingui/react/macro";
        const exp1 = <Trans>Refresh inbox</Trans>;
        const exp2 = <Trans context="My Context">Refresh inbox</Trans>;
      "#,
@@ -46,7 +57,7 @@ to!(
 to!(
     jsx_preserve_reserved_attrs,
      r#"
-       import { Trans } from "@lingui/macro";
+       import { Trans } from "@lingui/react/macro";
        const exp2 = <Trans comment="Translators Comment" context="Message Context" i18n="i18n" render={(v) => v}>Refresh inbox</Trans>;
      "#,
     r#"
@@ -58,7 +69,7 @@ to!(
 to!(
     jsx_expressions_are_converted_to_positional_arguments,
      r#"
-       import { Trans } from "@lingui/macro";
+       import { Trans } from "@lingui/react/macro";
        <Trans>
           Property {props.name},
           function {random()},
@@ -87,7 +98,7 @@ to!(
 to!(
     jsx_components_interpolation,
      r#"
-       import { Trans } from "@lingui/macro";
+       import { Trans } from "@lingui/react/macro";
        <Trans>
           Hello <strong>World!</strong><br />
           <p>
@@ -116,7 +127,7 @@ to!(
 to!(
     jsx_values_dedup,
      r#"
-       import { Trans } from "@lingui/macro";
+       import { Trans } from "@lingui/react/macro";
        <Trans>
           Hello {foo} and {foo}{" "}
           {bar}
@@ -135,7 +146,7 @@ to!(
 to!(
     jsx_template_literal_in_children,
      r#"
-       import { Trans } from "@lingui/macro";
+       import { Trans } from "@lingui/react/macro";
        <Trans>{`Hello ${foo} and ${bar}`}</Trans>
      "#,
     r#"
@@ -150,7 +161,7 @@ to!(
 to!(
     quoted_jsx_attributes_are_handled,
      r#"
-       import { Trans } from '@lingui/macro';
+       import { Trans } from "@lingui/react/macro";
        <Trans>Speak "friend"!</Trans>;
        <Trans id="custom-id">Speak "friend"!</Trans>;
      "#,
@@ -165,7 +176,7 @@ to!(
 to!(
     html_attributes_are_handled,
      r#"
-        import { Trans } from '@lingui/macro';
+        import { Trans } from "@lingui/react/macro";
         <Trans>
           <Text>This should work &nbsp;</Text>
         </Trans>;
@@ -184,7 +195,7 @@ to!(
 to!(
     use_decoded_html_entities,
      r#"
-        import { Trans } from "@lingui/macro";
+        import { Trans } from "@lingui/react/macro";
         <Trans>&amp;</Trans>
      "#,
     r#"
@@ -197,7 +208,7 @@ to!(
 to!(
     elements_inside_expression_container,
      r#"
-        import { Trans } from '@lingui/macro';
+        import { Trans } from "@lingui/react/macro";
         <Trans>{<span>Component inside expression container</span>}</Trans>;
      "#,
     r#"
@@ -214,7 +225,7 @@ to!(
 to!(
     elements_without_children,
      r#"
-        import { Trans } from '@lingui/macro';
+        import { Trans } from "@lingui/react/macro";
         <Trans>{<br />}</Trans>;
      "#,
 
@@ -230,7 +241,7 @@ to!(
 // to!(
 //     jsx_spread_child_is_noop,
 //      r#"
-//         import { Trans } from '@lingui/macro';
+//         import { Trans } from "@lingui/react/macro";
 //         <Trans>{...spread}</Trans>
 //      "#,
 //     r#"
@@ -242,7 +253,7 @@ to!(
 to!(
     strip_whitespace_around_arguments,
      r#"
-        import { Trans } from "@lingui/macro";
+        import { Trans } from "@lingui/react/macro";
         <Trans>
           Strip whitespace around arguments: '
           {name}
@@ -260,7 +271,7 @@ to!(
 to!(
     strip_whitespace_around_tags_but_keep_forced_spaces,
      r#"
-        import { Trans } from "@lingui/macro";
+        import { Trans } from "@lingui/react/macro";
         <Trans>
           Strip whitespace around tags, but keep{" "}
           <strong>forced spaces</strong>
@@ -279,7 +290,7 @@ to!(
 to!(
     keep_multiple_forced_newlines,
      r#"
-        import { Trans } from "@lingui/macro";
+        import { Trans } from "@lingui/react/macro";
         <Trans>
           Keep multiple{"\n"}
           forced{"\n"}
@@ -296,7 +307,8 @@ to!(
 to!(
     use_js_macro_in_jsx_attrs,
      r#"
-        import { t, Trans } from '@lingui/macro';
+        import { t } from '@lingui/core/macro';
+        import { Trans } from '@lingui/react/macro';
         <Trans>Read <a href="/more" title={t`Full content of ${articleName}`}>more</a></Trans>
      "#,
     r#"
@@ -317,7 +329,7 @@ to!(
 to!(
     use_js_plural_in_jsx_attrs,
      r#"
-        import { plural } from '@lingui/macro';
+        import { plural } from '@lingui/core/macro';
         <a href="/about" title={plural(count, {
           one: "\# book",
           other: "\# books"
@@ -340,7 +352,7 @@ to!(
 to!(
     ignore_jsx_empty_expression,
      r#"
-        import { Trans } from '@lingui/macro';
+        import { Trans } from "@lingui/react/macro";
         <Trans>Hello {/* and I cannot stress this enough */} World</Trans>;
      "#,
     r#"
@@ -353,7 +365,7 @@ to!(
     production,
     production_only_essential_props_are_kept,
      r#"
-        import { Trans } from '@lingui/macro';
+        import { Trans } from "@lingui/react/macro";
         <Trans
         id="msg.hello"
         render="render"
@@ -376,7 +388,7 @@ to!(
 to!(
     strip_whitespaces_in_jsxtext_but_keep_in_jsx_expression_containers,
      r#"
-      import { Trans } from "@lingui/macro";
+      import { Trans } from "@lingui/react/macro";
         <Trans>
         {"Wonderful framework "}
         <a href="https://nextjs.org">Next.js</a>
@@ -407,7 +419,7 @@ to!(
 //     useTypescriptPreset: true,
 //     input: `
 //         import { withI18nProps } from '@lingui/react'
-//         import { Trans } from '@lingui/macro';
+//         import { Trans } from "@lingui/react/macro";
 //         <Trans id="msg.hello" comment="Hello World">Hello World</Trans>
 //       `,
 //     expected: `

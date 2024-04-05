@@ -3,7 +3,7 @@ use crate::{to};
 to!(
     js_icu_macro,
      r#"
-    import { plural, select, selectOrdinal } from "@lingui/macro";
+    import { plural, select, selectOrdinal } from "@lingui/core/macro";
     const messagePlural = plural(count, {
        one: '# Book',
        other: '# Books'
@@ -49,7 +49,7 @@ to!(
 to!(
     js_icu_diffrent_object_literal_syntax,
      r#"
-        import { plural } from "@lingui/macro";
+        import { plural } from "@lingui/core/macro";
 
         const messagePlural = plural(count, {
            one: '# Book',
@@ -73,7 +73,7 @@ to!(
 to!(
     js_choices_may_contain_expressions,
      r#"
-import { plural, select, selectOrdinal } from "@lingui/macro";
+import { plural, select, selectOrdinal } from "@lingui/core/macro";
 const messagePlural = plural(count, {
    one: foo.bar,
    other: variable
@@ -112,7 +112,7 @@ const messageSelect = i18n._({
 to!(
     js_should_not_touch_non_lungui_fns,
      r#"
-    import { plural } from "@lingui/macro";
+    import { plural } from "@lingui/core/macro";
     const messagePlural = customName(count, {
        one: '# Book',
        other: '# Books'
@@ -129,7 +129,7 @@ to!(
 to!(
     js_plural_with_placeholders,
      r#"
-       import { plural } from "@lingui/macro";
+       import { plural } from "@lingui/core/macro";
 
        const message = plural(count, {
            one: `${name} has # friend`,
@@ -152,7 +152,7 @@ to!(
 to!(
     js_dedup_values_in_icu,
      r#"
-       import { plural } from "@lingui/macro";
+       import { plural } from "@lingui/core/macro";
 
        const message = plural(count, {
            one: `${name} has ${count} friend`,
@@ -200,7 +200,7 @@ to!(
 to!(
     js_icu_nested_in_choices,
      r#"
-import { plural } from "@lingui/macro"
+import { plural } from "@lingui/core/macro"
 const message = plural(numBooks, {
    one: plural(numArticles, {
       one: `1 book and 1 article`,
