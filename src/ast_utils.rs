@@ -164,5 +164,6 @@ pub fn create_import(source: JsWord, specifier: Ident) -> ModuleItem {
         }),
         with: None,
         type_only: false,
+        phase: Default::default(),
     }))
 }
