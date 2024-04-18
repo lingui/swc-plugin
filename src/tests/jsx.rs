@@ -9,10 +9,10 @@ const exp2 = <Trans>Refresh inbox</Trans>;
 const exp3 = <div><Trans>Refresh inbox</Trans></div>;
      "#,
     r#"
-import { Trans } from "@lingui/react";
+import { Trans as Trans_ } from "@lingui/react";
 const exp1 = <Custom >Refresh inbox</Custom>;
-const exp2 = <Trans message={"Refresh inbox"} id={"EsCV2T"}/>;
-const exp3 = <div><Trans message={"Refresh inbox"} id={"EsCV2T"}/></div>;
+const exp2 = <Trans_ message={"Refresh inbox"} id={"EsCV2T"}/>;
+const exp3 = <div><Trans_ message={"Refresh inbox"} id={"EsCV2T"}/></div>;
     "#
 );
 
@@ -23,8 +23,8 @@ import { Trans } from "@lingui/macro";
 const exp2 = <Trans>Refresh inbox</Trans>;
      "#,
     r#"
-import { Trans } from "@lingui/react";
-const exp2 = <Trans message={"Refresh inbox"} id={"EsCV2T"}/>;
+import { Trans as Trans_ } from "@lingui/react";
+const exp2 = <Trans_ message={"Refresh inbox"} id={"EsCV2T"}/>;
     "#
 );
 
@@ -35,8 +35,8 @@ to!(
        const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
     r#"
-       import { Trans } from "@lingui/react";
-       const exp2 = <Trans message={"Refresh inbox"} id="custom.id" />
+       import { Trans as Trans_ } from "@lingui/react";
+       const exp2 = <Trans_ message={"Refresh inbox"} id="custom.id" />
     "#
 );
 
@@ -48,9 +48,9 @@ to!(
        const exp2 = <Trans context="My Context">Refresh inbox</Trans>;
      "#,
     r#"
-       import { Trans } from "@lingui/react";
-       const exp1 = <Trans message={"Refresh inbox"} id={"EsCV2T"}/>;
-       const exp2 = <Trans message={"Refresh inbox"} id={"BAyVRj"}/>;
+       import { Trans as Trans_ } from "@lingui/react";
+       const exp1 = <Trans_ message={"Refresh inbox"} id={"EsCV2T"}/>;
+       const exp2 = <Trans_ message={"Refresh inbox"} id={"BAyVRj"}/>;
     "#
 );
 
@@ -61,8 +61,8 @@ to!(
        const exp2 = <Trans comment="Translators Comment" context="Message Context" i18n="i18n" render={(v) => v}>Refresh inbox</Trans>;
      "#,
     r#"
-       import { Trans } from "@lingui/react";
-       const exp2 = <Trans message={"Refresh inbox"} id={"6J8UtY"} i18n="i18n" render={(v) => v} />
+       import { Trans as Trans_ } from "@lingui/react";
+       const exp2 = <Trans_ message={"Refresh inbox"} id={"6J8UtY"} i18n="i18n" render={(v) => v} />
     "#
 );
 
@@ -80,8 +80,8 @@ to!(
         </Trans>;
      "#,
     r#"
-       import { Trans } from "@lingui/react";
-       <Trans
+       import { Trans as Trans_ } from "@lingui/react";
+       <Trans_
          message={"Property {0}, function {1}, array {2}, constant {3}, object {4}, everything {5}"}
          id={"HjKDmx"}
          values={{
@@ -108,8 +108,8 @@ to!(
         </Trans>
      "#,
     r#"
-    import { Trans } from "@lingui/react";
-   <Trans
+    import { Trans as Trans_ } from "@lingui/react";
+   <Trans_
    message={"Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"}
    id={"k9gsHO"}
    values={{
@@ -134,8 +134,8 @@ to!(
         </Trans>
      "#,
     r#"
-       import { Trans } from "@lingui/react";
-       <Trans message={"Hello {foo} and {foo} {bar}"} id={"LyhmWJ"}
+       import { Trans as Trans_ } from "@lingui/react";
+       <Trans_ message={"Hello {foo} and {foo} {bar}"} id={"LyhmWJ"}
         values={{
           foo: foo,
           bar: bar,
@@ -150,8 +150,8 @@ to!(
        <Trans>{`Hello ${foo} and ${bar}`}</Trans>
      "#,
     r#"
-       import { Trans } from "@lingui/react";
-       <Trans message={"Hello {foo} and {bar}"} id={"pB1yir"} values={{
+       import { Trans as Trans_ } from "@lingui/react";
+       <Trans_ message={"Hello {foo} and {bar}"} id={"pB1yir"} values={{
           foo: foo,
           bar: bar,
         }}/>;
@@ -167,9 +167,9 @@ to!(
      "#,
 
     r#"
-      import { Trans } from "@lingui/react";
-      <Trans message={'Speak "friend"!'} id={"NWmRwM"}/>;
-      <Trans message={'Speak "friend"!'} id="custom-id" />;
+      import { Trans as Trans_ } from "@lingui/react";
+      <Trans_ message={'Speak "friend"!'} id={"NWmRwM"}/>;
+      <Trans_ message={'Speak "friend"!'} id="custom-id" />;
     "#
 );
 
@@ -183,8 +183,8 @@ to!(
      "#,
 
     r#"
-     import { Trans } from "@lingui/react";
-     <Trans message={"<0>This should work  </0>"} id={"K/1Xpr"}
+     import { Trans as Trans_ } from "@lingui/react";
+     <Trans_ message={"<0>This should work  </0>"} id={"K/1Xpr"}
         components={{
           0: <Text />,
         }}
@@ -199,8 +199,8 @@ to!(
         <Trans>&amp;</Trans>
      "#,
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans message={"&"} id={"EwTON7"}/>;
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_ message={"&"} id={"EwTON7"}/>;
     "#
 );
 
@@ -212,8 +212,8 @@ to!(
         <Trans>{<span>Component inside expression container</span>}</Trans>;
      "#,
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_
           message={"<0>Component inside expression container</0>"}
           id={"1cZQQW"}
          components={{
@@ -230,8 +230,8 @@ to!(
      "#,
 
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans message={"<0/>"} id={"SCJtqt"} components={{
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_ message={"<0/>"} id={"SCJtqt"} components={{
           0: <br />
         }} />;
     "#
@@ -245,8 +245,8 @@ to!(
 //         <Trans>{...spread}</Trans>
 //      "#,
 //     r#"
-//         import { Trans } from "@lingui/react";
-//         <Trans>{...spread}</Trans>
+//         import { Trans as Trans_ } from "@lingui/react";
+//         <Trans_>{...spread}</Trans>
 //     "#
 // );
 
@@ -261,8 +261,8 @@ to!(
         </Trans>
      "#,
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans message={"Strip whitespace around arguments: '{name}'"} id={"tRMgLt"} values={{
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_ message={"Strip whitespace around arguments: '{name}'"} id={"tRMgLt"} values={{
           name: name
         }} />;
     "#
@@ -280,8 +280,8 @@ to!(
      "#,
 
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans message={"Strip whitespace around tags, but keep <0>forced spaces</0>!"} id={"Ud4KOf"} components={{
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_ message={"Strip whitespace around tags, but keep <0>forced spaces</0>!"} id={"Ud4KOf"} components={{
           0: <strong />
         }} />;
     "#
@@ -299,8 +299,8 @@ to!(
      "#,
 
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans message={"Keep multiple\nforced\nnewlines!"} id={"9xE5pD"}/>;
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_ message={"Keep multiple\nforced\nnewlines!"} id={"9xE5pD"}/>;
     "#
 );
 
@@ -312,10 +312,10 @@ to!(
         <Trans>Read <a href="/more" title={t`Full content of ${articleName}`}>more</a></Trans>
      "#,
     r#"
-        import { Trans } from "@lingui/react";
-        import { i18n } from "@lingui/core";
-        <Trans  message={"Read <0>more</0>"} id={"QZyANg"} components={{
-            0: <a href="/more" title={i18n._({
+        import { Trans as Trans_ } from "@lingui/react";
+        import { i18n as $_i18n } from "@lingui/core";
+        <Trans_  message={"Read <0>more</0>"} id={"QZyANg"} components={{
+            0: <a href="/more" title={$_i18n._({
                 id: "qzc3IN",
                 message: "Full content of {articleName}",
                 values: {
@@ -337,8 +337,8 @@ to!(
      "#,
 
     r#"
-        import { i18n } from "@lingui/core";
-        <a href="/about" title={i18n._({
+        import { i18n as $_i18n } from "@lingui/core";
+        <a href="/about" title={$_i18n._({
           id: "esnaQO",
           message: "{count, plural, one {# book} other {# books}}",
           values: {
@@ -356,8 +356,8 @@ to!(
         <Trans>Hello {/* and I cannot stress this enough */} World</Trans>;
      "#,
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans message={"Hello  World"} id={"i0M2R8"} />;
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_ message={"Hello  World"} id={"i0M2R8"} />;
     "#
 );
 
@@ -375,8 +375,8 @@ to!(
      "#,
 
     r#"
-        import { Trans } from "@lingui/react";
-        <Trans
+        import { Trans as Trans_ } from "@lingui/react";
+        <Trans_
             values={{name: name}}
             components={{0: <strong />}}
             id="msg.hello"
@@ -399,9 +399,9 @@ to!(
      "#,
 
     r#"
-      import { Trans } from "@lingui/react";
+      import { Trans as Trans_ } from "@lingui/react";
 
-      <Trans
+      <Trans_
         message={
           "Wonderful framework <0>Next.js</0> say hi. And <1>Next.js</1> say hi."
         }

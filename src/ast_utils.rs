@@ -18,6 +18,27 @@ pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSX
     return None;
 }
 
+// get_local_ident_from_object_pat_prop(prop, "t")
+// const {t} = useLingui() // => Ident("t")
+// const {t: _} = useLingui() // => Ident("_")
+pub fn get_local_ident_from_object_pat_prop(prop: &ObjectPatProp, imported_symbol: &str) -> Option<BindingIdent> {
+    return match prop {
+        ObjectPatProp::KeyValue(key_value)
+        if key_value.key.as_ident().is_some_and(|ident| ident.sym == imported_symbol.to_string()) =>
+            {
+                Some(key_value.value.as_ident().unwrap().clone())
+            }
+        ObjectPatProp::Assign(assign)
+        if assign.key.sym == imported_symbol.to_string() =>
+            {
+                Some(assign.key.clone())
+            }
+        _ => {
+            None
+        }
+    }
+}
+
 pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
     match val {
         // offset="5"
@@ -146,15 +167,15 @@ pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     )));
 }
 
-pub fn create_import(source: JsWord, specifier: Ident) -> ModuleItem {
+pub fn create_import(source: JsWord, imported: Ident, local: Ident) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
         span: DUMMY_SP,
         phase: ImportPhase::default(),
         specifiers: vec![
             ImportSpecifier::Named(ImportNamedSpecifier {
                 span: DUMMY_SP,
-                local: specifier,
-                imported: None,
+                local,
+                imported: Some(ModuleExportName::Ident(imported)),
                 is_type_only: false,
             })
         ],

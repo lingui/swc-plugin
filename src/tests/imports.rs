@@ -1,7 +1,7 @@
 use crate::{to};
 
 to!(
-    should_not_add_extra_imports,
+    should_add_not_clashing_imports,
      r#"
        import { t } from "@lingui/core/macro";
        import { Plural } from "@lingui/react/macro";
@@ -13,15 +13,17 @@ to!(
        <Trans>Untouched</Trans>
      "#,
     r#"
+        import { Trans as Trans_ } from "@lingui/react";
+        import { i18n as $_i18n } from "@lingui/core";
         import { i18n } from "@lingui/core";
         import { Trans } from "@lingui/react";
 
-        i18n._({
+        $_i18n._({
           id: "NnH3pK",
           message: "Test"
         });
 
-        <Trans  message={"{value, plural, one {...} other {...}}"}
+        <Trans_  message={"{value, plural, one {...} other {...}}"}
         id={"kwTAtG"}
         values={{
           value: value
@@ -46,10 +48,10 @@ to!(
      "#,
 
     r#"
-       import { Trans } from "@lingui/react";
+       import { Trans as Trans_ } from "@lingui/react";
        import { Select } from "./my-select-cmp";
 
-       ;<Trans
+       ;<Trans_
             message={"{count, plural, one {Message} other {Messages}}"}
             id={"V4EO9s"}
            values={{ count: count }}
@@ -76,8 +78,9 @@ to!(
 
     r#"
        import { Trans } from "@lingui/react";
+       import { Trans as Trans_ } from "@lingui/react";
 
-       ;<Trans
+       ;<Trans_
             message={"{count, plural, one {Message} other {Messages}}"}
             id={"V4EO9s"}
            values={{ count: count }}
@@ -97,11 +100,11 @@ to!(
      "#,
 
     r#"
-       import { i18n } from "@lingui/core";
+       import { i18n as $_i18n } from "@lingui/core";
        import { t } from "./custom-t";
 
        t`Don't touch me!`
-       i18n._({
+       $_i18n._({
           id: "kwTAtG",
           message: "{value, plural, one {...} other {...}}",
           values: {
@@ -123,10 +126,10 @@ to!(
      "#,
 
     r#"
-       import { i18n } from "@lingui/core";
+       import { i18n as $_i18n } from "@lingui/core";
        import { plural } from "./custom-plural";
 
-       i18n._({
+       $_i18n._({
           id: "0IkKj6",
           message: "Hello World!"
        });
@@ -146,12 +149,12 @@ to!(
      "#,
 
     r#"
-    import { i18n } from "@lingui/core";
-    i18n._({
+    import { i18n as $_i18n } from "@lingui/core";
+    $_i18n._({
         id: "0IkKj6",
         message: "Hello World!"
     });
-    i18n._({
+    $_i18n._({
         id: "kwTAtG",
         message: "{value, plural, one {...} other {...}}",
         values: {
@@ -175,13 +178,13 @@ to!(
      "#,
 
     r#"
-        import { Trans } from "@lingui/react";
+        import { Trans as Trans_ } from "@lingui/react";
 
-        ;<Trans  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
+        ;<Trans_  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
             count: count
         }}/>
 
-        ;<Trans message={"Hello!"} id={"mAYvqA"}/>;
+        ;<Trans_ message={"Hello!"} id={"mAYvqA"}/>;
     "#
 );
 to!(
@@ -196,9 +199,9 @@ to!(
 
     r#"
       "use client";
-      import { i18n } from "@lingui/core";
+      import { i18n as $_i18n } from "@lingui/core";
       import foo from "bar";
-      i18n._({
+      $_i18n._({
         id: "xeiujy",
         message: "Text"
       });
