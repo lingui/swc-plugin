@@ -20,7 +20,7 @@ pub struct RuntimeModulesConfigMap {
     trans: Option<RuntimeModulesConfig>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RuntimeModulesConfigMapNormalized {
     pub i18n: (String, String),
     pub trans: (String, String),
@@ -56,7 +56,7 @@ impl LinguiJsOptions {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LinguiOptions {
     pub strip_non_essential_fields: bool,
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
