@@ -1,8 +1,8 @@
-use crate::{to};
+use crate::to;
 
 to!(
-    js_icu_macro,
-     r#"
+  js_icu_macro,
+  r#"
     import { plural, select, selectOrdinal } from "@lingui/macro";
     const messagePlural = plural(count, {
        one: '# Book',
@@ -20,7 +20,7 @@ to!(
        other: '#th',
     })
      "#,
-    r#"
+  r#"
     import { i18n } from "@lingui/core";
     const messagePlural = i18n._({
         id: "V/M0Vc",
@@ -47,8 +47,8 @@ to!(
 );
 
 to!(
-    js_icu_diffrent_object_literal_syntax,
-     r#"
+  js_icu_diffrent_object_literal_syntax,
+  r#"
         import { plural } from "@lingui/macro";
 
         const messagePlural = plural(count, {
@@ -57,7 +57,7 @@ to!(
            few: ('# Books'),
         })
      "#,
-    r#"
+  r#"
       import { i18n } from "@lingui/core";
 
       const messagePlural = i18n._({
@@ -71,8 +71,8 @@ to!(
 );
 
 to!(
-    js_choices_may_contain_expressions,
-     r#"
+  js_choices_may_contain_expressions,
+  r#"
 import { plural, select, selectOrdinal } from "@lingui/macro";
 const messagePlural = plural(count, {
    one: foo.bar,
@@ -85,7 +85,7 @@ const messageSelect = select(gender, {
    other: foo.bar
 })
      "#,
-    r#"
+  r#"
 import { i18n } from "@lingui/core";
 const messagePlural = i18n._({
     id: "l6reUi",
@@ -110,15 +110,15 @@ const messageSelect = i18n._({
 );
 
 to!(
-    js_should_not_touch_non_lungui_fns,
-     r#"
+  js_should_not_touch_non_lungui_fns,
+  r#"
     import { plural } from "@lingui/macro";
     const messagePlural = customName(count, {
        one: '# Book',
        other: '# Books'
     })
      "#,
-    r#"
+  r#"
    const messagePlural = customName(count, {
        one: '# Book',
        other: '# Books'
@@ -127,8 +127,8 @@ to!(
 );
 
 to!(
-    js_plural_with_placeholders,
-     r#"
+  js_plural_with_placeholders,
+  r#"
        import { plural } from "@lingui/macro";
 
        const message = plural(count, {
@@ -136,7 +136,7 @@ to!(
            other: `${name} has # friends`
         })
      "#,
-    r#"
+  r#"
     import { i18n } from "@lingui/core";
     const message = i18n._({
         id: "CvuUwE",
@@ -150,8 +150,8 @@ to!(
 );
 
 to!(
-    js_dedup_values_in_icu,
-     r#"
+  js_dedup_values_in_icu,
+  r#"
        import { plural } from "@lingui/macro";
 
        const message = plural(count, {
@@ -159,7 +159,7 @@ to!(
            other: `${name} has {count} friends`
         })
      "#,
-    r#"
+  r#"
     import { i18n } from "@lingui/core";
 
     const message = i18n._({
@@ -174,8 +174,8 @@ to!(
 );
 
 to!(
-    js_icu_nested_in_t,
-     r#"
+  js_icu_nested_in_t,
+  r#"
         import { t, selectOrdinal } from '@lingui/macro'
 
         t`This is my ${selectOrdinal(count, {
@@ -184,7 +184,7 @@ to!(
           other: "rd"
         })} cat`
      "#,
-    r#"
+  r#"
       import { i18n } from "@lingui/core";
 
       i18n._({
@@ -198,8 +198,8 @@ to!(
 );
 
 to!(
-    js_icu_nested_in_choices,
-     r#"
+  js_icu_nested_in_choices,
+  r#"
 import { plural } from "@lingui/macro"
 const message = plural(numBooks, {
    one: plural(numArticles, {
@@ -212,7 +212,7 @@ const message = plural(numBooks, {
    }),
 })
      "#,
-    r#"
+  r#"
 import { i18n } from "@lingui/core"
 const message = i18n._({
     id: "AA3wsz",
@@ -226,8 +226,8 @@ const message = i18n._({
 );
 
 to!(
-    js_plural_with_offset_and_exact_matches,
-     r#"
+  js_plural_with_offset_and_exact_matches,
+  r#"
         import { plural } from '@lingui/macro'
         plural(users.length, {
           offset: 1,
@@ -236,7 +236,7 @@ to!(
           other: "\# books"
         });
      "#,
-    r#"
+  r#"
       import { i18n } from "@lingui/core";
       i18n._({
           id: "CF5t+7",
@@ -249,8 +249,8 @@ to!(
 );
 
 to!(
-    js_should_not_treat_offset_in_select,
-     r#"
+  js_should_not_treat_offset_in_select,
+  r#"
         import { select } from '@lingui/macro'
         select(value, {
           offset: "..",
@@ -258,7 +258,7 @@ to!(
           other: "..",
         });
      "#,
-    r#"
+  r#"
       import { i18n } from "@lingui/core";
       i18n._({
           id: "QHtFym",

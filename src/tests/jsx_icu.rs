@@ -1,8 +1,8 @@
-use crate::{to};
+use crate::to;
 
 to!(
-    jsx_icu,
-     r#"
+  jsx_icu,
+  r#"
 import { Plural } from "@lingui/macro";
 
 const ex1 = <Plural
@@ -17,8 +17,7 @@ one="Message"
 other="Messages"
 /></div>
      "#,
-
-    r#"
+  r#"
 import { Trans } from "@lingui/react";
 
 const ex1 = <Trans message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
@@ -32,8 +31,8 @@ const ex2 = <div ><Trans message={"{count, plural, one {Message} other {Messages
 );
 
 to!(
-    jsx_icu_explicit_id,
-     r#"
+  jsx_icu_explicit_id,
+  r#"
        import { Plural } from "@lingui/macro";
 
       <Plural
@@ -43,8 +42,7 @@ to!(
        other="Messages"
       />
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
 
        <Trans
@@ -56,8 +54,8 @@ to!(
 );
 
 to!(
-    jsx_plural_preserve_reserved_attrs,
-     r#"
+  jsx_plural_preserve_reserved_attrs,
+  r#"
        import { Plural } from "@lingui/macro";
 
       <Plural
@@ -69,8 +67,7 @@ to!(
        other="..."
       />
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
 
        <Trans
@@ -83,8 +80,8 @@ to!(
 );
 
 to!(
-    jsx_icu_nested,
-     r#"
+  jsx_icu_nested,
+  r#"
        import { Plural, Trans } from "@lingui/macro";
 
        <Trans>
@@ -96,8 +93,7 @@ to!(
               />
       </Trans>
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
 
        <Trans
@@ -109,8 +105,8 @@ to!(
 );
 
 to!(
-    jsx_trans_inside_plural,
-     r#"
+  jsx_trans_inside_plural,
+  r#"
        import { Trans, Plural } from '@lingui/macro';
         <Plural
           value={count}
@@ -126,8 +122,7 @@ to!(
           }
         />;
      "#,
-
-    r#"
+  r#"
         import { Trans } from "@lingui/react";
         <Trans message={"{count, plural, one {<0>#</0> slot added} other {<1>#</1> slots added}}"} id={"X8eyr1"}
         values={{
@@ -141,8 +136,8 @@ to!(
 );
 
 to!(
-    jsx_multivelel_nesting,
-     r#"
+  jsx_multivelel_nesting,
+  r#"
 import { Trans, Plural } from '@lingui/macro';
 
 <Plural
@@ -173,8 +168,7 @@ import { Trans, Plural } from '@lingui/macro';
   }
 />;
      "#,
-
-    r#"
+  r#"
         import { Trans } from "@lingui/react";
         <Trans
         message={"{count, plural, one {{count2, plural, one {second level one} other {second level other}}<0>#</0> slot added} other {<1>#</1> slots added}}"}
@@ -190,8 +184,8 @@ import { Trans, Plural } from '@lingui/macro';
 );
 
 to!(
-    jsx_plural_with_offset_and_exact_matches,
-     r#"
+  jsx_plural_with_offset_and_exact_matches,
+  r#"
        import { Plural } from "@lingui/macro";
 
         <Plural
@@ -201,8 +195,7 @@ to!(
           other={<a href="/more">A lot of them</a>}
         />;
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
         <Trans message={"{count, plural, offset:1 =0 {Zero items} other {<0>A lot of them</0>}}"}
          id={"ZFknU1"}
@@ -215,8 +208,8 @@ to!(
 );
 
 to!(
-    jsx_icu_with_template_literal,
-     r#"
+  jsx_icu_with_template_literal,
+  r#"
        import { Plural } from "@lingui/macro";
 
         <Plural
@@ -225,8 +218,7 @@ to!(
           other="..."
         />;
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
         <Trans
         message={"{count, plural, one {{count} items} other {...}}"}
@@ -239,8 +231,8 @@ to!(
 );
 
 to!(
-    jsx_select_simple,
-     r#"
+  jsx_select_simple,
+  r#"
         import { Select } from '@lingui/macro';
         <Select
           value={count}
@@ -249,8 +241,7 @@ to!(
           other={<strong>Other</strong>}
         />;
      "#,
-
-    r#"
+  r#"
         import { Trans } from "@lingui/react";
         <Trans message={"{count, select, male {He} female {She} other {<0>Other</0>}}"} id={"Imwef9"} values={{
           count: count
@@ -261,8 +252,8 @@ to!(
 );
 
 to!(
-    jsx_select_with_expressions_in_cases,
-     r#"
+  jsx_select_with_expressions_in_cases,
+  r#"
         import { Select } from '@lingui/macro';
         <Select
           value={count}
@@ -272,8 +263,7 @@ to!(
           other={<strong>Other</strong>}
         />;
      "#,
-
-    r#"
+  r#"
         import { Trans } from "@lingui/react";
         <Trans message={"{count, select, male {{variable}} third {{0}} female {She} other {<0>Other</0>}}"} id={"/7RSeH"} values={{
           count: count,
@@ -286,8 +276,8 @@ to!(
 );
 
 to!(
-    jsx_select_with_reserved_attrs,
-     r#"
+  jsx_select_with_reserved_attrs,
+  r#"
         import { Select } from '@lingui/macro';
         <Select
           comment="Translators Comment"
@@ -300,8 +290,7 @@ to!(
           other={<strong>Other</strong>}
         />;
      "#,
-
-    r#"
+  r#"
         import { Trans } from "@lingui/react";
         <Trans message={"{count, select, male {He} female {She} other {<0>Other</0>}}"} id={"4jX4Bx"} values={{
           count: count
@@ -338,8 +327,8 @@ to!(
 // );
 
 to!(
-    jsx_select_ordinal_with_offset_and_exact_matches,
-     r#"
+  jsx_select_ordinal_with_offset_and_exact_matches,
+  r#"
        import { SelectOrdinal } from "@lingui/macro";
 
         <SelectOrdinal
@@ -350,8 +339,7 @@ to!(
           other='#rd'
         />;
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
         <Trans message={"{count, selectordinal, offset:1 =0 {#st} one {#nd} other {#rd}}"} id={"6kK4rC"} values={{
             count: count
@@ -360,9 +348,9 @@ to!(
 );
 
 to!(
-    production,
-    production_only_essential_props_are_kept,
-     r#"
+  production,
+  production_only_essential_props_are_kept,
+  r#"
         import { Plural } from '@lingui/macro';
 
         <Plural
@@ -377,8 +365,7 @@ to!(
           other={<a href="/more">A lot of them</a>}
           />
      "#,
-
-    r#"
+  r#"
         import { Trans } from "@lingui/react";
         <Trans
         values={{count: count}}
@@ -388,4 +375,3 @@ to!(
         i18n="i18n" />;
     "#
 );
-

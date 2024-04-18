@@ -1,5 +1,5 @@
-use regex::{Regex};
 use once_cell::sync::Lazy;
+use regex::Regex;
 
 static KEEP_SPACE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?:\\(?:\r\n|\r|\n))+\s+").unwrap());
 static KEEP_NEW_LINE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?:\r\n|\r|\n)+\s+").unwrap());
@@ -16,24 +16,24 @@ static KEEP_NEW_LINE_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?:\r\n|\r|\n)+
 // }
 
 pub fn normalize_whitespaces_js(str: &str) -> String {
-    let str = KEEP_SPACE_RE.replace_all(&str, " ");
-    let str = KEEP_NEW_LINE_RE.replace_all(&str, "\n")
-        .trim().to_string();
+  let str = KEEP_SPACE_RE.replace_all(&str, " ");
+  let str = KEEP_NEW_LINE_RE.replace_all(&str, "\n").trim().to_string();
 
-    return str
+  return str;
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{*};
+  use super::*;
 
-    #[test]
-    fn test_normalize_whitespaces_js() {
-        assert_eq!(
-            normalize_whitespaces_js(
-                r#"Multiline
+  #[test]
+  fn test_normalize_whitespaces_js() {
+    assert_eq!(
+      normalize_whitespaces_js(
+        r#"Multiline
                     string"#
-            ),
-            "Multiline\nstring")
-    }
+      ),
+      "Multiline\nstring"
+    )
+  }
 }

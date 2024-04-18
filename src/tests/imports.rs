@@ -1,8 +1,8 @@
-use crate::{to};
+use crate::to;
 
 to!(
-    should_not_add_extra_imports,
-     r#"
+  should_not_add_extra_imports,
+  r#"
        import { t, Plural } from "@lingui/macro";
        import { i18n } from "@lingui/core";
        import { Trans } from "@lingui/react";
@@ -11,7 +11,7 @@ to!(
        <Plural value={value} one="..." other="..."/>;
        <Trans>Untouched</Trans>
      "#,
-    r#"
+  r#"
         import { i18n } from "@lingui/core";
         import { Trans } from "@lingui/react";
 
@@ -30,8 +30,8 @@ to!(
 );
 
 to!(
-    jsx_should_process_only_elements_imported_from_macro,
-     r#"
+  jsx_should_process_only_elements_imported_from_macro,
+  r#"
       import { Plural } from "@lingui/macro";
       import { Select } from "./my-select-cmp";
 
@@ -43,8 +43,7 @@ to!(
 
       ;<Select prop="propValue">Should be untouched</Select>
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
        import { Select } from "./my-select-cmp";
 
@@ -59,8 +58,8 @@ to!(
 );
 
 to!(
-    jsx_should_process_only_elements_imported_from_macro2,
-     r#"
+  jsx_should_process_only_elements_imported_from_macro2,
+  r#"
       import { Trans } from "@lingui/react";
       import { Plural } from "@lingui/macro";
 
@@ -72,8 +71,7 @@ to!(
 
       ;<Trans>Should be untouched</Trans>
      "#,
-
-    r#"
+  r#"
        import { Trans } from "@lingui/react";
 
        ;<Trans
@@ -86,16 +84,15 @@ to!(
 );
 
 to!(
-    js_should_process_only_elements_imported_from_macro,
-     r#"
+  js_should_process_only_elements_imported_from_macro,
+  r#"
       import { plural } from "@lingui/macro";
       import { t } from "./custom-t";
 
        t`Don't touch me!`
        plural(value, {one: "...", other: "..."})
      "#,
-
-    r#"
+  r#"
        import { i18n } from "@lingui/core";
        import { t } from "./custom-t";
 
@@ -112,16 +109,15 @@ to!(
 );
 
 to!(
-    js_should_process_only_elements_imported_from_macro2,
-     r#"
+  js_should_process_only_elements_imported_from_macro2,
+  r#"
       import { t } from "@lingui/macro";
       import { plural } from "./custom-plural";
 
        t`Hello World!`;
        plural(value, {one: "...", other: "..."});
      "#,
-
-    r#"
+  r#"
        import { i18n } from "@lingui/core";
        import { plural } from "./custom-plural";
 
@@ -134,17 +130,15 @@ to!(
     "#
 );
 
-
 to!(
-    js_should_support_renamed_imports,
-     r#"
+  js_should_support_renamed_imports,
+  r#"
       import { t as i18nT, plural as i18nPlural } from "@lingui/macro";
 
        i18nT`Hello World!`;
        i18nPlural(value, {one: "...", other: "..."});
      "#,
-
-    r#"
+  r#"
     import { i18n } from "@lingui/core";
     i18n._({
         id: "0IkKj6",
@@ -160,8 +154,8 @@ to!(
     "#
 );
 to!(
-    jsx_should_support_renamed_imports,
-     r#"
+  jsx_should_support_renamed_imports,
+  r#"
       import { Trans as I18nTrans, Plural as I18nPlural } from "@lingui/macro";
 
       ;<I18nPlural
@@ -172,8 +166,7 @@ to!(
 
       ;<I18nTrans>Hello!</I18nTrans>
      "#,
-
-    r#"
+  r#"
         import { Trans } from "@lingui/react";
 
         ;<Trans  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
@@ -184,16 +177,15 @@ to!(
     "#
 );
 to!(
-    // https://github.com/lingui/swc-plugin/issues/21
-    should_add_imports_after_directive_prologues,
-     r#"
+  // https://github.com/lingui/swc-plugin/issues/21
+  should_add_imports_after_directive_prologues,
+  r#"
      "use client";
       import {t} from "@lingui/macro"
       import foo from "bar"
       t`Text`
      "#,
-
-    r#"
+  r#"
       "use client";
       import { i18n } from "@lingui/core";
       import foo from "bar";

@@ -2,38 +2,36 @@
 use crate::{LinguiOptions, RuntimeModulesConfigMapNormalized};
 
 macro_rules! to {
-    ($name:ident, $options:expr, $from:expr, $to:expr) => {
-        swc_core::ecma::transforms::testing::test_inline!(
-            swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsConfig {
-                tsx: true,
-                ..Default::default()
-            }),
-            |_| {
-              $crate::LinguiMacroFolder::new($options)
-            },
-            $name,
-            $from,
-            $to
-        );
-    };
+  ($name:ident, $options:expr, $from:expr, $to:expr) => {
+    swc_core::ecma::transforms::testing::test_inline!(
+      swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsConfig {
+        tsx: true,
+        ..Default::default()
+      }),
+      |_| { $crate::LinguiMacroFolder::new($options) },
+      $name,
+      $from,
+      $to
+    );
+  };
 }
 
 to!(
-    should_use_provided_runtime_modules,
-    LinguiOptions {
-        runtime_modules: RuntimeModulesConfigMapNormalized {
-            i18n: ("./custom-core".into(), "customI18n".into()),
-            trans: ("./custom-react".into(), "CustomTrans".into())
-        },
-        ..Default::default()
+  should_use_provided_runtime_modules,
+  LinguiOptions {
+    runtime_modules: RuntimeModulesConfigMapNormalized {
+      i18n: ("./custom-core".into(), "customI18n".into()),
+      trans: ("./custom-react".into(), "CustomTrans".into())
     },
-     r#"
+    ..Default::default()
+  },
+  r#"
      import { t, Trans } from "@lingui/macro";
 
      t`Refresh inbox`;
      const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
-    r#"
+  r#"
     import { CustomTrans } from "./custom-react";
     import { customI18n } from "./custom-core";
 

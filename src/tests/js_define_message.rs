@@ -1,8 +1,8 @@
-use crate::{to};
+use crate::to;
 
 to!(
-    should_transform_define_message,
-     r#"
+  should_transform_define_message,
+  r#"
         import { defineMessage, msg } from '@lingui/macro';
         const message1 = defineMessage({
           comment: "Description",
@@ -13,7 +13,7 @@ to!(
           message: "Message"
         })
      "#,
-    r#"
+  r#"
       const message1 = {
         id: "xDAtGP",
         message: "Message"
@@ -26,13 +26,13 @@ to!(
 );
 
 to!(
-    define_message_should_support_template_literal,
-     r#"
+  define_message_should_support_template_literal,
+  r#"
         import { defineMessage, msg } from '@lingui/macro';
         const message1 = defineMessage`Message`;
         const message2 = msg`Message`
      "#,
-    r#"
+  r#"
       const message1 = {
         id: "xDAtGP",
         message: "Message"
@@ -45,8 +45,8 @@ to!(
 );
 
 to!(
-    should_preserve_custom_id,
-     r#"
+  should_preserve_custom_id,
+  r#"
         import { defineMessage, plural, arg } from '@lingui/macro';
         const message = defineMessage({
           comment: "Description",
@@ -54,7 +54,7 @@ to!(
           message: "Message",
         })
      "#,
-    r#"
+  r#"
         const message = {
           id: "custom.id",
           message: "Message"
@@ -63,14 +63,14 @@ to!(
 );
 
 to!(
-    should_expand_values,
-     r#"
+  should_expand_values,
+  r#"
         import { defineMessage, plural, arg } from '@lingui/macro';
         const message = defineMessage({
           message: `Hello ${name}`
         })
      "#,
-    r#"
+  r#"
       const message = {
           id: "OVaF9k",
           message: "Hello {name}",
@@ -82,15 +82,15 @@ to!(
 );
 
 to!(
-    should_expand_macros,
-     r#"
+  should_expand_macros,
+  r#"
         import { defineMessage, plural, arg } from '@lingui/macro';
         const message = defineMessage({
           comment: "Description",
           message: plural(count, { one: "book", other: "books" })
         })
      "#,
-    r#"
+  r#"
       const message = {
         id: "AJdPPy",
         message: "{count, plural, one {book} other {books}}",
@@ -102,9 +102,9 @@ to!(
 );
 
 to!(
-    production,
-    should_kept_only_essential_props,
-    r#"
+  production,
+  should_kept_only_essential_props,
+  r#"
         import { defineMessage } from '@lingui/macro'
         const message1 = defineMessage`Message`;
         const message2 = defineMessage({
@@ -114,7 +114,7 @@ to!(
             context: 'My Context',
         })
     "#,
-     r#"
+  r#"
        const message1 = {
          id: "xDAtGP",
        };
