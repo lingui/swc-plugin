@@ -1,6 +1,6 @@
 {
   "name": "@lingui/swc-plugin",
-  "version": "4.0.6",
+  "version": "4.0.7",
   "description": "A SWC Plugin for LinguiJS",
   "author": {
     "name": "Timofei Iatsenko",
@@ -28,7 +28,6 @@
     "prepublishOnly": "cargo build-wasi --release"
   },
   "files": [],
-  "packageManager": "yarn@3.3.1",
   "peerDependencies": {
     "@lingui/macro": "4"
   },
