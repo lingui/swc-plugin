@@ -47,11 +47,11 @@ to!(
     jsx_preserve_reserved_attrs,
      r#"
        import { Trans } from "@lingui/macro";
-       const exp2 = <Trans comment="Translators Comment" context="Message Context" i18n="i18n" render={(v) => v}>Refresh inbox</Trans>;
+       const exp2 = <Trans comment="Translators Comment" context="Message Context" i18n="i18n" component={(p) => <div>{p.translation}</div>} render={(v) => v}>Refresh inbox</Trans>;
      "#,
     r#"
        import { Trans } from "@lingui/react";
-       const exp2 = <Trans message={"Refresh inbox"} id={"6J8UtY"} i18n="i18n" render={(v) => v} />
+       const exp2 = <Trans message={"Refresh inbox"} id={"6J8UtY"} i18n="i18n" component={(p) => <div>{p.translation}</div>} render={(v) => v} />
     "#
 );
 
