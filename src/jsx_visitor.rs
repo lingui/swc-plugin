@@ -32,6 +32,9 @@ static WORD_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\w+)").unwrap());
 // const pluralRuleRe = /(_[\d\w]+|zero|one|two|few|many|other)/
 // const jsx2icuExactChoice = (value: string) => value.replace(/_(\d+)/, "=$1").replace(/_(\w+)/, "$1")
 
+static TRIM_START: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[ ]+").unwrap());
+static TRIM_END: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ ]+$").unwrap());
+
 // taken from babel repo -> packages/babel-types/src/utils/react/cleanJSXElementLiteralChild.ts
 fn clean_jsx_element_literal_child(value: &str) -> String {
   let lines: Vec<&str> = value.split('\n').collect();
@@ -55,12 +58,12 @@ fn clean_jsx_element_literal_child(value: &str) -> String {
 
     // trim whitespace touching a newline
     if !is_first_line {
-      trimmed_line = trimmed_line.trim_start().to_string();
+      trimmed_line = TRIM_START.replace(&trimmed_line, "").to_string();
     }
 
     // trim whitespace touching an endline
     if !is_last_line {
-      trimmed_line = trimmed_line.trim_end().to_string();
+      trimmed_line = TRIM_END.replace(&trimmed_line, "").to_string();;
     }
 
     if !trimmed_line.is_empty() {
