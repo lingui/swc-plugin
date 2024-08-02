@@ -389,3 +389,20 @@ to!(
     "#
 );
 
+to!(
+    multiple_new_lines_with_nbsp_endind,
+     r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  Line ending in non-breaking space.&nbsp;
+  <strong>text in element</strong>
+</Trans>;
+     "#,
+
+    r#"
+import { Trans } from "@lingui/react";
+<Trans message={"Line ending in non-breaking space. <0>text in element</0>"} id={"CJuEhi"} components={{
+    0: <strong/>
+}}/>;
+    "#
+);
