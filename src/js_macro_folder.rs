@@ -63,9 +63,8 @@ impl<'a> JsMacroFolder<'a> {
           span: DUMMY_SP,
           obj: callee_obj.unwrap_or_else(|| {
             self.ctx.should_add_18n_import = true;
-            let (_, i18n_export) = &self.ctx.options.runtime_modules.i18n;
 
-            return Box::new(Ident::new(i18n_export.clone().into(), DUMMY_SP).into());
+            return Box::new(self.ctx.runtime_idents.i18n.clone().into());
           }),
           prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
         }).as_callee(),

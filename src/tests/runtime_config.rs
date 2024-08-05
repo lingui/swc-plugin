@@ -23,7 +23,8 @@ to!(
     LinguiOptions {
         runtime_modules: RuntimeModulesConfigMapNormalized {
             i18n: ("./custom-core".into(), "customI18n".into()),
-            trans: ("./custom-react".into(), "CustomTrans".into())
+            trans: ("./custom-react".into(), "CustomTrans".into()),
+            use_lingui: ("./custom-react".into(), "useLingui2".into())
         },
         ..Default::default()
     },

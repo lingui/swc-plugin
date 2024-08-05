@@ -1,9 +1,12 @@
+#![feature(is_some_and)]
+
 use std::collections::HashSet;
 use swc_core::common::{Spanned, DUMMY_SP};
+
 use swc_core::{
     ecma::{
         ast::*,
-        utils::quote_ident,
+        utils::{quote_ident, private_ident},
         visit::{Fold, FoldWith, VisitWith},
     },
     plugin::{
@@ -94,8 +97,6 @@ impl LinguiMacroFolder {
 
         self.ctx.should_add_trans_import = true;
 
-        let (_, trans_export) = self.ctx.options.runtime_modules.trans.clone();
-
         return JSXElement {
             span: el.span,
             children: vec![],
@@ -103,7 +104,7 @@ impl LinguiMacroFolder {
             opening: JSXOpeningElement {
                 self_closing: true,
                 span: el.opening.span,
-                name: JSXElementName::Ident(Ident::new(trans_export.into(), el.opening.span)),
+                name: JSXElementName::Ident(self.ctx.runtime_idents.trans.clone().into()),
                 type_args: None,
                 attrs,
             },
@@ -113,11 +114,9 @@ impl LinguiMacroFolder {
 
 impl<'a> Fold for LinguiMacroFolder {
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
-        let mut has_i18n_import = false;
-        let mut has_trans_import = false;
-
         let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
+        let (use_lingui_source, use_lingui_export) = self.ctx.options.runtime_modules.use_lingui.clone();
 
         let mut insert_index: usize = 0;
         let mut index = 0;
@@ -131,30 +130,6 @@ impl<'a> Fold for LinguiMacroFolder {
                     insert_index = index;
                     return false;
                 }
-
-                if &imp.src.value == &i18n_source && !imp.type_only {
-                    for spec in &imp.specifiers {
-                        if let ImportSpecifier::Named(spec) = spec {
-                            has_i18n_import = if !has_i18n_import {
-                                &spec.local.sym == &i18n_export
-                            } else {
-                                true
-                            };
-                        }
-                    }
-                }
-
-                if &imp.src.value == &trans_source && !imp.type_only {
-                    for spec in &imp.specifiers {
-                        if let ImportSpecifier::Named(spec) = spec {
-                            has_trans_import = if !has_trans_import {
-                                &spec.local.sym == &trans_export
-                            } else {
-                                true
-                            };
-                        }
-                    }
-                }
             }
 
             index += 1;
@@ -163,17 +138,24 @@ impl<'a> Fold for LinguiMacroFolder {
 
         n = n.fold_children_with(self);
 
-        if !has_i18n_import && self.ctx.should_add_18n_import {
+        if self.ctx.should_add_18n_import {
             n.insert(
                 insert_index,
-                create_import(i18n_source.into(), quote_ident!(i18n_export[..])),
+                create_import(i18n_source.into(), quote_ident!(i18n_export[..]), self.ctx.runtime_idents.i18n.clone()),
             );
         }
 
-        if !has_trans_import && self.ctx.should_add_trans_import {
+        if self.ctx.should_add_trans_import {
             n.insert(
                 insert_index,
-                create_import(trans_source.into(), quote_ident!(trans_export[..])),
+                create_import(trans_source.into(), quote_ident!(trans_export[..]), self.ctx.runtime_idents.trans.clone()),
+            );
+        }
+
+        if self.ctx.should_add_uselingui_import {
+            n.insert(
+                insert_index,
+                create_import(use_lingui_source.into(), quote_ident!(use_lingui_export[..]), self.ctx.runtime_idents.use_lingui.clone()),
             );
         }
 
@@ -224,28 +206,59 @@ impl<'a> Fold for LinguiMacroFolder {
                                                 let mew_props: Vec<ObjectPatProp> =
                                                     obj_pat.props.into_iter().map(|prop| {
                                                         match prop {
+                                                            ObjectPatProp::KeyValue(keyValue)
+                                                                if keyValue.key.as_ident().is_some_and(|ident| ident.sym == "t") =>
+                                                            {
+                                                                let ident = &keyValue.value.as_ident().unwrap();
+
+                                                                println!("register refernce name {:?}, id {:?}", ident.sym, ident.to_id());
+
+                                                                ctx.register_reference(
+                                                                    &"t".into(),
+                                                                    &ident.to_id(),
+                                                                );
+
+                                                                let new_i18n_ident = quote_ident!(ident
+                                                                                    .span, "$__i18n");
+
+                                                                self.ctx.should_add_uselingui_import = true;
+                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone();
+
+                                                                return ObjectPatProp::KeyValue(
+                                                                    KeyValuePatProp {
+                                                                        value: Box::new(Pat::Ident(BindingIdent {
+                                                                            id: new_i18n_ident,
+                                                                            type_ann: None,
+                                                                        })),
+                                                                        key: PropName::Ident(quote_ident!("i18n")),
+                                                                    },
+                                                                );
+                                                            }
                                                             ObjectPatProp::Assign(assign)
                                                                 if &assign.key.sym == "t" =>
                                                             {
+                                                                println!("register refernce name {:?}, id {:?}", assign.key.sym, assign.key.to_id());
+
+                                                                let ident = &assign.key;
+
                                                                 ctx.register_reference(
-                                                                    &assign.key.sym,
-                                                                    &assign.key.to_id(),
+                                                                    &ident.sym,
+                                                                    &ident.to_id(),
                                                                 );
 
-                                                                return ObjectPatProp::Assign(
-                                                                    AssignPatProp {
-                                                                        span: assign.span,
-                                                                        value: None,
-                                                                        key: BindingIdent {
-                                                                            id: Ident {
-                                                                                span: assign
-                                                                                    .key
-                                                                                    .span,
-                                                                                sym: "i18n".into(),
-                                                                                optional: false,
-                                                                            },
-                                                                            type_ann: None,
-                                                                        },
+                                                                let new_i18n_ident = quote_ident!(ident
+                                                                                    .span, "$__i18n");
+
+                                                                self.ctx.should_add_uselingui_import = true;
+                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone();
+
+                                                                return ObjectPatProp::KeyValue(
+                                                                    KeyValuePatProp {
+                                                                        value: Box::new(Pat::Ident(BindingIdent {
+                                                                                        id: new_i18n_ident,
+                                                                                        type_ann: None,
+                                                                                    })),
+                                                                        key: PropName::Ident(quote_ident!("i18n")),
                                                                     },
                                                                 );
                                                             }
@@ -257,7 +270,11 @@ impl<'a> Fold for LinguiMacroFolder {
                                                     }).collect();
 
                                                 return VarDeclarator {
-                                                    init: declarator.init,
+                                                    init: Some(Box::new(Expr::Call(CallExpr {
+                                                        callee: Callee::Expr(Box::new(Expr::Ident(ctx.runtime_idents.use_lingui.clone()))),
+                                                        ..call.clone()
+                                                    }))),
+
                                                     definite: true,
                                                     span:  declarator.span,
                                                     name: Pat::Object(ObjectPat {

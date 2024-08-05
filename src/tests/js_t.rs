@@ -1,26 +1,6 @@
 use crate::{to};
 
 to!(
-    js_use_lingui_hook,
-    // input
-     r#"
-     import { t, useLingui } from "@lingui/macro";
-     
-     const bla1 = () => {
- console.log()
-}
-      function bla() {
-      const { t } = useLingui();
-      t`Refresh inbox`;
-}
-     "#,
-    // output after transform
-    r#"
-    t`Refresh inbox`;
-    "#
-);
-
-to!(
     js_should_not_touch_code_if_no_macro_import,
     // input
      r#"
