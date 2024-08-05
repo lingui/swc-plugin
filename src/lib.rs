@@ -6,7 +6,7 @@ use swc_core::common::{Spanned, DUMMY_SP};
 use swc_core::{
     ecma::{
         ast::*,
-        utils::{quote_ident, private_ident},
+        utils::{quote_ident},
         visit::{Fold, FoldWith, VisitWith},
     },
     plugin::{
@@ -205,26 +205,19 @@ impl<'a> Fold for LinguiMacroFolder {
                                             if let Pat::Object(obj_pat) = declarator.name {
                                                 let mew_props: Vec<ObjectPatProp> =
                                                     obj_pat.props.into_iter().map(|prop| {
-                                                        match prop {
-                                                            ObjectPatProp::KeyValue(keyValue)
-                                                                if keyValue.key.as_ident().is_some_and(|ident| ident.sym == "t") =>
-                                                            {
-                                                                let ident = &keyValue.value.as_ident().unwrap();
-
-                                                                println!("register refernce name {:?}, id {:?}", ident.sym, ident.to_id());
-
+                                                        return get_local_ident_from_object_pat_prop(&prop, "t")
+                                                            .and_then(|ident| {
                                                                 ctx.register_reference(
                                                                     &"t".into(),
                                                                     &ident.to_id(),
                                                                 );
 
-                                                                let new_i18n_ident = quote_ident!(ident
-                                                                                    .span, "$__i18n");
+                                                                let new_i18n_ident = quote_ident!(ident.span, "$__i18n");
 
                                                                 self.ctx.should_add_uselingui_import = true;
                                                                 ctx.runtime_idents.i18n = new_i18n_ident.clone();
 
-                                                                return ObjectPatProp::KeyValue(
+                                                                return Some(ObjectPatProp::KeyValue(
                                                                     KeyValuePatProp {
                                                                         value: Box::new(Pat::Ident(BindingIdent {
                                                                             id: new_i18n_ident,
@@ -232,41 +225,9 @@ impl<'a> Fold for LinguiMacroFolder {
                                                                         })),
                                                                         key: PropName::Ident(quote_ident!("i18n")),
                                                                     },
-                                                                );
-                                                            }
-                                                            ObjectPatProp::Assign(assign)
-                                                                if &assign.key.sym == "t" =>
-                                                            {
-                                                                println!("register refernce name {:?}, id {:?}", assign.key.sym, assign.key.to_id());
-
-                                                                let ident = &assign.key;
-
-                                                                ctx.register_reference(
-                                                                    &ident.sym,
-                                                                    &ident.to_id(),
-                                                                );
-
-                                                                let new_i18n_ident = quote_ident!(ident
-                                                                                    .span, "$__i18n");
-
-                                                                self.ctx.should_add_uselingui_import = true;
-                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone();
-
-                                                                return ObjectPatProp::KeyValue(
-                                                                    KeyValuePatProp {
-                                                                        value: Box::new(Pat::Ident(BindingIdent {
-                                                                                        id: new_i18n_ident,
-                                                                                        type_ann: None,
-                                                                                    })),
-                                                                        key: PropName::Ident(quote_ident!("i18n")),
-                                                                    },
-                                                                );
-                                                            }
-                                                            _ => {
-                                                                return prop;
-                                                                // panic: useLingui could be used only with object desctructuring
-                                                            }
-                                                        }
+                                                                ))
+                                                            })
+                                                            .unwrap_or(prop);
                                                     }).collect();
 
                                                 return VarDeclarator {
