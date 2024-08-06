@@ -33,7 +33,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly-2024-07-21
           override: true
       - uses: Swatinem/rust-cache@v2
       - uses: actions-rs/cargo@v1

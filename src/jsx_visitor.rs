@@ -1,15 +1,13 @@
-use swc_core::ecma::{
-    visit::{Visit, VisitWith},
-};
-use swc_core::ecma::ast::{*};
-use swc_core::common::DUMMY_SP;
 use crate::ast_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
-use crate::tokens::{IcuChoice, ChoiceCase, CaseOrOffset, MsgToken, TagOpening};
-use regex::{Regex};
+use crate::macro_utils::MacroCtx;
+use crate::tokens::{CaseOrOffset, ChoiceCase, IcuChoice, MsgToken, TagOpening};
 use once_cell::sync::Lazy;
+use regex::Regex;
+use swc_core::common::DUMMY_SP;
+use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::JsWord;
+use swc_core::ecma::visit::{Visit, VisitWith};
 use swc_core::plugin::errors::HANDLER;
-use crate::macro_utils::{ MacroCtx};
 
 pub struct TransJSXVisitor<'a> {
     pub tokens: Vec<MsgToken>,
@@ -20,12 +18,13 @@ impl<'a> TransJSXVisitor<'a> {
     pub fn new(ctx: &'a MacroCtx) -> TransJSXVisitor<'a> {
         TransJSXVisitor {
             tokens: Vec::new(),
-            ctx
+            ctx,
         }
     }
 }
 
-static PLURAL_OPTIONS_WHITELIST: Lazy<Regex> = Lazy::new(|| Regex::new(r"(_[\d\w]+|zero|one|two|few|many|other)").unwrap());
+static PLURAL_OPTIONS_WHITELIST: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"(_[\d\w]+|zero|one|two|few|many|other)").unwrap());
 static NUM_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\d+)").unwrap());
 static WORD_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\w+)").unwrap());
 
@@ -37,45 +36,45 @@ static TRIM_END: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ ]+$").unwrap());
 
 // taken from babel repo -> packages/babel-types/src/utils/react/cleanJSXElementLiteralChild.ts
 fn clean_jsx_element_literal_child(value: &str) -> String {
-  let lines: Vec<&str> = value.split('\n').collect();
-  let mut last_non_empty_line = 0;
+    let lines: Vec<&str> = value.split('\n').collect();
+    let mut last_non_empty_line = 0;
 
-  for (i, line) in lines.iter().enumerate() {
-    if line.trim().len() > 0 {
-      last_non_empty_line = i;
-    }
-  }
-
-  let mut result = String::new();
-
-  for (i, line) in lines.iter().enumerate() {
-    let is_first_line = i == 0;
-    let is_last_line = i == lines.len() - 1;
-    let is_last_non_empty_line = i == last_non_empty_line;
-
-    // replace rendered whitespace tabs with spaces
-    let mut trimmed_line = line.replace("\t", " ");
-
-    // trim whitespace touching a newline
-    if !is_first_line {
-      trimmed_line = TRIM_START.replace(&trimmed_line, "").to_string();
+    for (i, line) in lines.iter().enumerate() {
+        if line.trim().len() > 0 {
+            last_non_empty_line = i;
+        }
     }
 
-    // trim whitespace touching an endline
-    if !is_last_line {
-      trimmed_line = TRIM_END.replace(&trimmed_line, "").to_string();;
+    let mut result = String::new();
+
+    for (i, line) in lines.iter().enumerate() {
+        let is_first_line = i == 0;
+        let is_last_line = i == lines.len() - 1;
+        let is_last_non_empty_line = i == last_non_empty_line;
+
+        // replace rendered whitespace tabs with spaces
+        let mut trimmed_line = line.replace("\t", " ");
+
+        // trim whitespace touching a newline
+        if !is_first_line {
+            trimmed_line = TRIM_START.replace(&trimmed_line, "").to_string();
+        }
+
+        // trim whitespace touching an endline
+        if !is_last_line {
+            trimmed_line = TRIM_END.replace(&trimmed_line, "").to_string();
+        }
+
+        if !trimmed_line.is_empty() {
+            if !is_last_non_empty_line {
+                trimmed_line.push(' ');
+            }
+
+            result.push_str(&trimmed_line);
+        }
     }
 
-    if !trimmed_line.is_empty() {
-      if !is_last_non_empty_line {
-        trimmed_line.push(' ');
-      }
-
-      result.push_str(&trimmed_line);
-    }
-  }
-
-  result
+    result
 }
 
 fn is_allowed_plural_option(key: &str) -> Option<JsWord> {
@@ -114,12 +113,14 @@ impl<'a> TransJSXVisitor<'a> {
                                     tokens.push(MsgToken::String(string));
                                 }
 
-                                JSXAttrValue::JSXExprContainer(JSXExprContainer { expr: JSXExpr::Expr(exp), .. }) => {
+                                JSXAttrValue::JSXExprContainer(JSXExprContainer {
+                                    expr: JSXExpr::Expr(exp),
+                                    ..
+                                }) => {
                                     match exp.as_ref() {
                                         // some={"# books"}
-                                        Expr::Lit(Lit::Str(str)) => {
-                                            tokens.push(MsgToken::String(str.value.clone().to_string()))
-                                        }
+                                        Expr::Lit(Lit::Str(str)) => tokens
+                                            .push(MsgToken::String(str.value.clone().to_string())),
                                         // some={`# books ${name}`}
                                         Expr::Tpl(tpl) => {
                                             tokens.extend(self.ctx.tokenize_tpl(tpl));
@@ -132,9 +133,7 @@ impl<'a> TransJSXVisitor<'a> {
                                             tokens.extend(visitor.tokens)
                                         }
 
-                                        _ => {
-                                          tokens.push(MsgToken::Expression(exp.clone()))
-                                        }
+                                        _ => tokens.push(MsgToken::Expression(exp.clone())),
                                     }
                                 }
 
@@ -143,11 +142,7 @@ impl<'a> TransJSXVisitor<'a> {
                                 }
                             }
 
-                            choices.push(CaseOrOffset::Case(
-                                ChoiceCase {
-                                    tokens,
-                                    key,
-                                }))
+                            choices.push(CaseOrOffset::Case(ChoiceCase { tokens, key }))
                         }
                     }
                 }
@@ -174,21 +169,18 @@ impl<'a> Visit for TransJSXVisitor<'a> {
 
             if self.ctx.is_lingui_jsx_choice_cmp(&ident) {
                 let value = match get_jsx_attr(&el, "value").and_then(|attr| attr.value.as_ref()) {
-                    Some(
-                        JSXAttrValue::JSXExprContainer(
-                            JSXExprContainer { expr: JSXExpr::Expr(exp), .. }
-                        )
-                    ) => {
-                        exp.clone()
-                    }
-                    _ => {
-                        Box::new(Expr::Lit(Lit::Null(Null {
-                            span: DUMMY_SP
-                        })))
-                    }
+                    Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
+                        expr: JSXExpr::Expr(exp),
+                        ..
+                    })) => exp.clone(),
+                    _ => Box::new(Expr::Lit(Lit::Null(Null { span: DUMMY_SP }))),
                 };
 
-                let icu_method = self.ctx.get_ident_export_name(ident).unwrap().to_lowercase();
+                let icu_method = self
+                    .ctx
+                    .get_ident_export_name(ident)
+                    .unwrap()
+                    .to_lowercase();
                 let choices = self.visit_icu_macro(el, &icu_method);
 
                 self.tokens.push(MsgToken::IcuChoice(IcuChoice {
@@ -214,25 +206,21 @@ impl<'a> Visit for TransJSXVisitor<'a> {
     }
 
     fn visit_jsx_closing_element(&mut self, _el: &JSXClosingElement) {
-        self.tokens.push(
-            MsgToken::TagClosing
-        );
+        self.tokens.push(MsgToken::TagClosing);
     }
 
     fn visit_jsx_text(&mut self, el: &JSXText) {
-
-        self.tokens.push(
-            MsgToken::String(clean_jsx_element_literal_child(&el.raw.to_string()))
-        );
+        self.tokens
+            .push(MsgToken::String(clean_jsx_element_literal_child(
+                &el.raw.to_string(),
+            )));
     }
 
     fn visit_jsx_expr_container(&mut self, cont: &JSXExprContainer) {
         if let JSXExpr::Expr(exp) = &cont.expr {
             match exp.as_ref() {
                 Expr::Lit(Lit::Str(str)) => {
-                    self.tokens.push(
-                        MsgToken::String(str.value.to_string())
-                    );
+                    self.tokens.push(MsgToken::String(str.value.to_string()));
                 }
 
                 // todo write tests and validate
@@ -241,9 +229,7 @@ impl<'a> Visit for TransJSXVisitor<'a> {
                     if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(call) {
                         self.tokens.extend(tokens);
                     } else {
-                        self.tokens.push(
-                            MsgToken::Expression(exp.clone())
-                        );
+                        self.tokens.push(MsgToken::Expression(exp.clone()));
                     }
                 }
 
@@ -252,18 +238,12 @@ impl<'a> Visit for TransJSXVisitor<'a> {
                 }
 
                 Expr::Tpl(tpl) => {
-                    self.tokens.extend(
-                        self.ctx.tokenize_tpl(tpl)
-                    );
+                    self.tokens.extend(self.ctx.tokenize_tpl(tpl));
                 }
                 _ => {
-                    self.tokens.push(
-                        MsgToken::Expression(exp.clone())
-                    );
+                    self.tokens.push(MsgToken::Expression(exp.clone()));
                 }
             }
         }
     }
 }
-
-

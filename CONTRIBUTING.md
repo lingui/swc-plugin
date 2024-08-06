@@ -48,3 +48,5 @@ module.exports = nextConfig;
 It's important to build a plugin with the same Rust version used to build SWC itself.
 
 This project uses `rust-toolchain` file in the root of project to define rust version.
+
+To update Rust, put new version into `rust-toolchain` and call `rustup update` command
