@@ -1,5 +1,3 @@
-#![feature(is_some_and)]
-
 use std::collections::HashSet;
 use swc_core::common::DUMMY_SP;
 
