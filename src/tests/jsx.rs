@@ -313,9 +313,9 @@ to!(
      "#,
     r#"
         import { Trans as Trans_ } from "@lingui/react";
-        import { i18n } from "@lingui/core";
+        import { i18n as $_i18n } from "@lingui/core";
         <Trans_  message={"Read <0>more</0>"} id={"QZyANg"} components={{
-            0: <a href="/more" title={i18n._({
+            0: <a href="/more" title={$_i18n._({
                 id: "qzc3IN",
                 message: "Full content of {articleName}",
                 values: {
@@ -337,8 +337,8 @@ to!(
      "#,
 
     r#"
-        import { i18n } from "@lingui/core";
-        <a href="/about" title={i18n._({
+        import { i18n as $_i18n } from "@lingui/core";
+        <a href="/about" title={$_i18n._({
           id: "esnaQO",
           message: "{count, plural, one {# book} other {# books}}",
           values: {

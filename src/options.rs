@@ -96,8 +96,9 @@ mod lib_tests {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "runtimeModules": {
-                    "i18n": ["@lingui/core", "i18n"],
-                    "trans": ["@lingui/react", "Trans"]
+                    "i18n": ["my-core", "myI18n"],
+                    "trans": ["my-react", "myTrans"],
+                    "use_lingui": ["my-react", "myUseLingui"]
                 }
                }"#
         )
@@ -105,9 +106,10 @@ mod lib_tests {
 
         assert_eq!(config, LinguiJsOptions {
             runtime_modules: Some(RuntimeModulesConfigMap {
-                i18n: Some(RuntimeModulesConfig("@lingui/core".into(), Some("i18n".into()))),
-                trans: Some(RuntimeModulesConfig("@lingui/react".into(), Some("Trans".into()))),
-                use_lingui: Some(RuntimeModulesConfig("@lingui/react".into(), Some("useLingui".into()))),
+                i18n: Some(RuntimeModulesConfig("my-core".into(), Some("myI18n".into()))),
+                trans: Some(RuntimeModulesConfig("my-react".into(), Some("myTrans".into()))),
+                // use_lingui: Some(RuntimeModulesConfig("my-react".into(), Some("myUseLingui".into()))),
+                use_lingui: Some(RuntimeModulesConfig("my-react".into(), Some("myUseLingui".into()))),
             })
         })
     }

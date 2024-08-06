@@ -38,8 +38,8 @@ to!(
      "#,
     // output after transform
     r#"
-  import { i18n  } from "@lingui/core";
-  i18n._({
+  import { i18n as $_i18n } from "@lingui/core";
+  $_i18n._({
       id: "EsCV2T",
       message: "Refresh inbox"
   });
@@ -60,12 +60,12 @@ to!(
      "#,
     // output after transform
     r#"
-    import { i18n } from "@lingui/core";
-    i18n._({
+    import { i18n as $_i18n } from "@lingui/core";
+    $_i18n._({
         id: "EsCV2T",
         message: "Refresh inbox"
     });
-    i18n._({
+    $_i18n._({
         id: "JPS+Xq",
         message: "Refresh {foo} inbox {bar}",
         values: {
@@ -73,7 +73,7 @@ to!(
             bar: bar
         }
     });
-    i18n._({
+    $_i18n._({
         id: "xplbye",
         message: "Refresh {0} inbox {bar}",
         values: {
@@ -81,7 +81,7 @@ to!(
             0: foo.bar
         }
     });
-    i18n._({
+    $_i18n._({
         id: "+NCjg/",
         message: "Refresh {0}",
         values: {
@@ -100,8 +100,8 @@ to!(
      "#,
     // output after transform
     r#"
-    import { i18n } from "@lingui/core";
-    i18n._({
+    import { i18n as $_i18n } from "@lingui/core";
+    $_i18n._({
       id: "YZhODz",
       message: "Refresh {foo} inbox {foo}",
       values: {
@@ -173,8 +173,8 @@ to!(
            string`;
     "#,
      r#"
-        import { i18n } from "@lingui/core";
-        i18n._({
+        import { i18n as $_i18n } from "@lingui/core";
+        $_i18n._({
             id: "amQF7O",
             message: "Multiline\n           string"
         });
@@ -189,8 +189,8 @@ to!(
            string`;
     "#,
      r#"
-        import { i18n } from "@lingui/core";
-        i18n._({
+        import { i18n as $_i18n } from "@lingui/core";
+        $_i18n._({
             id: "d1nA7b",
             message: "Multiline           string"
         });
@@ -204,12 +204,12 @@ to!(
        t`Bienvenue\xA0!`
     "#,
      r#"
-        import { i18n } from "@lingui/core";
-        i18n._({
+        import { i18n as $_i18n } from "@lingui/core";
+        $_i18n._({
             id: "dZXeyN",
             message: "Message  "
         });
-        i18n._({
+        $_i18n._({
             id: "9K3RGd",
             message: "Bienvenue !"
         });
@@ -222,8 +222,8 @@ to!(
         const msg = t({ message: `Hello ${name}`, id: 'msgId', comment: 'description for translators'  })
     "#,
      r#"
-         import { i18n } from "@lingui/core";
-         const msg = i18n._({
+         import { i18n as $_i18n } from "@lingui/core";
+         const msg = $_i18n._({
           id: "msgId",
           message: "Hello {name}",
           values: {
@@ -240,9 +240,9 @@ to!(
         const msg = message.error(t({message: "dasd"}))
     "#,
      r#"
-        import { i18n } from "@lingui/core";
+        import { i18n as $_i18n } from "@lingui/core";
         const msg = message.error(
-          i18n._(
+          $_i18n._(
             {
               id: "9ZMZjU",
               message: "dasd",
@@ -266,12 +266,12 @@ to!(
         })
     "#,
     r#"
-        import { i18n } from "@lingui/core";
-        const msg1 = i18n._({
+        import { i18n as $_i18n } from "@lingui/core";
+        const msg1 = $_i18n._({
              id: "xDAtGP"
         });
 
-        const msg2 = i18n._({
+        const msg2 = $_i18n._({
          id: "msgId",
          values: {
            name: name,
@@ -306,8 +306,8 @@ to!(
         const msg = t({ id: 'msgId', comment: 'description for translators', message: plural(val, { one: '...', other: '...' }) })
     "#,
     r#"
-    import { i18n } from "@lingui/core";
-    const msg = i18n._({
+    import { i18n as $_i18n } from "@lingui/core";
+    const msg = $_i18n._({
       id: "msgId",
       message: "{val, plural, one {...} other {...}}",
       values: {
@@ -324,8 +324,8 @@ to!(
         const msg = t({ id: `msgId` })
     "#,
     r#"
-        import { i18n } from "@lingui/core";
-        const msg = i18n._({
+        import { i18n as $_i18n } from "@lingui/core";
+        const msg = $_i18n._({
           id: "msgId"
         });
     "#
@@ -341,16 +341,16 @@ to!(
         t({ message: 'Ola', context: `My Context`})
     "#,
     r#"
-       import { i18n } from "@lingui/core";
-       i18n._({
+       import { i18n as $_i18n } from "@lingui/core";
+       $_i18n._({
             id: "l1LkPs",
             message: "Ola"
         });
-        i18n._({
+        $_i18n._({
             id: "7hFP9A",
             message: "Ola"
         });
-        i18n._({
+        $_i18n._({
             id: "7hFP9A",
             message: "Ola"
         });
