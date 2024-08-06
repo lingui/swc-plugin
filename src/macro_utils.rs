@@ -33,7 +33,7 @@ impl Default for RuntimeIdents {
     fn default() -> RuntimeIdents {
         RuntimeIdents {
             i18n: quote_ident!("$_i18n"),
-            trans: quote_ident!("$_trans"),
+            trans: quote_ident!("Trans_"),
             use_lingui: quote_ident!("$_useLingui"),
         }
     }
@@ -57,8 +57,6 @@ impl MacroCtx {
 
     /// is given ident exported from @lingui/macro?
     pub fn is_lingui_ident(&self, name: &str, ident: &Ident) -> bool {
-        println!("is_lingui_ident name {:?}, id {:?}", name, ident.to_id());
-
         self.symbol_to_id_map
             .get(&name.into())
             .and_then(|refs| refs.get(&ident.to_id()))

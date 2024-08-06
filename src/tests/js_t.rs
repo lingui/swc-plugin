@@ -38,7 +38,7 @@ to!(
      "#,
     // output after transform
     r#"
-  import { i18n } from "@lingui/core";
+  import { i18n  } from "@lingui/core";
   i18n._({
       id: "EsCV2T",
       message: "Refresh inbox"

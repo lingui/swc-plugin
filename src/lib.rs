@@ -1,7 +1,7 @@
 #![feature(is_some_and)]
 
 use std::collections::HashSet;
-use swc_core::common::{Spanned, DUMMY_SP};
+use swc_core::common::{DUMMY_SP};
 
 use swc_core::{
     ecma::{

@@ -36,14 +36,12 @@ to!(
      const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
     r#"
-    import { CustomTrans } from "./custom-react";
-    import { customI18n } from "./custom-core";
-
-    customI18n._({
+    import { CustomTrans as Trans_ } from "./custom-react";
+    import { customI18n as $_i18n } from "./custom-core";
+    $_i18n._({
         id: "EsCV2T",
         message: "Refresh inbox"
     });
-
-    const exp2 = <CustomTrans message={"Refresh inbox"} id="custom.id"/>;
+    const exp2 = <Trans_ message={"Refresh inbox"} id="custom.id"/>;
     "#
 );

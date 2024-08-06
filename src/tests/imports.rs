@@ -14,14 +14,14 @@ to!(
      "#,
     r#"
         import { i18n } from "@lingui/core";
-        import { Trans } from "@lingui/react";
+        import { Trans as Trans_ } from "@lingui/react";
 
         i18n._({
           id: "NnH3pK",
           message: "Test"
         });
 
-        <Trans  message={"{value, plural, one {...} other {...}}"}
+        <Trans_  message={"{value, plural, one {...} other {...}}"}
         id={"kwTAtG"}
         values={{
           value: value
@@ -46,10 +46,10 @@ to!(
      "#,
 
     r#"
-       import { Trans } from "@lingui/react";
+       import { Trans as Trans_ } from "@lingui/react";
        import { Select } from "./my-select-cmp";
 
-       ;<Trans
+       ;<Trans_
             message={"{count, plural, one {Message} other {Messages}}"}
             id={"V4EO9s"}
            values={{ count: count }}
@@ -75,9 +75,9 @@ to!(
      "#,
 
     r#"
-       import { Trans } from "@lingui/react";
+       import { Trans as Trans_ } from "@lingui/react";
 
-       ;<Trans
+       ;<Trans_
             message={"{count, plural, one {Message} other {Messages}}"}
             id={"V4EO9s"}
            values={{ count: count }}
@@ -175,13 +175,13 @@ to!(
      "#,
 
     r#"
-        import { Trans } from "@lingui/react";
+        import { Trans as Trans_ } from "@lingui/react";
 
-        ;<Trans  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
+        ;<Trans_  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
             count: count
         }}/>
 
-        ;<Trans message={"Hello!"} id={"mAYvqA"}/>;
+        ;<Trans_ message={"Hello!"} id={"mAYvqA"}/>;
     "#
 );
 to!(
