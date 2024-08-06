@@ -197,6 +197,6 @@ impl<'a> Fold for JsMacroFolder<'a> {
             );
         }
 
-        expr
+        expr.fold_children_with(self)
     }
 }

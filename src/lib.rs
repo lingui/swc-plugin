@@ -1,12 +1,13 @@
 #![feature(is_some_and)]
 
 use std::collections::HashSet;
-use swc_core::common::{DUMMY_SP};
+use swc_core::common::DUMMY_SP;
 
+use swc_core::plugin::errors::HANDLER;
 use swc_core::{
     ecma::{
         ast::*,
-        utils::{quote_ident},
+        utils::quote_ident,
         visit::{Fold, FoldWith, VisitWith},
     },
     plugin::{
@@ -32,6 +33,23 @@ use ast_utils::*;
 use builder::*;
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
+
+pub struct IdentReplacer {
+    from: Id,
+    to: Ident,
+}
+impl IdentReplacer {
+    // pub fn new(from: Id, to: Ident) -> {}
+}
+impl Fold for IdentReplacer {
+    fn fold_ident(&mut self, n: Ident) -> Ident {
+        if n.to_id() == self.from {
+            return self.to.clone();
+        }
+
+        n
+    }
+}
 
 #[derive(Default)]
 pub struct LinguiMacroFolder {
@@ -110,13 +128,137 @@ impl LinguiMacroFolder {
             },
         };
     }
+
+    pub fn handle_use_lingui(&mut self, n: BlockStmt) -> BlockStmt {
+        let mut ctx = self.ctx.clone();
+
+        let mut ident_replacer: Option<IdentReplacer> = None;
+
+        let stmts: Vec<Stmt> = n
+                .stmts
+                .into_iter()
+                .map(|stmt| {
+                    return match stmt {
+                        Stmt::Decl(Decl::Var(var_decl)) => {
+                            let decl = *var_decl;
+
+                            let underscore_ident = quote_ident!("$__");
+                            let decls: Vec<VarDeclarator> = decl.decls.into_iter().map(|declarator| {
+                                if let Some(init) = &declarator.init {
+                                    let expr = init.as_ref();
+
+                                    if let Expr::Call(call) = &expr {
+                                        if match_callee_name(call, |n| {
+                                            self.ctx.is_lingui_ident("useLingui", n)
+                                        })
+                                            .is_some()
+                                        {
+                                            if let Pat::Object(obj_pat) = declarator.name {
+                                                let mut new_props: Vec<ObjectPatProp> =
+                                                    obj_pat.props.into_iter().map(|prop| {
+                                                        return get_local_ident_from_object_pat_prop(&prop, "t")
+                                                            .and_then(|ident| {
+                                                                ctx.register_reference(
+                                                                    &"t".into(),
+                                                                    &ident.to_id(),
+                                                                );
+
+                                                                let new_i18n_ident = quote_ident!(ident.span, "$__i18n");
+
+                                                                ident_replacer = Some(IdentReplacer {
+                                                                    from: ident.to_id(),
+                                                                    to: underscore_ident.clone(),
+                                                                });
+
+                                                                self.ctx.should_add_uselingui_import = true;
+                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone();
+
+                                                                return Some(ObjectPatProp::KeyValue(
+                                                                    KeyValuePatProp {
+                                                                        value: Box::new(Pat::Ident(new_i18n_ident.into())),
+                                                                        key: PropName::Ident(quote_ident!("i18n")),
+                                                                    },
+                                                                ))
+                                                            })
+                                                            .unwrap_or(prop);
+                                                    }).collect();
+
+                                                new_props.push(ObjectPatProp::KeyValue(
+                                                    KeyValuePatProp {
+                                                        value: Box::new(Pat::Ident(underscore_ident.clone().into())),
+                                                        key: PropName::Ident(quote_ident!("_")),
+                                                    },
+                                                ));
+
+                                                return VarDeclarator {
+                                                    init: Some(Box::new(Expr::Call(CallExpr {
+                                                        callee: Callee::Expr(Box::new(Expr::Ident(ctx.runtime_idents.use_lingui.clone()))),
+                                                        ..call.clone()
+                                                    }))),
+
+                                                    definite: true,
+                                                    span:  declarator.span,
+                                                    name: Pat::Object(ObjectPat {
+                                                        optional: false,
+                                                        type_ann: None,
+                                                        span: DUMMY_SP,
+                                                        props: new_props
+
+                                                    }),
+                                                }
+                                            } else {
+                                                HANDLER.with(|h| {
+                                                    h.struct_span_warn(decl.span, "Unsupported Syntax")
+                                                        .note(
+r#"You have to destructure `t` when using the `useLingui` macro, i.e:
+ const { t } = useLingui()
+ or
+ const { t: _ } = useLingui()"#)
+                                                        .emit()
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+
+                                return declarator;
+                            }).collect();
+
+                            return Stmt::Decl(Decl::Var(Box::new(VarDecl {
+                                span: decl.span,
+                                decls,
+                                declare: false,
+                                kind: decl.kind,
+                            })))
+                        }
+                        _ => stmt,
+                    };
+                })
+                .collect();
+
+        let mut block = BlockStmt {
+            span: n.span,
+            stmts,
+        };
+
+        // use lingui matched above
+        if ident_replacer.is_some() {
+            block = block
+                .fold_children_with(&mut JsMacroFolder::new(&mut ctx))
+                // replace other
+                .fold_children_with(&mut ident_replacer.unwrap());
+        }
+
+        return block.fold_children_with(self);
+    }
 }
 
 impl<'a> Fold for LinguiMacroFolder {
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
         let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
-        let (use_lingui_source, use_lingui_export) = self.ctx.options.runtime_modules.use_lingui.clone();
+        let (use_lingui_source, use_lingui_export) =
+            self.ctx.options.runtime_modules.use_lingui.clone();
 
         let mut insert_index: usize = 0;
         let mut index = 0;
@@ -124,7 +266,10 @@ impl<'a> Fold for LinguiMacroFolder {
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 // drop macro imports
-                if &imp.src.value == "@lingui/macro" || &imp.src.value == "@lingui/core/macro" || &imp.src.value == "@lingui/react/macro" {
+                if &imp.src.value == "@lingui/macro"
+                    || &imp.src.value == "@lingui/core/macro"
+                    || &imp.src.value == "@lingui/react/macro"
+                {
                     self.has_lingui_macro_imports = true;
                     self.ctx.register_macro_import(imp);
                     insert_index = index;
@@ -141,39 +286,59 @@ impl<'a> Fold for LinguiMacroFolder {
         if self.ctx.should_add_18n_import {
             n.insert(
                 insert_index,
-                create_import(i18n_source.into(), quote_ident!(i18n_export[..]), self.ctx.runtime_idents.i18n.clone()),
+                create_import(
+                    i18n_source.into(),
+                    quote_ident!(i18n_export[..]),
+                    self.ctx.runtime_idents.i18n.clone(),
+                ),
             );
         }
 
         if self.ctx.should_add_trans_import {
             n.insert(
                 insert_index,
-                create_import(trans_source.into(), quote_ident!(trans_export[..]), self.ctx.runtime_idents.trans.clone()),
+                create_import(
+                    trans_source.into(),
+                    quote_ident!(trans_export[..]),
+                    self.ctx.runtime_idents.trans.clone(),
+                ),
             );
         }
 
         if self.ctx.should_add_uselingui_import {
             n.insert(
                 insert_index,
-                create_import(use_lingui_source.into(), quote_ident!(use_lingui_export[..]), self.ctx.runtime_idents.use_lingui.clone()),
+                create_import(
+                    use_lingui_source.into(),
+                    quote_ident!(use_lingui_export[..]),
+                    self.ctx.runtime_idents.use_lingui.clone(),
+                ),
             );
         }
 
         n
     }
     fn fold_arrow_expr(&mut self, n: ArrowExpr) -> ArrowExpr {
-        println!("arrow expr");
-        n.fold_children_with(self)
+        // If no package that we care about is imported, skip the following
+        // transformation logic.
+        if !self.has_lingui_macro_imports {
+            return n;
+        }
+
+        let mut func = n;
+
+        if func.body.is_block_stmt() {
+            let block = func.body.block_stmt().unwrap();
+
+            func = ArrowExpr {
+                body: Box::new(BlockStmtOrExpr::BlockStmt(self.handle_use_lingui(block))),
+                ..func
+            }
+        }
+
+        func.fold_children_with(self)
     }
-    // fn fold_fn_decl(&mut self, n: FnDecl) -> FnDecl {
-    //     println!("fold_fn_decl");
-    //     n.fold_children_with(self)
-    // }
-    //
-    fn fold_fn_expr(&mut self, n: FnExpr) -> FnExpr {
-        println!("fold_fn_expr");
-        n.fold_children_with(self)
-    }
+
     fn fold_function(&mut self, n: Function) -> Function {
         // If no package that we care about is imported, skip the following
         // transformation logic.
@@ -181,115 +346,16 @@ impl<'a> Fold for LinguiMacroFolder {
             return n;
         }
 
-        let mut ctx = self.ctx.clone();
+        let mut func = n;
 
-        if let Some(body) = n.body {
-            let stmts: Vec<Stmt> = body
-                .stmts
-                .into_iter()
-                .map(|stmt| {
-                    return match stmt {
-                        Stmt::Decl(Decl::Var(var_decl)) => {
-                            let decl = *var_decl;
-
-                            let decls: Vec<VarDeclarator> = decl.decls.into_iter().map(|declarator| {
-                                if let Some(init) = &declarator.init {
-                                    let expr = init.as_ref();
-
-                                    if let Expr::Call(call) = &expr {
-                                        if match_callee_name(call, |n| {
-                                            self.ctx.is_lingui_ident("useLingui", n)
-                                        })
-                                        .is_some()
-                                        {
-                                            if let Pat::Object(obj_pat) = declarator.name {
-                                                let mew_props: Vec<ObjectPatProp> =
-                                                    obj_pat.props.into_iter().map(|prop| {
-                                                        return get_local_ident_from_object_pat_prop(&prop, "t")
-                                                            .and_then(|ident| {
-                                                                ctx.register_reference(
-                                                                    &"t".into(),
-                                                                    &ident.to_id(),
-                                                                );
-
-                                                                let new_i18n_ident = quote_ident!(ident.span, "$__i18n");
-
-                                                                self.ctx.should_add_uselingui_import = true;
-                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone();
-
-                                                                return Some(ObjectPatProp::KeyValue(
-                                                                    KeyValuePatProp {
-                                                                        value: Box::new(Pat::Ident(BindingIdent {
-                                                                            id: new_i18n_ident,
-                                                                            type_ann: None,
-                                                                        })),
-                                                                        key: PropName::Ident(quote_ident!("i18n")),
-                                                                    },
-                                                                ))
-                                                            })
-                                                            .unwrap_or(prop);
-                                                    }).collect();
-
-                                                return VarDeclarator {
-                                                    init: Some(Box::new(Expr::Call(CallExpr {
-                                                        callee: Callee::Expr(Box::new(Expr::Ident(ctx.runtime_idents.use_lingui.clone()))),
-                                                        ..call.clone()
-                                                    }))),
-
-                                                    definite: true,
-                                                    span:  declarator.span,
-                                                    name: Pat::Object(ObjectPat {
-                                                        optional: false,
-                                                        type_ann: None,
-                                                        span: DUMMY_SP,
-                                                        props: mew_props
-                                                        
-                                                    }),
-                                                }
-                                            } else {
-                                                //panic: useLingui could be used only with object desctructuring
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                return declarator;
-                            }).collect();
-
-                            return Stmt::Decl(Decl::Var(Box::new(VarDecl {
-                                span: decl.span,
-                                decls,
-                                declare: false,
-                                kind: decl.kind,
-                            })))
-                        }
-                        _ => stmt,
-                    };
-                })
-                .collect();
-
-            let new_func = Function {
-                params: n.params,
-                body: Some(BlockStmt {
-                    span: body.span,
-                    stmts,
-                }),
-                decorators: n.decorators,
-                span: n.span,
-                is_async: n.is_async,
-                is_generator: n.is_generator,
-                return_type: n.return_type,
-                type_params: n.type_params,
+        if let Some(body) = func.body {
+            func = Function {
+                body: Some(self.handle_use_lingui(body)),
+                ..func
             };
-
-            let mut folder = JsMacroFolder::new(&mut ctx);
-            return new_func
-                .fold_children_with(&mut folder)
-                .fold_children_with(self);
-            // folder.fold_expr(n).fold_children_with(self)
         }
 
-        n.fold_children_with(self)
+        func.fold_children_with(self)
     }
 
     fn fold_expr(&mut self, expr: Expr) -> Expr {
