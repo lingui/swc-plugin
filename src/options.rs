@@ -98,7 +98,7 @@ mod lib_tests {
                 "runtimeModules": {
                     "i18n": ["my-core", "myI18n"],
                     "trans": ["my-react", "myTrans"],
-                    "use_lingui": ["my-react", "myUseLingui"]
+                    "useLingui": ["my-react", "myUseLingui"]
                 }
                }"#
         )
@@ -108,7 +108,6 @@ mod lib_tests {
             runtime_modules: Some(RuntimeModulesConfigMap {
                 i18n: Some(RuntimeModulesConfig("my-core".into(), Some("myI18n".into()))),
                 trans: Some(RuntimeModulesConfig("my-react".into(), Some("myTrans".into()))),
-                // use_lingui: Some(RuntimeModulesConfig("my-react".into(), Some("myUseLingui".into()))),
                 use_lingui: Some(RuntimeModulesConfig("my-react".into(), Some("myUseLingui".into()))),
             })
         })
