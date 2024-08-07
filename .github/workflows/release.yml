@@ -17,6 +17,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
+          targets: wasm32-wasi
 
       - name: Set up Node
         uses: actions/setup-node@v4

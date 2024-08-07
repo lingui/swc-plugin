@@ -25,6 +25,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
+          targets: wasm32-wasi
 
       - uses: Swatinem/rust-cache@v2
 
@@ -41,6 +42,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
+          targets: wasm32-wasi
 
       - uses: Swatinem/rust-cache@v2
 
@@ -50,13 +52,14 @@ jobs:
   test-publish:
     name: Test Publish
     runs-on: ubuntu-latest
-    needs: [check, test]
+    needs: test
     steps:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
+          targets: wasm32-wasi
 
       - uses: Swatinem/rust-cache@v2
 
