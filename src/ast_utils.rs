@@ -186,6 +186,5 @@ pub fn create_import(source: JsWord, imported: Ident, local: Ident) -> ModuleIte
         }),
         with: None,
         type_only: false,
-        phase: Default::default(),
     }))
 }
