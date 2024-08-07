@@ -101,13 +101,13 @@ impl LinguiMacroFolder {
 
         attrs.extend(pick_jsx_attrs(
             el.opening.attrs,
-            HashSet::from(["id", "render", "i18n"]),
+            HashSet::from(["id", "component", "render", "i18n"]),
         ));
 
         if self.ctx.options.strip_non_essential_fields {
             attrs = pick_jsx_attrs(
                 attrs,
-                HashSet::from(["id", "render", "i18n", "values", "components"]),
+                HashSet::from(["id", "component", "render", "i18n", "values", "components"]),
             )
         }
 
