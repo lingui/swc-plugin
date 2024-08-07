@@ -4,19 +4,25 @@ on:
   release:
     types: [released, prereleased]
 
+env:
+  TOOLCHAIN: nightly-2024-07-21
+
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Set up Node 14
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.TOOLCHAIN }}
+
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
           registry-url: 'https://registry.npmjs.org'
-          node-version: 14.x
+          node-version: 16.x
 
       - uses: Swatinem/rust-cache@v2
 
