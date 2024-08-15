@@ -375,7 +375,7 @@ to!(
 );
 
 to!(
-    multiple_new_lines_with_nbsp_endind,
+    multiple_new_lines_with_nbsp_ending,
     r#"
 import { Trans } from "@lingui/react/macro";
 <Trans>

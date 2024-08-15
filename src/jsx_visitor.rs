@@ -212,7 +212,7 @@ impl<'a> Visit for TransJSXVisitor<'a> {
     fn visit_jsx_text(&mut self, el: &JSXText) {
         self.tokens
             .push(MsgToken::String(clean_jsx_element_literal_child(
-                &el.raw.to_string(),
+                &el.value.to_string(),
             )));
     }
 
