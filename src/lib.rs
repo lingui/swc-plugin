@@ -151,6 +151,8 @@ impl LinguiMacroFolder {
                                         })
                                             .is_some()
                                         {
+                                            self.ctx.should_add_uselingui_import = true;
+
                                             if let Pat::Object(obj_pat) = declarator.name {
                                                 let mut new_props: Vec<ObjectPatProp> =
                                                     obj_pat.props.into_iter().map(|prop| {
@@ -168,7 +170,6 @@ impl LinguiMacroFolder {
                                                                     to: underscore_ident.clone(),
                                                                 });
 
-                                                                self.ctx.should_add_uselingui_import = true;
                                                                 ctx.runtime_idents.i18n = new_i18n_ident.clone();
 
                                                                 return Some(ObjectPatProp::KeyValue(

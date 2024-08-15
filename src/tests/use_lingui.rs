@@ -162,6 +162,27 @@ function MyComponent() {
 );
 
 to!(
+    work_when_t_is_not_used,
+    // input
+     r#"
+import { useLingui } from '@lingui/react/macro';
+
+function MyComponent() {
+  const { i18n } = useLingui();
+  console.log(i18n);
+}
+     "#,
+    // output after transform
+    r#"
+import { useLingui as $_useLingui } from "@lingui/react";
+function MyComponent() {
+    const { i18n, _: $__ } = $_useLingui();
+    console.log(i18n);
+}
+    "#
+);
+
+to!(
     work_with_existing_use_lingui_statement,
     // input
      r#"
