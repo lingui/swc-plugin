@@ -2,7 +2,7 @@
 macro_rules! to {
     ($name:ident, $from:expr, $to:expr) => {
         swc_core::ecma::transforms::testing::test_inline!(
-            swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsSyntax {
+            swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsConfig {
                 tsx: true,
                 ..Default::default()
             }),
@@ -20,7 +20,7 @@ macro_rules! to {
 
     (production, $name:ident, $from:expr, $to:expr) => {
         swc_core::ecma::transforms::testing::test_inline!(
-            swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsSyntax {
+            swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsConfig {
                 tsx: true,
                 ..Default::default()
             }),
