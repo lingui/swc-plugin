@@ -6,6 +6,7 @@ use swc_core::{
         visit::{Fold, FoldWith},
     },
 };
+use swc_core::common::SyntaxContext;
 use crate::ast_utils::{*};
 use crate::builder::MessageBuilder;
 use crate::macro_utils::{*};
@@ -65,12 +66,13 @@ impl<'a> JsMacroFolder<'a> {
             self.ctx.should_add_18n_import = true;
             let (_, i18n_export) = &self.ctx.options.runtime_modules.i18n;
 
-            return Box::new(Ident::new(i18n_export.clone().into(), DUMMY_SP).into());
+            return Box::new(IdentName::new(i18n_export.clone().into(), DUMMY_SP).into());
           }),
-          prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
+          prop: MemberProp::Ident(IdentName::new("_".into(), DUMMY_SP)),
         }).as_callee(),
         args,
         type_args: None,
+        ctxt: SyntaxContext::empty(),
       }
     }
 

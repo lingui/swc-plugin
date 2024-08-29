@@ -189,7 +189,7 @@ impl MacroCtx {
     pub fn get_js_choice_case_key(&self, prop: &KeyValueProp) -> Option<JsWord> {
         match &prop.key {
             // {one: ""}
-            PropName::Ident(Ident { sym, .. })
+            PropName::Ident(IdentName { sym, .. })
             // {"one": ""}
             | PropName::Str(Str { value: sym, .. }) => {
                 Some(sym.clone())

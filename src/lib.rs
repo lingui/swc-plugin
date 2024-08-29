@@ -116,7 +116,7 @@ impl LinguiMacroFolder {
                 self_closing: true,
                 span: el.opening.span,
                 name: JSXElementName::Ident(
-                    Ident::new(trans_export.into(), el.opening.span)
+                    Ident::new_no_ctxt(trans_export.into(), el.opening.span)
                 ),
                 type_args: None,
                 attrs,
@@ -170,11 +170,11 @@ impl<'a> Fold for LinguiMacroFolder {
       n = n.fold_children_with(self);
 
       if !has_i18n_import && self.ctx.should_add_18n_import {
-        n.insert(insert_index, create_import(i18n_source.into(), quote_ident!(i18n_export[..])));
+        n.insert(insert_index, create_import(i18n_source.into(), quote_ident!(i18n_export[..]).into()));
       }
 
       if !has_trans_import && self.ctx.should_add_trans_import {
-        n.insert(insert_index, create_import(trans_source.into(), quote_ident!(trans_export[..])));
+        n.insert(insert_index, create_import(trans_source.into(), quote_ident!(trans_export[..]).into()));
       }
 
       n
