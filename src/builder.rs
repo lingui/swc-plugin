@@ -26,7 +26,7 @@ pub struct ValueWithPlaceholder {
 
 impl ValueWithPlaceholder {
     pub fn to_prop(self) -> PropOrSpread {
-        let ident = Ident::new(self.placeholder.into(), DUMMY_SP);
+        let ident = IdentName::new(self.placeholder.into(), DUMMY_SP);
 
         PropOrSpread::Prop(Box::new(
             Prop::KeyValue(KeyValueProp {
