@@ -98,6 +98,7 @@ So you need to select an appropriate version of the plugin to match compatible `
 | `4.0.6`                                           | `0.87.x`        | `@swc/core@1.3.81 ~ @swc/core@1.3.105` <br /> `~ next@v14.1.0`                                                            |
 | `4.0.7`, `4.0.8`, `5.0.0-next.0` ~ `5.0.0-next.1` | `0.90.35`       | `@swc/core@1.4.0` ~ `@swc/core@1.5.0` <br /> `next@14.1.1-canary.52` ~ `v15.0.0-canary.36`  <br /> `@rspack/core@0.6.0 ~` |
 | `4.0.9`                                           | `0.96.9`        | `@swc/core@1.6.x` <br /> `next@15.0.0-canary.37 ~`                                                                        |
+| `4.0.10`                                          | `0.101.4`       | `@swc/core@1.7.15-nightly-20240820.8` ~ `@swc/core@1.7.17-nightly-20240820.3`<br /> `@rspack/core@1.0.0 ~`                |
 
 This table may become outdated. If you don't see a particular version of `@swc/core` or `next` check the compatibility by referring to the upstream's [Selecting the version](https://swc.rs/docs/plugin/selecting-swc-core) article.
 This will help you select the appropriate plugin version for your project.
