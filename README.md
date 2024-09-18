@@ -85,6 +85,11 @@ SWC Plugin support is still experimental. They do not guarantee a semver backwar
 
 So you need to select an appropriate version of the plugin to match compatible `swc_core`.
 
+It is recommended to find a suitable plugin version on https://plugins.swc.rs/.
+
+### Deprecated compatibility table
+Following table used to be updated manually and was deprecated in favour of mentioned *plugins.swc.rs.*
+
 | Plugin Version                                    | used `swc_core` | Compatibility                                                                                                             |
 |---------------------------------------------------|-----------------|---------------------------------------------------------------------------------------------------------------------------|
 | `0.1.0`, `4.0.0-next.0`                           | `0.52.8`        | `next@13.0.0` ~ `next@13.2.3`                                                                                             |
