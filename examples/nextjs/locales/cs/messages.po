@@ -11,47 +11,38 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
-#. js-lingui-id: 2aJT27
-#: src/pages/index.tsx:53
-msgid "Today is {0}"
-msgstr "Dnes je {0}"
-
-#. js-lingui-id: IM9nhj
-#: src/pages/index.tsx:59
-msgid "I have a balance of {0}"
-msgstr "Mám zůstatek {0}"
-
-#. js-lingui-id: JvTdAL
-#: src/pages/index.tsx:42
-msgid "Decrement"
-msgstr "Úbytek"
-
-#. js-lingui-id: ZXBDaP
-#: src/pages/index.tsx:27
-msgid "Language switcher example:"
-msgstr "Příklad přepínače jazyků:"
-
-#. js-lingui-id: Zk/eXS
-#: src/pages/index.tsx:57
-msgid "Number formatter example:"
-msgstr "Příklad formátovače čísel:"
-
-#. js-lingui-id: dw5/c3
-#: src/pages/index.tsx:36
-msgid "Plurals example:"
-msgstr "Příklad množného čísla:"
-
-#. js-lingui-id: g6SXvR
-#: src/pages/index.tsx:45
+#: src/pages/index.tsx:46
 msgid "{count, plural, zero {There are no books} one {There's one book} other {There are # books}}"
 msgstr "{count, plural, zero {Nejsou žádné knihy} one {Je tu jedna kniha} other {Existuje # knih}}"
 
-#. js-lingui-id: kdkZBD
-#: src/pages/index.tsx:39
+#: src/pages/index.tsx:52
+msgid "Date formatter example:"
+msgstr "Příklad formátovače data:"
+
+#: src/pages/index.tsx:43
+msgid "Decrement"
+msgstr "Úbytek"
+
+#: src/pages/index.tsx:60
+msgid "I have a balance of {0}"
+msgstr "Mám zůstatek {0}"
+
+#: src/pages/index.tsx:40
 msgid "Increment"
 msgstr "Přírůstek"
 
-#. js-lingui-id: r7eO9I
-#: src/pages/index.tsx:51
-msgid "Date formatter example:"
-msgstr "Příklad formátovače data:"
+#: src/pages/index.tsx:28
+msgid "Language switcher example:"
+msgstr "Příklad přepínače jazyků:"
+
+#: src/pages/index.tsx:58
+msgid "Number formatter example:"
+msgstr "Příklad formátovače čísel:"
+
+#: src/pages/index.tsx:37
+msgid "Plurals example:"
+msgstr "Příklad množného čísla:"
+
+#: src/pages/index.tsx:54
+msgid "Today is {0}"
+msgstr "Dnes je {0}"
