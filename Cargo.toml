@@ -1,6 +1,6 @@
 [package]
 name = "lingui_macro_plugin"
-version = "4.0.10"
+version = "4.1.0"
 edition = "2021"
 
 [lib]
