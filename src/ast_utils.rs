@@ -163,15 +163,15 @@ pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     )));
 }
 
-pub fn create_import(source: JsWord, imported: Ident, local: Ident) -> ModuleItem {
+pub fn create_import(source: JsWord, imported: IdentName, local: IdentName) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
         span: DUMMY_SP,
         phase: ImportPhase::default(),
         specifiers: vec![
             ImportSpecifier::Named(ImportNamedSpecifier {
                 span: DUMMY_SP,
-                local,
-                imported: Some(ModuleExportName::Ident(imported)),
+                local: local.into(),
+                imported: Some(ModuleExportName::Ident(imported.into())),
                 is_type_only: false,
             })
         ],

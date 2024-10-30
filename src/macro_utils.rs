@@ -24,9 +24,9 @@ pub struct MacroCtx {
 
 #[derive(Clone)]
 pub struct RuntimeIdents {
-    pub i18n: Ident,
-    pub trans: Ident,
-    pub use_lingui: Ident,
+    pub i18n: IdentName,
+    pub trans: IdentName,
+    pub use_lingui: IdentName,
 }
 
 impl Default for RuntimeIdents {

@@ -6,6 +6,7 @@ use swc_core::{
         visit::{Fold, FoldWith},
     },
 };
+use swc_core::common::SyntaxContext;
 use crate::ast_utils::{*};
 use crate::builder::MessageBuilder;
 use crate::macro_utils::{*};
@@ -66,10 +67,11 @@ impl<'a> JsMacroFolder<'a> {
 
             return Box::new(self.ctx.runtime_idents.i18n.clone().into());
           }),
-          prop: MemberProp::Ident(Ident::new("_".into(), DUMMY_SP)),
+          prop: MemberProp::Ident(IdentName::new("_".into(), DUMMY_SP)),
         }).as_callee(),
         args,
         type_args: None,
+        ctxt: SyntaxContext::empty(),
       }
     }
 
