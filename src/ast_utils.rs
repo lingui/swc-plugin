@@ -101,11 +101,7 @@ pub fn pick_jsx_attrs(mut attrs: Vec<JSXAttrOrSpread>, names: HashSet<&str>) -> 
 pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
     JSXAttrOrSpread::JSXAttr(JSXAttr {
         span: DUMMY_SP,
-        name: JSXAttrName::Ident(Ident {
-            span: DUMMY_SP,
-            sym: name.into(),
-            optional: false,
-        }),
+        name: JSXAttrName::Ident(IdentName::new(name.into(), DUMMY_SP)),
         value: Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
             span: DUMMY_SP,
             expr: JSXExpr::Expr(exp),
@@ -148,7 +144,7 @@ pub fn get_object_prop<'a>(props: &'a Vec<PropOrSpread>, name: &str) -> Option<&
 
 pub fn get_prop_key(prop: &KeyValueProp) -> Option<&JsWord> {
     match &prop.key {
-        PropName::Ident(Ident { sym, .. })
+        PropName::Ident(IdentName { sym, .. })
         | PropName::Str(Str { value: sym, .. }) => {
             Some(sym)
         }
