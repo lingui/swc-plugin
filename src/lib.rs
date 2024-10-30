@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use swc_core::common::DUMMY_SP;
+use swc_core::common::{SyntaxContext, DUMMY_SP};
 
 use swc_core::plugin::errors::HANDLER;
 use swc_core::{
@@ -140,7 +140,7 @@ impl LinguiMacroFolder {
                         Stmt::Decl(Decl::Var(var_decl)) => {
                             let decl = *var_decl;
 
-                            let underscore_ident = quote_ident!("$__");
+                            let underscore_ident = quote_ident!(SyntaxContext::empty(), "$__");
                             let decls: Vec<VarDeclarator> = decl.decls.into_iter().map(|declarator| {
                                 if let Some(init) = &declarator.init {
                                     let expr = init.as_ref();
@@ -163,14 +163,14 @@ impl LinguiMacroFolder {
                                                                     &ident.to_id(),
                                                                 );
 
-                                                                let new_i18n_ident = quote_ident!(ident.span, "$__i18n");
+                                                                let new_i18n_ident = quote_ident!(ident.ctxt, "$__i18n");
 
                                                                 ident_replacer = Some(IdentReplacer {
                                                                     from: ident.to_id(),
                                                                     to: underscore_ident.clone(),
                                                                 });
 
-                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone();
+                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone().into();
 
                                                                 return Some(ObjectPatProp::KeyValue(
                                                                     KeyValuePatProp {
@@ -191,7 +191,7 @@ impl LinguiMacroFolder {
 
                                                 return VarDeclarator {
                                                     init: Some(Box::new(Expr::Call(CallExpr {
-                                                        callee: Callee::Expr(Box::new(Expr::Ident(ctx.runtime_idents.use_lingui.clone()))),
+                                                        callee: Callee::Expr(Box::new(Expr::Ident(ctx.runtime_idents.use_lingui.clone().into()))),
                                                         ..call.clone()
                                                     }))),
 
@@ -228,6 +228,7 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
                                 decls,
                                 declare: false,
                                 kind: decl.kind,
+                                ctxt: SyntaxContext::empty()
                             })))
                         }
                         _ => stmt,
@@ -238,6 +239,7 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
         let mut block = BlockStmt {
             span: n.span,
             stmts,
+            ctxt: SyntaxContext::empty()
         };
 
         // use lingui matched above

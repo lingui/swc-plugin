@@ -24,9 +24,9 @@ pub struct MacroCtx {
 
 #[derive(Clone)]
 pub struct RuntimeIdents {
-    pub i18n: Ident,
-    pub trans: Ident,
-    pub use_lingui: Ident,
+    pub i18n: IdentName,
+    pub trans: IdentName,
+    pub use_lingui: IdentName,
 }
 
 impl Default for RuntimeIdents {
@@ -204,7 +204,7 @@ impl MacroCtx {
     pub fn get_js_choice_case_key(&self, prop: &KeyValueProp) -> Option<JsWord> {
         match &prop.key {
             // {one: ""}
-            PropName::Ident(Ident { sym, .. })
+            PropName::Ident(IdentName { sym, .. })
             // {"one": ""}
             | PropName::Str(Str { value: sym, .. }) => {
                 Some(sym.clone())

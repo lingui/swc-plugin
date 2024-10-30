@@ -5,7 +5,7 @@ on:
     types: [released, prereleased]
 
 env:
-  TOOLCHAIN: nightly-2024-07-21
+  TOOLCHAIN: 1.80.0
 
 jobs:
   release:
