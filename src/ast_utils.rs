@@ -52,11 +52,19 @@ pub fn get_expr_as_string(val: &Box<Expr>) -> Option<String> {
     // `Hello`
     Expr::Tpl(Tpl {quasis, ..}) => {
       if quasis.len() == 1 {
-        return Some(quasis.get(0).unwrap().raw.to_string());
+        return Some(get_template_string_cooked_string(quasis.get(0).unwrap()));
       } else { None }
     }
 
     _ => None
+  }
+}
+
+pub fn get_template_string_cooked_string(element: &TplElement) -> String {
+  if let Some(cooked) = &element.cooked {
+    cooked.to_string()
+  } else {
+    element.raw.to_string()
   }
 }
 
