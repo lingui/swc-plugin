@@ -163,6 +163,21 @@ to!(
 );
 
 to!(
+    js_backslash_newlines_are_preserved,
+    r#"
+       import { t } from '@lingui/macro';
+         t`Multiline\nstring`;
+    "#,
+     r#"
+        import { i18n } from "@lingui/core";
+        i18n._({
+            id: "EfogM+",
+            message: "Multiline\nstring"
+        });
+     "#
+);
+
+to!(
     js_support_message_descriptor_in_t_fn,
     r#"
         import { t } from '@lingui/macro'

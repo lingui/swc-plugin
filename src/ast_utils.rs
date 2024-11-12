@@ -52,12 +52,16 @@ pub fn get_expr_as_string(val: &Box<Expr>) -> Option<String> {
     // `Hello`
     Expr::Tpl(Tpl {quasis, ..}) => {
       if quasis.len() == 1 {
-        return Some(quasis.get(0).unwrap().raw.to_string());
+        return Some(get_tpl_cooked_or_raw_string(quasis.get(0).unwrap()));
       } else { None }
     }
 
     _ => None
   }
+}
+
+pub fn get_tpl_cooked_or_raw_string(tpl: &TplElement) -> String {
+  tpl.cooked.as_ref().unwrap_or(&tpl.raw).to_string()
 }
 
 pub fn pick_jsx_attrs(mut attrs: Vec<JSXAttrOrSpread>, names: HashSet<&str>) -> Vec<JSXAttrOrSpread> {

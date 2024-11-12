@@ -309,6 +309,22 @@ to!(
     "#
 );
 
+
+// TODO: failed case
+// to!(
+//   keep_forced_newlines_in_string,
+//   r#"
+//      import { Trans } from '@lingui/macro';
+//      <Trans>{`Multiline\nstring`}</Trans>;
+//      <Trans>{"Multiline\nstring"}</Trans>;
+//   "#,
+//    r#"
+//       import { Trans } from "@lingui/react";
+//       <Trans message={"Multiline\nstring"} id={"EfogM+"}/>;
+//       <Trans message={"Multiline\nstring"} id={"EfogM+"}/>;
+//    "#
+// );
+
 to!(
     use_js_macro_in_jsx_attrs,
      r#"
@@ -404,4 +420,3 @@ to!(
 //         <Trans id="msg.hello" />;
 //       `,
 //   },
-
