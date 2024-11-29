@@ -1,26 +1,42 @@
-use std::collections::HashMap;
 use crate::ast_utils::*;
 use crate::tokens::*;
-use swc_core::{
-    ecma::{
-        ast::*,
-        atoms::JsWord
-    },
-};
 use crate::LinguiOptions;
+use std::collections::{HashMap, HashSet};
+use swc_core::ecma::{ast::*, atoms::JsWord};
+use swc_core::ecma::utils::quote_ident;
 
 const LINGUI_T: &str = &"t";
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MacroCtx {
     // export name -> local name
-    imports_id_map: HashMap<JsWord, Id>,
+    symbol_to_id_map: HashMap<JsWord, HashSet<Id>>,
     // local name -> export name
-    imports_id_map_inverted: HashMap<Id, JsWord>,
+    id_to_symbol_map: HashMap<Id, JsWord>,
 
     pub should_add_18n_import: bool,
     pub should_add_trans_import: bool,
+    pub should_add_uselingui_import: bool,
+
     pub options: LinguiOptions,
+    pub runtime_idents: RuntimeIdents,
+}
+
+#[derive(Clone)]
+pub struct RuntimeIdents {
+    pub i18n: IdentName,
+    pub trans: IdentName,
+    pub use_lingui: IdentName,
+}
+
+impl Default for RuntimeIdents {
+    fn default() -> RuntimeIdents {
+        RuntimeIdents {
+            i18n: quote_ident!("$_i18n"),
+            trans: quote_ident!("Trans_"),
+            use_lingui: quote_ident!("$_useLingui"),
+        }
+    }
 }
 
 impl MacroCtx {
@@ -33,29 +49,29 @@ impl MacroCtx {
 
     /// is given ident exported from @lingui/macro? and one of choice functions?
     fn is_lingui_fn_choice_cmp(&self, ident: &Ident) -> bool {
-        self.is_lingui_ident("plural", ident) ||
-            self.is_lingui_ident("select", ident) ||
-            self.is_lingui_ident("selectOrdinal", ident)
+        // self.symbol_to_id_map.
+        self.is_lingui_ident("plural", ident)
+            || self.is_lingui_ident("select", ident)
+            || self.is_lingui_ident("selectOrdinal", ident)
     }
 
     /// is given ident exported from @lingui/macro?
     pub fn is_lingui_ident(&self, name: &str, ident: &Ident) -> bool {
-        if let Some(imp) = self.imports_id_map.get(&name.into()) {
-            return ident.to_id() == *imp;
-        }
-
-        false
+        self.symbol_to_id_map
+            .get(&name.into())
+            .and_then(|refs| refs.get(&ident.to_id()))
+            .is_some()
     }
 
     pub fn is_define_message_ident(&self, ident: &Ident) -> bool {
-      return self.is_lingui_ident("defineMessage", &ident)
-        || self.is_lingui_ident("msg", &ident)
+        return self.is_lingui_ident("defineMessage", &ident)
+            || self.is_lingui_ident("msg", &ident);
     }
 
     /// given import {plural as i18nPlural} from "@lingui/macro";
     /// get_ident_export_name("i18nPlural") would return `plural`
     pub fn get_ident_export_name(&self, ident: &Ident) -> Option<&JsWord> {
-        if let Some(name) = self.imports_id_map_inverted.get(&ident.to_id()) {
+        if let Some(name) = self.id_to_symbol_map.get(&ident.to_id()) {
             return Some(name);
         }
 
@@ -63,21 +79,27 @@ impl MacroCtx {
     }
 
     pub fn is_lingui_jsx_choice_cmp(&self, ident: &Ident) -> bool {
-        self.is_lingui_ident("Plural", ident) ||
-            self.is_lingui_ident("Select", ident) ||
-            self.is_lingui_ident("SelectOrdinal", ident)
+        self.is_lingui_ident("Plural", ident)
+            || self.is_lingui_ident("Select", ident)
+            || self.is_lingui_ident("SelectOrdinal", ident)
     }
 
+    pub fn register_reference(&mut self, symbol: &JsWord, id: &Id) {
+        self.symbol_to_id_map
+            .entry(symbol.clone())
+            .or_default()
+            .insert(id.clone());
+        
+        self.id_to_symbol_map
+            .insert(id.clone(), symbol.clone());
+    }
     pub fn register_macro_import(&mut self, imp: &ImportDecl) {
         for spec in &imp.specifiers {
             if let ImportSpecifier::Named(spec) = spec {
                 if let Some(ModuleExportName::Ident(ident)) = &spec.imported {
-                    self.imports_id_map.insert(ident.sym.clone(), spec.local.to_id());
-                    self.imports_id_map_inverted.insert(spec.local.to_id(), ident.sym.clone());
+                    self.register_reference(&ident.sym, &spec.local.to_id());
                 } else {
-                    self.imports_id_map.insert(spec.local.sym.clone(), spec.local.to_id());
-                    self.imports_id_map_inverted.insert(spec.local.to_id(), spec.local.sym.clone());
-
+                    self.register_reference(&spec.local.sym, &spec.local.to_id());
                 }
             }
         }
@@ -88,7 +110,12 @@ impl MacroCtx {
     pub fn is_lingui_t_call_expr(&self, callee_expr: &Box<Expr>) -> (bool, Option<Box<Expr>>) {
         match callee_expr.as_ref() {
             // t(i18n)...
-            Expr::Call(call) if matches!(match_callee_name(call, |n| self.is_lingui_ident(LINGUI_T, n)), Some(_)) => {
+            Expr::Call(call)
+                if matches!(
+                    match_callee_name(call, |n| self.is_lingui_ident(LINGUI_T, n)),
+                    Some(_)
+                ) =>
+            {
                 if let Some(v) = call.args.get(0) {
                     (true, Some(v.expr.clone()))
                 } else {
@@ -96,12 +123,8 @@ impl MacroCtx {
                 }
             }
             // t..
-            Expr::Ident(ident) if self.is_lingui_ident(LINGUI_T, &ident) => {
-                (true, None)
-            }
-            _ => {
-                (false, None)
-            }
+            Expr::Ident(ident) if self.is_lingui_ident(LINGUI_T, &ident) => (true, None),
+            _ => (false, None),
         }
     }
 
@@ -110,7 +133,7 @@ impl MacroCtx {
         let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
-            tokens.push(MsgToken::String(tpl_element.raw.to_string()));
+            tokens.push(MsgToken::String(tpl_element.cooked.as_ref().unwrap_or(&tpl_element.raw).to_string()));
 
             if let Some(exp) = tpl.exprs.get(i) {
                 if let Expr::Call(call) = exp.as_ref() {
@@ -163,24 +186,16 @@ impl MacroCtx {
     pub fn try_tokenize_expr(&self, expr: &Box<Expr>) -> Option<Vec<MsgToken>> {
         match expr.as_ref() {
             // String Literal: "has # friend"
-            Expr::Lit(Lit::Str(str)) => {
-                Some(vec!(MsgToken::String(str.clone().value.to_string())))
-            }
+            Expr::Lit(Lit::Str(str)) => Some(vec![MsgToken::String(str.clone().value.to_string())]),
             // Template Literal: `${name} has # friend`
-            Expr::Tpl(tpl) => {
-                Some(self.tokenize_tpl(tpl))
-            }
+            Expr::Tpl(tpl) => Some(self.tokenize_tpl(tpl)),
 
             // ParenthesisExpression: ("has # friend")
-            Expr::Paren(ParenExpr { expr, .. }) => {
-                self.try_tokenize_expr(expr)
-            }
+            Expr::Paren(ParenExpr { expr, .. }) => self.try_tokenize_expr(expr),
 
             // Call Expression: {one: plural(numArticles, {...})}
-            Expr::Call(expr) => {
-                self.try_tokenize_call_expr_as_choice_cmp(expr)
-            }
-            _ => None
+            Expr::Call(expr) => self.try_tokenize_call_expr_as_choice_cmp(expr),
+            _ => None,
         }
     }
 
@@ -206,7 +221,11 @@ impl MacroCtx {
 
     /// receive ObjectLiteral {few: "..", many: "..", other: ".."} and create tokens
     /// If messages passed as TemplateLiterals with variables, it extracts variables
-    pub fn get_choice_cases_from_obj(&self, props: &Vec<PropOrSpread>, icu_format: &str) -> Vec<CaseOrOffset> {
+    pub fn get_choice_cases_from_obj(
+        &self,
+        props: &Vec<PropOrSpread>,
+        icu_format: &str,
+    ) -> Vec<CaseOrOffset> {
         // todo: there might be more props then real choices. Id for example
         let mut choices: Vec<CaseOrOffset> = Vec::with_capacity(props.len());
 
@@ -221,13 +240,11 @@ impl MacroCtx {
                                 // todo: panic offset might be only a number, other forms is not supported
                             }
                         } else {
-                            let tokens = self.try_tokenize_expr(&prop.value)
-                                .unwrap_or(vec!(MsgToken::Expression(prop.value.clone())));
+                            let tokens = self
+                                .try_tokenize_expr(&prop.value)
+                                .unwrap_or(vec![MsgToken::Expression(prop.value.clone())]);
 
-                            choices.push(CaseOrOffset::Case(ChoiceCase {
-                                tokens,
-                                key,
-                            }));
+                            choices.push(CaseOrOffset::Case(ChoiceCase { tokens, key }));
                         }
                     }
                 } else {
@@ -241,3 +258,4 @@ impl MacroCtx {
         choices
     }
 }
+

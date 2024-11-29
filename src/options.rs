@@ -18,12 +18,14 @@ struct RuntimeModulesConfig(
 pub struct RuntimeModulesConfigMap {
     i18n: Option<RuntimeModulesConfig>,
     trans: Option<RuntimeModulesConfig>,
+    use_lingui: Option<RuntimeModulesConfig>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RuntimeModulesConfigMapNormalized {
     pub i18n: (String, String),
     pub trans: (String, String),
+    pub use_lingui: (String, String),
 }
 
 impl LinguiJsOptions {
@@ -51,12 +53,22 @@ impl LinguiJsOptions {
                         .and_then(|o| o.1.clone())
                         .unwrap_or("Trans".into()),
                 ),
+                use_lingui: (
+                    self.runtime_modules.as_ref()
+                        .and_then(|o| o.use_lingui.as_ref())
+                        .and_then(|o| Some(o.0.clone()))
+                        .unwrap_or("@lingui/react".into()),
+                    self.runtime_modules.as_ref()
+                        .and_then(|o| o.use_lingui.as_ref())
+                        .and_then(|o| o.1.clone())
+                        .unwrap_or("useLingui".into()),
+                ),
             },
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LinguiOptions {
     pub strip_non_essential_fields: bool,
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
@@ -69,6 +81,7 @@ impl Default for LinguiOptions {
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: ("@lingui/core".into(), "i18n".into()),
                 trans: ("@lingui/react".into(), "Trans".into()),
+                use_lingui: ("@lingui/react".into(), "useLingui".into()),
             },
         }
     }
@@ -83,8 +96,9 @@ mod lib_tests {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "runtimeModules": {
-                    "i18n": ["@lingui/core", "i18n"],
-                    "trans": ["@lingui/react", "Trans"]
+                    "i18n": ["my-core", "myI18n"],
+                    "trans": ["my-react", "myTrans"],
+                    "useLingui": ["my-react", "myUseLingui"]
                 }
                }"#
         )
@@ -92,8 +106,9 @@ mod lib_tests {
 
         assert_eq!(config, LinguiJsOptions {
             runtime_modules: Some(RuntimeModulesConfigMap {
-                i18n: Some(RuntimeModulesConfig("@lingui/core".into(), Some("i18n".into()))),
-                trans: Some(RuntimeModulesConfig("@lingui/react".into(), Some("Trans".into()))),
+                i18n: Some(RuntimeModulesConfig("my-core".into(), Some("myI18n".into()))),
+                trans: Some(RuntimeModulesConfig("my-react".into(), Some("myTrans".into()))),
+                use_lingui: Some(RuntimeModulesConfig("my-react".into(), Some("myUseLingui".into()))),
             })
         })
     }
@@ -113,6 +128,7 @@ mod lib_tests {
             runtime_modules: Some(RuntimeModulesConfigMap {
                 i18n: Some(RuntimeModulesConfig("@lingui/core".into(), None)),
                 trans: None,
+                use_lingui: None,
             })
         })
     }

@@ -25,7 +25,7 @@ impl<'a> JsMacroFolder<'a> {
     }
 
     fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>) -> Expr {
-      let parsed = MessageBuilder::parse(tokens, false);
+      let parsed = MessageBuilder::parse(tokens);
 
       let mut props: Vec<PropOrSpread> = vec![
         create_key_value_prop("id", generate_message_id(&parsed.message_str, "").into()),
@@ -64,9 +64,8 @@ impl<'a> JsMacroFolder<'a> {
           span: DUMMY_SP,
           obj: callee_obj.unwrap_or_else(|| {
             self.ctx.should_add_18n_import = true;
-            let (_, i18n_export) = &self.ctx.options.runtime_modules.i18n;
 
-            return Box::new(IdentName::new(i18n_export.clone().into(), DUMMY_SP).into());
+            return Box::new(self.ctx.runtime_idents.i18n.clone().into());
           }),
           prop: MemberProp::Ident(IdentName::new("_".into(), DUMMY_SP)),
         }).as_callee(),
@@ -100,7 +99,7 @@ impl<'a> JsMacroFolder<'a> {
         if let Some(prop) = message_prop {
           let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_else(|| Vec::new());
 
-          let parsed = MessageBuilder::parse(tokens, false);
+          let parsed = MessageBuilder::parse(tokens);
 
           if !id_prop.is_some() {
             new_props.push(
@@ -200,6 +199,6 @@ impl<'a> Fold for JsMacroFolder<'a> {
             );
         }
 
-        expr
+        expr.fold_children_with(self)
     }
 }
