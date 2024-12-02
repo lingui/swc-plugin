@@ -29,7 +29,7 @@
   },
   "files": [],
   "peerDependencies": {
-    "@lingui/macro": "4"
+    "@lingui/core": "5"
   },
   "peerDependenciesMeta": {
     "@swc/core": {
