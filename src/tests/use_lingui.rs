@@ -136,6 +136,39 @@ function MyComponent() {
 );
 
 to!(
+    support_nested_macro_when_in_arrow_function_issue_2095,
+    // input
+     r#"
+import { plural } from '@lingui/core/macro'
+import { useLingui } from '@lingui/react/macro'
+
+const MyComponent = () => {
+  const { t } = useLingui();
+  const a = t`Text ${plural(users.length, {
+          offset: 1,
+          0: "No books",
+          1: "1 book",
+          other: "\# books"
+        })}`;
+}
+     "#,
+    // output after transform
+    r#"
+import { useLingui as $_useLingui } from "@lingui/react";
+const MyComponent = () => {
+    const { i18n: $__i18n, _: $__ } = $_useLingui();
+    const a = $__i18n._({
+        id: "hJRCh6",
+        message: "Text {0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}",
+        values: {
+            0: users.length
+        }
+    });
+}
+    "#
+);
+
+to!(
     support_passing_t_variable_as_dependency,
     // input
      r#"
