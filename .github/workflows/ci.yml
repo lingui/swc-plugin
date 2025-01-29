@@ -22,7 +22,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.TOOLCHAIN }}
-          targets: wasm32-wasi
+          targets: wasm32-wasip1
           components: rustfmt
 
       - uses: Swatinem/rust-cache@v2

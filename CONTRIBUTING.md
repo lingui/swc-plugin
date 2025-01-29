@@ -5,7 +5,7 @@ You can follow instructions at ['Install Rust' page from the official rust websi
 ## Add wasm target to rust
 
 ```bash
-rustup target add wasm32-wasi
+rustup target add wasm32-wasip1
 ```
 
 ## Running tests
@@ -23,10 +23,10 @@ cargo test jsx_
 ## Building for production
 
 ```bash
-# (alias for `cargo build --target wasm32-wasi`)
+# (alias for `cargo build --target wasm32-wasip1`)
 cargo build-wasi --release
 ```
-Then wasm binary would be on the path: `./target/wasm32-wasi/release/lingui_macro_plugin.wasm`
+Then wasm binary would be on the path: `./target/wasm32-wasip1/release/lingui_macro_plugin.wasm`
 
 You can check it in your own project or in the `examples/nextjs-13` example in this repo by specifying full path to the WASM binary:
 
@@ -35,7 +35,7 @@ You can check it in your own project or in the `examples/nextjs-13` example in t
 const nextConfig = {
   experimental: {
     swcPlugins: [
-      ['/Users/tim/projects/lingui-macro-plugin/target/wasm32-wasi/release/lingui_macro_plugin.wasm', {}],
+      ['/Users/tim/projects/lingui-macro-plugin/target/wasm32-wasip1/release/lingui_macro_plugin.wasm', {}],
     ],
   },
 };

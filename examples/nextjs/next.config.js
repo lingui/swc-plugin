@@ -1,7 +1,7 @@
 const path = require('node:path');
 
 const plugin = process.env.USE_LOCAL_PLUGIN_BINARY
-    ? path.join(__dirname, '../../target/wasm32-wasi/release/lingui_macro_plugin.wasm')
+    ? path.join(__dirname, '../../target/wasm32-wasip1/release/lingui_macro_plugin.wasm')
     : '@lingui/swc-plugin';
 
 
