@@ -146,7 +146,7 @@ mod lib_tests {
                 "runtimeModules": {}
                }"#
         )
-            .expect("invalid config for lingui-plugin");
+            .unwrap();
 
         let options = config.to_options("development");
         assert!(options.strip_non_essential_fields);
@@ -157,7 +157,7 @@ mod lib_tests {
                 "runtimeModules": {}
                }"#
         )
-            .expect("invalid config for lingui-plugin");
+            .unwrap();
 
         let options = config.to_options("production");
         assert!(!options.strip_non_essential_fields);
@@ -170,7 +170,7 @@ mod lib_tests {
                 "runtimeModules": {}
                }"#
         )
-            .expect("invalid config for lingui-plugin");
+            .unwrap();
 
         let options = config.to_options("development");
         assert!(!options.strip_non_essential_fields);
@@ -180,7 +180,7 @@ mod lib_tests {
                 "runtimeModules": {}
                }"#
         )
-            .expect("invalid config for lingui-plugin");
+            .unwrap(); 
 
         let options = config.to_options("production");
         assert!(options.strip_non_essential_fields);
