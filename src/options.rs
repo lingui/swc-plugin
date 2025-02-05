@@ -4,6 +4,8 @@ use serde::Deserialize;
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
     runtime_modules: Option<RuntimeModulesConfigMap>,
+    #[serde(default)]
+    strip_non_essential_fields: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -31,7 +33,8 @@ pub struct RuntimeModulesConfigMapNormalized {
 impl LinguiJsOptions {
     pub fn to_options(self, env_name: &str) -> LinguiOptions {
         LinguiOptions {
-            strip_non_essential_fields: matches!(env_name, "production"),
+            strip_non_essential_fields: self.strip_non_essential_fields
+                .unwrap_or_else(|| matches!(env_name, "production")),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules.as_ref()
@@ -109,7 +112,8 @@ mod lib_tests {
                 i18n: Some(RuntimeModulesConfig("my-core".into(), Some("myI18n".into()))),
                 trans: Some(RuntimeModulesConfig("my-react".into(), Some("myTrans".into()))),
                 use_lingui: Some(RuntimeModulesConfig("my-react".into(), Some("myUseLingui".into()))),
-            })
+            }),
+            strip_non_essential_fields: None,
         })
     }
 
@@ -129,7 +133,56 @@ mod lib_tests {
                 i18n: Some(RuntimeModulesConfig("@lingui/core".into(), None)),
                 trans: None,
                 use_lingui: None,
-            })
+            }),
+            strip_non_essential_fields: None,
         })
+    }
+
+    #[test]
+    fn test_strip_non_essential_fields_config() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "stripNonEssentialFields": true,
+                "runtimeModules": {}
+               }"#
+        )
+            .expect("invalid config for lingui-plugin");
+
+        let options = config.to_options("development");
+        assert!(options.strip_non_essential_fields);
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "stripNonEssentialFields": false,
+                "runtimeModules": {}
+               }"#
+        )
+            .expect("invalid config for lingui-plugin");
+
+        let options = config.to_options("production");
+        assert!(!options.strip_non_essential_fields);
+    }
+
+    #[test]
+    fn test_strip_non_essential_fields_default() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {}
+               }"#
+        )
+            .expect("invalid config for lingui-plugin");
+
+        let options = config.to_options("development");
+        assert!(!options.strip_non_essential_fields);
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {}
+               }"#
+        )
+            .expect("invalid config for lingui-plugin");
+
+        let options = config.to_options("production");
+        assert!(options.strip_non_essential_fields);
     }
 }
