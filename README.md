@@ -49,6 +49,9 @@ https://swc.rs/docs/configuration/swcrc
             //   "i18n": ["@lingui/core", "i18n"],
             //   "trans": ["@lingui/react", "Trans"]
             // }
+            // Lingui strips non-essential fields in production builds for performance.
+            // You can override the default behavior with:
+            // "stripNonEssentialFields": false/true
           },
         ],
       ],
