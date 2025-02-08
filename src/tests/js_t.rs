@@ -113,6 +113,69 @@ to!(
 );
 
 to!(
+    js_explicit_labels_in_tpl_literal,
+    // input
+    r#"
+   import { t } from "@lingui/core/macro";
+
+   t`Refresh ${{foo}} inbox`
+   t`Refresh ${{foo: foo.bar}} inbox`
+   t`Refresh ${{foo: expr()}} inbox`
+   t`Refresh ${{foo: bar, baz: qux}} inbox`
+   t`Refresh ${{}} inbox`
+   t`Refresh ${{...spread}} inbox`
+   "#,
+    // output after transform
+    r#"
+  import { i18n as $_i18n } from "@lingui/core";
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: foo
+      }
+  });
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: foo.bar
+      }
+  });
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: expr()
+      }
+  });
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: bar
+      }
+  });
+  $_i18n._({
+      id: "AmeQ8b",
+      message: "Refresh {0} inbox",
+      values: {
+          0: {}
+      }
+  });
+  $_i18n._({
+      id: "AmeQ8b",
+      message: "Refresh {0} inbox",
+      values: {
+          0: {
+              ...spread
+          }
+      }
+  });
+  "#
+);
+
+to!(
     js_custom_i18n_passed,
     // input
      r#"

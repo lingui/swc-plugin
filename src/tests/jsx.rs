@@ -144,6 +144,49 @@ to!(
 );
 
 to!(
+    jsx_explicit_labels,
+     r#"
+       import { Trans } from "@lingui/react/macro";
+
+       <Trans>Refresh {{foo}} inbox</Trans>;
+       <Trans>Refresh {{foo: foo.bar}} inbox</Trans>;
+       <Trans>Refresh {{foo: expr()}} inbox</Trans>;
+       <Trans>Refresh {{foo: bar, baz: qux}} inbox</Trans>;
+       <Trans>Refresh {{}} inbox</Trans>;
+       <Trans>Refresh {{...spread}} inbox</Trans>;
+     "#,
+    r#"
+       import { Trans as Trans_ } from "@lingui/react";
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: foo,
+        }}/>;
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: foo.bar,
+        }}/>;
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: expr(),
+        }}/>;
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: bar,
+        }}/>;
+       <Trans_ message={"Refresh {0} inbox"} id={"AmeQ8b"}
+        values={{
+          0: {},
+        }}/>;
+       <Trans_ message={"Refresh {0} inbox"} id={"AmeQ8b"}
+        values={{
+          0: {
+            ...spread,
+          },
+        }}/>;
+    "#
+);
+
+to!(
     jsx_template_literal_in_children,
      r#"
        import { Trans } from "@lingui/react/macro";

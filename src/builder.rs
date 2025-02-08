@@ -167,6 +167,45 @@ impl MessageBuilder {
 
                 return ident.sym.to_string();
             }
+            Expr::Object(object) => {
+              if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
+                // {foo}
+                if let Some(short) = prop.as_shorthand() {
+                  self.values_indexed.push(ValueWithPlaceholder {
+                    placeholder: short.sym.to_string(),
+                    value: Box::new(Expr::Ident(Ident {
+                      span: DUMMY_SP,
+                      sym: short.sym.clone(),
+                      ctxt: SyntaxContext::empty(),
+                      optional: false,
+                    })),
+                  });
+
+                  return short.sym.to_string();
+                }
+                // {foo: bar}
+                if let Prop::KeyValue(kv) = prop.as_ref() {
+                  if let PropName::Ident(ident) = &kv.key {
+                    self.values_indexed.push(ValueWithPlaceholder {
+                      placeholder: ident.sym.to_string(),
+                      value: kv.value.clone(),
+                    });
+
+                    return ident.sym.to_string();
+                  }
+                }
+              }
+
+              // fallback if {...spread} or {}
+              let index = self.values_indexed.len().to_string();
+
+              self.values_indexed.push(ValueWithPlaceholder {
+                  placeholder: index.clone(),
+                  value: exp.clone(),
+              });
+
+              return index;
+            }
             _ => {
                 let index = self.values_indexed.len().to_string();
 
