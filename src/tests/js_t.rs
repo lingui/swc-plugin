@@ -176,6 +176,106 @@ to!(
 );
 
 to!(
+  js_ph_labels_in_tpl_literal,
+  // input
+  r#"
+  import { t, ph } from "@lingui/core/macro";
+
+  t`Refresh ${ph({foo})} inbox`
+  t`Refresh ${ph({foo: foo.bar})} inbox`
+  t`Refresh ${ph({foo: expr()})} inbox`
+  t`Refresh ${ph({foo: bar, baz: qux})} inbox`
+  t`Refresh ${ph({})} inbox`
+  t`Refresh ${ph({...spread})} inbox`
+  "#,
+  // output after transform
+  r#"
+  import { i18n as $_i18n } from "@lingui/core";
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: foo
+      }
+  });
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: foo.bar
+      }
+  });
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: expr()
+      }
+  });
+  $_i18n._({
+      id: "rtxU8c",
+      message: "Refresh {foo} inbox",
+      values: {
+          foo: bar
+      }
+  });
+  $_i18n._({
+      id: "AmeQ8b",
+      message: "Refresh {0} inbox",
+      values: {
+          0: {}
+      }
+  });
+  $_i18n._({
+      id: "AmeQ8b",
+      message: "Refresh {0} inbox",
+      values: {
+          0: {
+              ...spread
+          }
+      }
+  });
+  "#
+);
+
+to!(
+  js_choice_labels_in_tpl_literal,
+  // input
+  r##"
+  import { t, ph, plural, select, selectOrdinal } from "@lingui/core/macro";
+
+  t`We have ${plural({count: getDevelopersCount()}, {one: "# developer", other: "# developers"})}`
+  t`${select(gender, {male: "he", female: "she", other: "they"})}`
+  t`${selectOrdinal(count, {one: "#st", two: "#nd", few: "#rd", other: "#th"})}`
+  "##,
+  // output after transform
+  r#"
+  import { i18n as $_i18n } from "@lingui/core";
+  $_i18n._({
+      id: "+7z66M",
+      message: "We have {count, plural, one {# developer} other {# developers}}",
+      values: {
+          count: getDevelopersCount()
+      }
+  });
+  $_i18n._({
+      id: "VRptzI",
+      message: "{gender, select, male {he} female {she} other {they}}",
+      values: {
+          gender: gender
+      }
+  });
+  $_i18n._({
+      id: "Q9Q8Bj",
+      message: "{count, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+      values: {
+          count: count
+      }
+  });
+  "#
+);
+
+to!(
     js_custom_i18n_passed,
     // input
      r#"

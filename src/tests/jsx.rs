@@ -187,6 +187,76 @@ to!(
 );
 
 to!(
+    jsx_ph_labels,
+     r#"
+       import { Trans, ph } from "@lingui/react/macro";
+
+       <Trans>Refresh {ph({foo})} inbox</Trans>;
+       <Trans>Refresh {ph({foo: foo.bar})} inbox</Trans>;
+       <Trans>Refresh {ph({foo: expr()})} inbox</Trans>;
+       <Trans>Refresh {ph({foo: bar, baz: qux})} inbox</Trans>;
+       <Trans>Refresh {ph({})} inbox</Trans>;
+       <Trans>Refresh {ph({...spread})} inbox</Trans>;
+     "#,
+    r#"
+       import { Trans as Trans_ } from "@lingui/react";
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: foo,
+        }}/>;
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: foo.bar,
+        }}/>;
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: expr(),
+        }}/>;
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: bar,
+        }}/>;
+       <Trans_ message={"Refresh {0} inbox"} id={"AmeQ8b"}
+        values={{
+          0: {},
+        }}/>;
+       <Trans_ message={"Refresh {0} inbox"} id={"AmeQ8b"}
+        values={{
+          0: {
+            ...spread,
+          },
+        }}/>;
+    "#
+);
+
+to!(
+    jsx_nested_labels,
+     r#"
+       import { Trans, ph } from "@lingui/react/macro";
+
+       <Trans>Refresh <span>{{foo}}</span> inbox</Trans>;
+       <Trans>Refresh <span>{ph({foo})}</span> inbox</Trans>;
+     "#,
+    r#"
+       import { Trans as Trans_ } from "@lingui/react";
+       <Trans_ message={"Refresh <0>{foo}</0> inbox"} id={"USNn2Q"}
+        values={{
+          foo: foo,
+        }}
+        components={{
+          0: <span />,
+        }}/>;
+       <Trans_ message={"Refresh <0>{foo}</0> inbox"} id={"USNn2Q"}
+        values={{
+          foo: foo,
+        }}
+        components={{
+          0: <span />,
+        }}/>;
+    "#
+);
+
+to!(
     jsx_template_literal_in_children,
      r#"
        import { Trans } from "@lingui/react/macro";

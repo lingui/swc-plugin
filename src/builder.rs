@@ -4,7 +4,7 @@ use swc_core::{
     ecma::ast::*,
 };
 
-use crate::tokens::{IcuChoice, CaseOrOffset, MsgToken};
+use crate::{macro_utils::MacroCtx, tokens::{CaseOrOffset, IcuChoice, MsgToken}};
 
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
     let mut uniques = HashSet::new();
@@ -38,7 +38,9 @@ pub struct MessageBuilderResult {
   pub components: Option<Box<Expr>>,
 }
 
-pub struct MessageBuilder {
+pub struct MessageBuilder<'a> {
+    ctx: &'a MacroCtx,
+
     message: String,
 
     components_stack: Vec<usize>,
@@ -48,9 +50,10 @@ pub struct MessageBuilder {
     values_indexed: Vec<ValueWithPlaceholder>,
 }
 
-impl MessageBuilder {
-    pub fn parse(tokens: Vec<MsgToken>) -> MessageBuilderResult {
+impl MessageBuilder<'_> {
+    pub fn parse(tokens: Vec<MsgToken>, ctx: &MacroCtx) -> MessageBuilderResult {
         let mut builder = MessageBuilder {
+            ctx,
             message: String::new(),
             components_stack: Vec::new(),
             components: Vec::new(),
@@ -166,43 +169,61 @@ impl MessageBuilder {
                 return ident.sym.to_string();
             }
             Expr::Object(object) => {
-              if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
-                // {foo}
-                if let Some(short) = prop.as_shorthand() {
-                  self.values_indexed.push(ValueWithPlaceholder {
-                    placeholder: short.sym.to_string(),
-                    value: Box::new(Expr::Ident(Ident {
-                      span: DUMMY_SP,
-                      sym: short.sym.clone(),
-                      ctxt: SyntaxContext::empty(),
-                      optional: false,
-                    })),
-                  });
+                if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
+                    // {foo}
+                    if let Some(short) = prop.as_shorthand() {
+                        self.values_indexed.push(ValueWithPlaceholder {
+                            placeholder: short.sym.to_string(),
+                            value: Box::new(Expr::Ident(Ident {
+                                span: DUMMY_SP,
+                                sym: short.sym.clone(),
+                                ctxt: SyntaxContext::empty(),
+                                optional: false,
+                            })),
+                        });
 
-                  return short.sym.to_string();
+                        return short.sym.to_string();
+                    }
+                    // {foo: bar}
+                    if let Prop::KeyValue(kv) = prop.as_ref() {
+                        if let PropName::Ident(ident) = &kv.key {
+                            self.values_indexed.push(ValueWithPlaceholder {
+                            placeholder: ident.sym.to_string(),
+                            value: kv.value.clone(),
+                            });
+
+                            return ident.sym.to_string();
+                        }
+                    }
                 }
-                // {foo: bar}
-                if let Prop::KeyValue(kv) = prop.as_ref() {
-                  if let PropName::Ident(ident) = &kv.key {
-                    self.values_indexed.push(ValueWithPlaceholder {
-                      placeholder: ident.sym.to_string(),
-                      value: kv.value.clone(),
-                    });
 
-                    return ident.sym.to_string();
-                  }
+                // fallback for {...spread} or {}
+                let index = self.values_indexed.len().to_string();
+
+                self.values_indexed.push(ValueWithPlaceholder {
+                    placeholder: index.clone(),
+                    value: exp.clone(),
+                });
+
+                return index;
+            }
+            Expr::Call(call) => {
+                // ph()
+                if call.callee.as_expr().is_some_and(|c| c.as_ident().map_or(false, |i| self.ctx.is_lingui_placeholder_expr(i))) {
+                    if let Some(first) = call.args.first() {
+                        return self.push_exp(first.expr.clone());
+                    }
                 }
-              }
 
-              // fallback if {...spread} or {}
-              let index = self.values_indexed.len().to_string();
+                // fallback for no arguments
+                let index = self.values_indexed.len().to_string();
 
-              self.values_indexed.push(ValueWithPlaceholder {
-                  placeholder: index.clone(),
-                  value: exp.clone(),
-              });
+                self.values_indexed.push(ValueWithPlaceholder {
+                    placeholder: index.clone(),
+                    value: exp.clone(),
+                });
 
-              return index;
+                return index;
             }
             _ => {
                 let index = self.values_indexed.len().to_string();
