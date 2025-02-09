@@ -1,9 +1,7 @@
 use std::collections::HashSet;
 use swc_core::{
-    common::{DUMMY_SP},
-    ecma::{
-        ast::*,
-    },
+    common::{SyntaxContext, DUMMY_SP},
+    ecma::ast::*,
 };
 
 use crate::tokens::{IcuChoice, CaseOrOffset, MsgToken};
