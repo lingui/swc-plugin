@@ -55,6 +55,11 @@ impl MacroCtx {
             || self.is_lingui_ident("selectOrdinal", ident)
     }
 
+    pub fn is_lingui_placeholder_expr(&self, ident: &Ident) -> bool {
+        return self.is_lingui_fn_choice_cmp(&ident)
+            || self.is_lingui_ident("ph", &ident);
+    }
+
     /// is given ident exported from @lingui/macro?
     pub fn is_lingui_ident(&self, name: &str, ident: &Ident) -> bool {
         self.symbol_to_id_map
