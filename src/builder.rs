@@ -4,7 +4,7 @@ use swc_core::{
     ecma::ast::*,
 };
 
-use crate::{macro_utils::MacroCtx, tokens::{CaseOrOffset, IcuChoice, MsgToken}};
+use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
 
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
     let mut uniques = HashSet::new();
@@ -38,9 +38,7 @@ pub struct MessageBuilderResult {
   pub components: Option<Box<Expr>>,
 }
 
-pub struct MessageBuilder<'a> {
-    ctx: &'a MacroCtx,
-
+pub struct MessageBuilder {
     message: String,
 
     components_stack: Vec<usize>,
@@ -50,10 +48,9 @@ pub struct MessageBuilder<'a> {
     values_indexed: Vec<ValueWithPlaceholder>,
 }
 
-impl MessageBuilder<'_> {
-    pub fn parse(tokens: Vec<MsgToken>, ctx: &MacroCtx) -> MessageBuilderResult {
+impl MessageBuilder {
+    pub fn parse(tokens: Vec<MsgToken>) -> MessageBuilderResult {
         let mut builder = MessageBuilder {
-            ctx,
             message: String::new(),
             components_stack: Vec::new(),
             components: Vec::new(),
@@ -108,6 +105,11 @@ impl MessageBuilder<'_> {
                 MsgToken::Expression(val) => {
                     let placeholder = self.push_exp(val);
                     self.push_msg(&format!("{{{placeholder}}}"));
+                }
+
+                MsgToken::PlaceholderCall(val) => {
+                  let placeholder = self.push_exp(val);
+                  self.push_msg(&format!("{{{placeholder}}}"));
                 }
 
                 MsgToken::TagOpening(val) => {
@@ -188,8 +190,8 @@ impl MessageBuilder<'_> {
                     if let Prop::KeyValue(kv) = prop.as_ref() {
                         if let PropName::Ident(ident) = &kv.key {
                             self.values_indexed.push(ValueWithPlaceholder {
-                            placeholder: ident.sym.to_string(),
-                            value: kv.value.clone(),
+                                placeholder: ident.sym.to_string(),
+                                value: kv.value.clone(),
                             });
 
                             return ident.sym.to_string();
@@ -198,24 +200,6 @@ impl MessageBuilder<'_> {
                 }
 
                 // fallback for {...spread} or {}
-                let index = self.values_indexed.len().to_string();
-
-                self.values_indexed.push(ValueWithPlaceholder {
-                    placeholder: index.clone(),
-                    value: exp.clone(),
-                });
-
-                return index;
-            }
-            Expr::Call(call) => {
-                // ph()
-                if call.callee.as_expr().is_some_and(|c| c.as_ident().map_or(false, |i| self.ctx.is_lingui_placeholder_expr(i))) {
-                    if let Some(first) = call.args.first() {
-                        return self.push_exp(first.expr.clone());
-                    }
-                }
-
-                // fallback for no arguments
                 let index = self.values_indexed.len().to_string();
 
                 self.values_indexed.push(ValueWithPlaceholder {

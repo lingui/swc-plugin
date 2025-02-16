@@ -74,7 +74,7 @@ impl LinguiMacroFolder {
             el.visit_children_with(&mut trans_visitor);
         }
 
-        let parsed = MessageBuilder::parse(trans_visitor.tokens, &self.ctx);
+        let parsed = MessageBuilder::parse(trans_visitor.tokens);
         let id_attr = get_jsx_attr(&el.opening, "id");
 
         let context_attr_val = get_jsx_attr(&el.opening, "context")
