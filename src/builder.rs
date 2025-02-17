@@ -1,12 +1,10 @@
 use std::collections::HashSet;
 use swc_core::{
-    common::{DUMMY_SP},
-    ecma::{
-        ast::*,
-    },
+    common::{SyntaxContext, DUMMY_SP},
+    ecma::ast::*,
 };
-
-use crate::tokens::{IcuChoice, CaseOrOffset, MsgToken};
+use crate::ast_utils::expand_ts_as_expr;
+use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
 
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
     let mut uniques = HashSet::new();
@@ -157,7 +155,9 @@ impl MessageBuilder {
         }
     }
 
-    fn push_exp(&mut self, exp: Box<Expr>) -> String {
+    fn push_exp(&mut self, mut exp: Box<Expr>) -> String {
+        exp = expand_ts_as_expr(exp);
+
         match exp.as_ref() {
             Expr::Ident(ident) => {
                 self.values.push(ValueWithPlaceholder {
@@ -165,7 +165,46 @@ impl MessageBuilder {
                     value: exp.clone(),
                 });
 
-                return ident.sym.to_string();
+                ident.sym.to_string()
+            }
+            Expr::Object(object) => {
+                if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
+                    // {foo}
+                    if let Some(short) = prop.as_shorthand() {
+                        self.values_indexed.push(ValueWithPlaceholder {
+                            placeholder: short.sym.to_string(),
+                            value: Box::new(Expr::Ident(Ident {
+                                span: DUMMY_SP,
+                                sym: short.sym.clone(),
+                                ctxt: SyntaxContext::empty(),
+                                optional: false,
+                            })),
+                        });
+
+                        return short.sym.to_string();
+                    }
+                    // {foo: bar}
+                    if let Prop::KeyValue(kv) = prop.as_ref() {
+                        if let PropName::Ident(ident) = &kv.key {
+                            self.values_indexed.push(ValueWithPlaceholder {
+                                placeholder: ident.sym.to_string(),
+                                value: kv.value.clone(),
+                            });
+
+                            return ident.sym.to_string();
+                        }
+                    }
+                }
+
+                // fallback for {...spread} or {}
+                let index = self.values_indexed.len().to_string();
+
+                self.values_indexed.push(ValueWithPlaceholder {
+                    placeholder: index.clone(),
+                    value: exp.clone(),
+                });
+
+                index
             }
             _ => {
                 let index = self.values_indexed.len().to_string();
@@ -175,7 +214,7 @@ impl MessageBuilder {
                     value: exp.clone(),
                 });
 
-                return index;
+                index
             }
         }
     }
