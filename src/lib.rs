@@ -239,7 +239,7 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
         let mut block = BlockStmt {
             span: n.span,
             stmts,
-            ctxt: SyntaxContext::empty()
+            ctxt: SyntaxContext::empty(),
         };
 
         // use lingui matched above
@@ -367,14 +367,14 @@ impl<'a> Fold for LinguiMacroFolder {
         }
 
         if let Expr::Arrow(arrow_expr) = expr {
-            return Expr::Arrow(self.fold_arrow_expr(arrow_expr))
+            return Expr::Arrow(self.fold_arrow_expr(arrow_expr));
         }
-        
+
         let mut folder = JsMacroFolder::new(&mut self.ctx);
-    
+
         folder.fold_expr(expr).fold_children_with(self)
     }
-    
+
     fn fold_call_expr(&mut self, expr: CallExpr) -> CallExpr {
         // If no package that we care about is imported, skip the following
         // transformation logic.

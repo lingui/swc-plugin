@@ -1,9 +1,9 @@
-use crate::{to};
+use crate::to;
 
 to!(
     js_use_lingui_hook,
     // input
-     r#"
+    r#"
      import { useLingui } from "@lingui/react/macro";
 
      const bla1 = () => {
@@ -37,7 +37,7 @@ to!(
 to!(
     support_renamed_destructuring,
     // input
-     r#"
+    r#"
 import { useLingui } from '@lingui/react/macro';
 
 function MyComponent() {
@@ -61,7 +61,7 @@ function MyComponent() {
 to!(
     should_process_macro_with_matching_name_in_correct_scopes,
     // input
-     r#"
+    r#"
 import { useLingui } from '@lingui/react/macro';
 
 function MyComponent() {
@@ -105,7 +105,7 @@ function MyComponent() {
 to!(
     support_nested_macro,
     // input
-     r#"
+    r#"
 import { useLingui } from '@lingui/react/macro';
 import { plural } from '@lingui/core/macro';
 
@@ -138,7 +138,7 @@ function MyComponent() {
 to!(
     support_nested_macro_when_in_arrow_function_issue_2095,
     // input
-     r#"
+    r#"
 import { plural } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 
@@ -171,7 +171,7 @@ const MyComponent = () => {
 to!(
     support_passing_t_variable_as_dependency,
     // input
-     r#"
+    r#"
 import { useLingui } from '@lingui/react/macro';
 
 function MyComponent() {
@@ -197,7 +197,7 @@ function MyComponent() {
 to!(
     work_when_t_is_not_used,
     // input
-     r#"
+    r#"
 import { useLingui } from '@lingui/react/macro';
 
 function MyComponent() {
@@ -218,7 +218,7 @@ function MyComponent() {
 to!(
     work_with_existing_use_lingui_statement,
     // input
-     r#"
+    r#"
 import { useLingui as useLinguiMacro } from '@lingui/react/macro';
 import { useLingui } from '@lingui/react';
 
@@ -246,11 +246,10 @@ function MyComponent() {
     "#
 );
 
-
 to!(
     work_with_multiple_react_components,
     // input
-     r#"
+    r#"
 import { useLingui } from '@lingui/react/macro';
 
 function MyComponent() {
@@ -286,7 +285,7 @@ function MyComponent2() {
 to!(
     work_with_components_defined_as_arrow_function,
     // input
-     r#"
+    r#"
 import { useLingui } from '@lingui/react/macro';
 
 const MyComponent = () => {

@@ -1,8 +1,8 @@
-use crate::{to};
+use crate::to;
 
 to!(
     jsx_simple_jsx,
-     r#"
+    r#"
 import { Trans } from "@lingui/react/macro";
 const exp1 = <Custom>Refresh inbox</Custom>;
 const exp2 = <Trans>Refresh inbox</Trans>;
@@ -18,7 +18,7 @@ const exp3 = <div><Trans_ message={"Refresh inbox"} id={"EsCV2T"}/></div>;
 
 to!(
     jsx_should_suppor_legacy_import,
-     r#"
+    r#"
 import { Trans } from "@lingui/macro";
 const exp2 = <Trans>Refresh inbox</Trans>;
      "#,
@@ -30,7 +30,7 @@ const exp2 = <Trans_ message={"Refresh inbox"} id={"EsCV2T"}/>;
 
 to!(
     jsx_with_custom_id,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
      "#,
@@ -42,7 +42,7 @@ to!(
 
 to!(
     jsx_with_context,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        const exp1 = <Trans>Refresh inbox</Trans>;
        const exp2 = <Trans context="My Context">Refresh inbox</Trans>;
@@ -56,7 +56,7 @@ to!(
 
 to!(
     jsx_preserve_reserved_attrs,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        const exp2 = <Trans comment="Translators Comment" context="Message Context" i18n="i18n" component={(p) => <div>{p.translation}</div>} render={(v) => v}>Refresh inbox</Trans>;
      "#,
@@ -68,7 +68,7 @@ to!(
 
 to!(
     jsx_expressions_are_converted_to_positional_arguments,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        <Trans>
           Property {props.name},
@@ -97,7 +97,7 @@ to!(
 
 to!(
     jsx_components_interpolation,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        <Trans>
           Hello <strong>World!</strong><br />
@@ -126,7 +126,7 @@ to!(
 
 to!(
     jsx_values_dedup,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        <Trans>
           Hello {foo} and {foo}{" "}
@@ -145,7 +145,7 @@ to!(
 
 to!(
     jsx_explicit_labels_with_as_statement,
-r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        <Trans>Refresh {{foo} as unknown as string} inbox</Trans>;
        "#,
@@ -160,7 +160,7 @@ r#"
 
 to!(
     jsx_explicit_labels,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
 
        <Trans>Refresh {{foo}} inbox</Trans>;
@@ -203,7 +203,7 @@ to!(
 
 to!(
     jsx_ph_labels,
-     r#"
+    r#"
        import { Trans, ph } from "@lingui/react/macro";
 
        <Trans>Refresh {ph({foo})} inbox</Trans>;
@@ -246,7 +246,7 @@ to!(
 
 to!(
     jsx_nested_labels,
-     r#"
+    r#"
        import { Trans, ph } from "@lingui/react/macro";
 
        <Trans>Refresh <span>{{foo}}</span> inbox</Trans>;
@@ -273,7 +273,7 @@ to!(
 
 to!(
     jsx_template_literal_in_children,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        <Trans>{`Hello ${foo} and ${bar}`}</Trans>
      "#,
@@ -288,12 +288,11 @@ to!(
 
 to!(
     quoted_jsx_attributes_are_handled,
-     r#"
+    r#"
        import { Trans } from "@lingui/react/macro";
        <Trans>Speak "friend"!</Trans>;
        <Trans id="custom-id">Speak "friend"!</Trans>;
      "#,
-
     r#"
       import { Trans as Trans_ } from "@lingui/react";
       <Trans_ message={'Speak "friend"!'} id={"NWmRwM"}/>;
@@ -303,13 +302,12 @@ to!(
 
 to!(
     html_attributes_are_handled,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>
           <Text>This should work &nbsp;</Text>
         </Trans>;
      "#,
-
     r#"
      import { Trans as Trans_ } from "@lingui/react";
      <Trans_ message={"<0>This should work  </0>"} id={"K/1Xpr"}
@@ -322,7 +320,7 @@ to!(
 
 to!(
     use_decoded_html_entities,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>&amp;</Trans>
      "#,
@@ -332,10 +330,9 @@ to!(
     "#
 );
 
-
 to!(
     elements_inside_expression_container,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>{<span>Component inside expression container</span>}</Trans>;
      "#,
@@ -352,11 +349,10 @@ to!(
 
 to!(
     elements_without_children,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>{<br />}</Trans>;
      "#,
-
     r#"
         import { Trans as Trans_ } from "@lingui/react";
         <Trans_ message={"<0/>"} id={"SCJtqt"} components={{
@@ -380,7 +376,7 @@ to!(
 
 to!(
     strip_whitespace_around_arguments,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>
           Strip whitespace around arguments: '
@@ -398,7 +394,7 @@ to!(
 
 to!(
     strip_whitespace_around_tags_but_keep_forced_spaces,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>
           Strip whitespace around tags, but keep{" "}
@@ -406,7 +402,6 @@ to!(
           !
         </Trans>
      "#,
-
     r#"
         import { Trans as Trans_ } from "@lingui/react";
         <Trans_ message={"Strip whitespace around tags, but keep <0>forced spaces</0>!"} id={"Ud4KOf"} components={{
@@ -417,7 +412,7 @@ to!(
 
 to!(
     keep_multiple_forced_newlines,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>
           Keep multiple{"\n"}
@@ -425,7 +420,6 @@ to!(
           newlines!
         </Trans>
      "#,
-
     r#"
         import { Trans as Trans_ } from "@lingui/react";
         <Trans_ message={"Keep multiple\nforced\nnewlines!"} id={"9xE5pD"}/>;
@@ -434,7 +428,7 @@ to!(
 
 to!(
     use_js_macro_in_jsx_attrs,
-     r#"
+    r#"
         import { t } from '@lingui/core/macro';
         import { Trans } from '@lingui/react/macro';
         <Trans>Read <a href="/more" title={t`Full content of ${articleName}`}>more</a></Trans>
@@ -456,14 +450,13 @@ to!(
 
 to!(
     use_js_plural_in_jsx_attrs,
-     r#"
+    r#"
         import { plural } from '@lingui/core/macro';
         <a href="/about" title={plural(count, {
           one: "\# book",
           other: "\# books"
         })}>About</a>
      "#,
-
     r#"
         import { i18n as $_i18n } from "@lingui/core";
         <a href="/about" title={$_i18n._({
@@ -479,7 +472,7 @@ to!(
 
 to!(
     ignore_jsx_empty_expression,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans>Hello {/* and I cannot stress this enough */} World</Trans>;
      "#,
@@ -492,7 +485,7 @@ to!(
 to!(
     production,
     production_only_essential_props_are_kept,
-     r#"
+    r#"
         import { Trans } from "@lingui/react/macro";
         <Trans
         id="msg.hello"
@@ -501,7 +494,6 @@ to!(
         context="My Context"
         comment="Hello World">Hello <strong>{name}</strong></Trans>
      "#,
-
     r#"
         import { Trans as Trans_ } from "@lingui/react";
         <Trans_
@@ -515,7 +507,7 @@ to!(
 );
 to!(
     strip_whitespaces_in_jsxtext_but_keep_in_jsx_expression_containers,
-     r#"
+    r#"
       import { Trans } from "@lingui/react/macro";
         <Trans>
         {"Wonderful framework "}
@@ -525,7 +517,6 @@ to!(
         {" say hi."}
       </Trans>
      "#,
-
     r#"
       import { Trans as Trans_ } from "@lingui/react";
 
@@ -555,4 +546,3 @@ to!(
 //         <Trans id="msg.hello" />;
 //       `,
 //   },
-

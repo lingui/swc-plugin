@@ -2,8 +2,8 @@ use crate::ast_utils::*;
 use crate::tokens::*;
 use crate::LinguiOptions;
 use std::collections::{HashMap, HashSet};
-use swc_core::ecma::{ast::*, atoms::JsWord};
 use swc_core::ecma::utils::quote_ident;
+use swc_core::ecma::{ast::*, atoms::JsWord};
 
 const LINGUI_T: &str = &"t";
 
@@ -93,9 +93,8 @@ impl MacroCtx {
             .entry(symbol.clone())
             .or_default()
             .insert(id.clone());
-        
-        self.id_to_symbol_map
-            .insert(id.clone(), symbol.clone());
+
+        self.id_to_symbol_map.insert(id.clone(), symbol.clone());
     }
     pub fn register_macro_import(&mut self, imp: &ImportDecl) {
         for spec in &imp.specifiers {
@@ -137,7 +136,13 @@ impl MacroCtx {
         let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
-            tokens.push(MsgToken::String(tpl_element.cooked.as_ref().unwrap_or(&tpl_element.raw).to_string()));
+            tokens.push(MsgToken::String(
+                tpl_element
+                    .cooked
+                    .as_ref()
+                    .unwrap_or(&tpl_element.raw)
+                    .to_string(),
+            ));
 
             if let Some(exp) = tpl.exprs.get(i) {
                 if let Expr::Call(call) = exp.as_ref() {
@@ -145,7 +150,8 @@ impl MacroCtx {
                         tokens.extend(call_tokens);
                         continue;
                     }
-                    if let Some(placeholder) = self.try_tokenize_call_expr_as_placeholder_call(call) {
+                    if let Some(placeholder) = self.try_tokenize_call_expr_as_placeholder_call(call)
+                    {
                         tokens.push(placeholder);
                         continue;
                     }
@@ -192,7 +198,10 @@ impl MacroCtx {
     }
 
     pub fn try_tokenize_call_expr_as_placeholder_call(&self, expr: &CallExpr) -> Option<MsgToken> {
-        if expr.callee.as_expr().is_some_and(|c| c.as_ident().map_or(false, |i| self.is_lingui_placeholder_expr(i))) {
+        if expr.callee.as_expr().is_some_and(|c| {
+            c.as_ident()
+                .map_or(false, |i| self.is_lingui_placeholder_expr(i))
+        }) {
             if let Some(first) = expr.args.first() {
                 return Some(MsgToken::Expression(first.expr.clone()));
             }
@@ -276,4 +285,3 @@ impl MacroCtx {
         choices
     }
 }
-

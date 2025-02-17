@@ -23,7 +23,7 @@ pub struct IcuChoice {
 
 pub enum CaseOrOffset {
     Case(ChoiceCase),
-    Offset(String)
+    Offset(String),
 }
 pub struct ChoiceCase {
     pub key: JsWord,

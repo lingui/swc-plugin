@@ -8,9 +8,7 @@ macro_rules! to {
                 tsx: true,
                 ..Default::default()
             }),
-            |_| {
-              $crate::LinguiMacroFolder::new($options)
-            },
+            |_| { $crate::LinguiMacroFolder::new($options) },
             $name,
             $from,
             $to
@@ -28,7 +26,7 @@ to!(
         },
         ..Default::default()
     },
-     r#"
+    r#"
      import { t } from "@lingui/core/macro";
      import { Trans } from "@lingui/react/macro";
 

@@ -1,8 +1,8 @@
-use crate::{to};
+use crate::to;
 
 to!(
     js_icu_macro,
-     r#"
+    r#"
     import { plural, select, selectOrdinal } from "@lingui/core/macro";
     const messagePlural = plural(count, {
        one: '# Book',
@@ -48,7 +48,7 @@ to!(
 
 to!(
     js_icu_diffrent_object_literal_syntax,
-     r#"
+    r#"
         import { plural } from "@lingui/core/macro";
 
         const messagePlural = plural(count, {
@@ -72,7 +72,7 @@ to!(
 
 to!(
     js_choices_may_contain_expressions,
-     r#"
+    r#"
 import { plural, select, selectOrdinal } from "@lingui/core/macro";
 const messagePlural = plural(count, {
    one: foo.bar,
@@ -111,7 +111,7 @@ const messageSelect = $_i18n._({
 
 to!(
     js_should_not_touch_non_lungui_fns,
-     r#"
+    r#"
     import { plural } from "@lingui/core/macro";
     const messagePlural = customName(count, {
        one: '# Book',
@@ -128,7 +128,7 @@ to!(
 
 to!(
     js_plural_with_placeholders,
-     r#"
+    r#"
        import { plural } from "@lingui/core/macro";
 
        const message = plural(count, {
@@ -151,7 +151,7 @@ to!(
 
 to!(
     js_dedup_values_in_icu,
-     r#"
+    r#"
        import { plural } from "@lingui/core/macro";
 
        const message = plural(count, {
@@ -175,7 +175,7 @@ to!(
 
 to!(
     js_icu_nested_in_t,
-     r#"
+    r#"
         import { t, selectOrdinal } from '@lingui/macro'
 
         t`This is my ${selectOrdinal(count, {
@@ -199,7 +199,7 @@ to!(
 
 to!(
     js_icu_nested_in_choices,
-     r#"
+    r#"
 import { plural } from "@lingui/core/macro"
 const message = plural(numBooks, {
    one: plural(numArticles, {
@@ -227,7 +227,7 @@ const message = $_i18n._({
 
 to!(
     js_plural_with_offset_and_exact_matches,
-     r#"
+    r#"
         import { plural } from '@lingui/macro'
         plural(users.length, {
           offset: 1,
@@ -250,7 +250,7 @@ to!(
 
 to!(
     js_should_not_treat_offset_in_select,
-     r#"
+    r#"
         import { select } from '@lingui/macro'
         select(value, {
           offset: "..",

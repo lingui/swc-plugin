@@ -8,7 +8,11 @@ macro_rules! to {
             }),
             |_| {
                 swc_core::common::chain!(
-                    swc_core::ecma::transforms::base::resolver(swc_core::common::Mark::new(), swc_core::common::Mark::new(), true),
+                    swc_core::ecma::transforms::base::resolver(
+                        swc_core::common::Mark::new(),
+                        swc_core::common::Mark::new(),
+                        true
+                    ),
                     $crate::LinguiMacroFolder::default()
                 )
             },
@@ -26,9 +30,12 @@ macro_rules! to {
             }),
             |_| {
                 swc_core::common::chain!(
-                    swc_core::ecma::transforms::base::resolver(swc_core::common::Mark::new(), swc_core::common::Mark::new(), true),
-                    $crate::LinguiMacroFolder::new(
-                         $crate::LinguiOptions {
+                    swc_core::ecma::transforms::base::resolver(
+                        swc_core::common::Mark::new(),
+                        swc_core::common::Mark::new(),
+                        true
+                    ),
+                    $crate::LinguiMacroFolder::new($crate::LinguiOptions {
                         strip_non_essential_fields: true,
                         ..Default::default()
                     })
@@ -38,5 +45,5 @@ macro_rules! to {
             $from,
             $to
         );
-    }
+    };
 }
