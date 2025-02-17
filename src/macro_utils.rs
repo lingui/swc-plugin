@@ -56,8 +56,7 @@ impl MacroCtx {
     }
 
     pub fn is_lingui_placeholder_expr(&self, ident: &Ident) -> bool {
-        return self.is_lingui_fn_choice_cmp(&ident)
-            || self.is_lingui_ident("ph", &ident);
+        self.is_lingui_ident("ph", &ident)
     }
 
     /// is given ident exported from @lingui/macro?
