@@ -144,6 +144,21 @@ to!(
 );
 
 to!(
+    jsx_explicit_labels_with_as_statement,
+r#"
+       import { Trans } from "@lingui/react/macro";
+       <Trans>Refresh {{foo} as unknown as string} inbox</Trans>;
+       "#,
+    r#"
+    import { Trans as Trans_ } from "@lingui/react";
+       <Trans_ message={"Refresh {foo} inbox"} id={"rtxU8c"}
+        values={{
+          foo: foo,
+        }}/>;
+        "#
+);
+
+to!(
     jsx_explicit_labels,
      r#"
        import { Trans } from "@lingui/react/macro";

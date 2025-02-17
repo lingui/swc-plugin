@@ -154,6 +154,14 @@ pub fn get_prop_key(prop: &KeyValueProp) -> Option<&JsWord> {
     }
 }
 
+// recursively expands TypeScript's as expressions until it reaches a real value
+pub fn expand_ts_as_expr(mut expr: Box<Expr>) -> Box<Expr> {
+    while let Expr::TsAs(TsAsExpr { expr: inner_expr, .. }) = *expr {
+        expr = inner_expr;
+    }
+    expr
+}
+
 pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     return PropOrSpread::Prop(Box::new(Prop::KeyValue(
         KeyValueProp {

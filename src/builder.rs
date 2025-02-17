@@ -3,7 +3,7 @@ use swc_core::{
     common::{SyntaxContext, DUMMY_SP},
     ecma::ast::*,
 };
-
+use crate::ast_utils::expand_ts_as_expr;
 use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
 
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
@@ -155,7 +155,9 @@ impl MessageBuilder {
         }
     }
 
-    fn push_exp(&mut self, exp: Box<Expr>) -> String {
+    fn push_exp(&mut self, mut exp: Box<Expr>) -> String {
+        exp = expand_ts_as_expr(exp);
+
         match exp.as_ref() {
             Expr::Ident(ident) => {
                 self.values.push(ValueWithPlaceholder {
@@ -163,7 +165,7 @@ impl MessageBuilder {
                     value: exp.clone(),
                 });
 
-                return ident.sym.to_string();
+                ident.sym.to_string()
             }
             Expr::Object(object) => {
                 if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
@@ -202,7 +204,7 @@ impl MessageBuilder {
                     value: exp.clone(),
                 });
 
-                return index;
+                index
             }
             _ => {
                 let index = self.values_indexed.len().to_string();
@@ -212,7 +214,7 @@ impl MessageBuilder {
                     value: exp.clone(),
                 });
 
-                return index;
+                index
             }
         }
     }
