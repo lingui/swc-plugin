@@ -153,7 +153,7 @@ pub fn get_object_prop<'a>(props: &'a Vec<PropOrSpread>, name: &str) -> Option<&
 
 pub fn get_prop_key(prop: &KeyValueProp) -> Option<&JsWord> {
     match &prop.key {
-        PropName::Ident(IdentName { sym, .. }) | PropName::Str(Str { value: sym, .. }) => Some(sym),
+PropName::Ident(IdentName { sym, .. }) | PropName::Str(Str { value: sym, .. }) => Some(sym),
         _ => None,
     }
 }
