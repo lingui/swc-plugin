@@ -195,7 +195,7 @@ impl MacroCtx {
     pub fn try_tokenize_call_expr_as_placeholder_call(&self, expr: &CallExpr) -> Option<MsgToken> {
         if expr.callee.as_expr().is_some_and(|c| c.as_ident().map_or(false, |i| self.is_lingui_placeholder_expr(i))) {
             if let Some(first) = expr.args.first() {
-                return Some(MsgToken::PlaceholderCall(first.expr.clone()));
+                return Some(MsgToken::Expression(first.expr.clone()));
             }
         }
 

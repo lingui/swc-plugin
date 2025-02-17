@@ -107,11 +107,6 @@ impl MessageBuilder {
                     self.push_msg(&format!("{{{placeholder}}}"));
                 }
 
-                MsgToken::PlaceholderCall(val) => {
-                  let placeholder = self.push_exp(val);
-                  self.push_msg(&format!("{{{placeholder}}}"));
-                }
-
                 MsgToken::TagOpening(val) => {
                     self.push_tag_opening(val.el, val.self_closing);
                 }

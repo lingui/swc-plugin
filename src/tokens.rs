@@ -4,7 +4,6 @@ use swc_core::ecma::atoms::JsWord;
 pub enum MsgToken {
     String(String),
     Expression(Box<Expr>),
-    PlaceholderCall(Box<Expr>),
     TagOpening(TagOpening),
     TagClosing,
     IcuChoice(IcuChoice),
