@@ -1,8 +1,8 @@
-use crate::{to};
+use crate::to;
 
 to!(
     should_transform_define_message,
-     r#"
+    r#"
         import { defineMessage, msg } from '@lingui/macro';
         const message1 = defineMessage({
           comment: "Description",
@@ -27,7 +27,7 @@ to!(
 
 to!(
     define_message_should_support_template_literal,
-     r#"
+    r#"
         import { defineMessage, msg } from '@lingui/macro';
         const message1 = defineMessage`Message`;
         const message2 = msg`Message`
@@ -46,7 +46,7 @@ to!(
 
 to!(
     should_preserve_custom_id,
-     r#"
+    r#"
         import { defineMessage, plural, arg } from '@lingui/macro';
         const message = defineMessage({
           comment: "Description",
@@ -64,7 +64,7 @@ to!(
 
 to!(
     should_expand_values,
-     r#"
+    r#"
         import { defineMessage, plural, arg } from '@lingui/macro';
         const message = defineMessage({
           message: `Hello ${name}`
@@ -83,7 +83,7 @@ to!(
 
 to!(
     should_expand_macros,
-     r#"
+    r#"
         import { defineMessage, plural, arg } from '@lingui/macro';
         const message = defineMessage({
           comment: "Description",
@@ -114,7 +114,7 @@ to!(
             context: 'My Context',
         })
     "#,
-     r#"
+    r#"
        const message1 = {
          id: "xDAtGP",
        };

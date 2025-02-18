@@ -228,7 +228,9 @@ impl<'a> Visit for TransJSXVisitor<'a> {
                 Expr::Call(call) => {
                     if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(call) {
                         self.tokens.extend(tokens);
-                    } else if let Some(placeholder) = self.ctx.try_tokenize_call_expr_as_placeholder_call(call) {
+                    } else if let Some(placeholder) =
+                        self.ctx.try_tokenize_call_expr_as_placeholder_call(call)
+                    {
                         self.tokens.push(placeholder);
                     } else {
                         self.tokens.push(MsgToken::Expression(exp.clone()));

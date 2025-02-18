@@ -1,9 +1,9 @@
-use crate::{to};
+use crate::to;
 
 to!(
     js_should_not_touch_code_if_no_macro_import,
     // input
-     r#"
+    r#"
      t`Refresh inbox`;
      "#,
     // output after transform
@@ -15,7 +15,7 @@ to!(
 to!(
     js_should_not_touch_not_related_tagget_tpls,
     // input
-     r#"
+    r#"
      import { t } from "@lingui/core/macro";
 
      b`Refresh inbox`;
@@ -31,7 +31,7 @@ to!(
 to!(
     js_should_work_with_legacy_import,
     // input
-     r#"
+    r#"
      import { t } from "@lingui/macro";
 
     t`Refresh inbox`;
@@ -50,7 +50,7 @@ to!(
 to!(
     js_substitution_in_tpl_literal,
     // input
-     r#"
+    r#"
      import { t } from "@lingui/core/macro";
 
      t`Refresh inbox`
@@ -94,7 +94,7 @@ to!(
 to!(
     js_dedup_values_in_tpl_literal,
     // input
-     r#"
+    r#"
      import { t } from "@lingui/core/macro";
      t`Refresh ${foo} inbox ${foo}`
      "#,
@@ -176,9 +176,9 @@ to!(
 );
 
 to!(
-  js_ph_labels_in_tpl_literal,
-  // input
-  r#"
+    js_ph_labels_in_tpl_literal,
+    // input
+    r#"
   import { t, ph } from "@lingui/core/macro";
 
   t`Refresh ${ph({foo})} inbox`
@@ -188,8 +188,8 @@ to!(
   t`Refresh ${ph({})} inbox`
   t`Refresh ${ph({...spread})} inbox`
   "#,
-  // output after transform
-  r#"
+    // output after transform
+    r#"
   import { i18n as $_i18n } from "@lingui/core";
   $_i18n._({
       id: "rtxU8c",
@@ -239,17 +239,17 @@ to!(
 );
 
 to!(
-  js_choice_labels_in_tpl_literal,
-  // input
-  r##"
+    js_choice_labels_in_tpl_literal,
+    // input
+    r##"
   import { t, ph, plural, select, selectOrdinal } from "@lingui/core/macro";
 
   t`We have ${plural({count: getDevelopersCount()}, {one: "# developer", other: "# developers"})}`
   t`${select(gender, {male: "he", female: "she", other: "they"})}`
   t`${selectOrdinal(count, {one: "#st", two: "#nd", few: "#rd", other: "#th"})}`
   "##,
-  // output after transform
-  r#"
+    // output after transform
+    r#"
   import { i18n as $_i18n } from "@lingui/core";
   $_i18n._({
       id: "+7z66M",
@@ -278,7 +278,7 @@ to!(
 to!(
     js_custom_i18n_passed,
     // input
-     r#"
+    r#"
      import { t } from "@lingui/core/macro";
      import { custom_i18n } from "./i18n";
 
@@ -335,7 +335,7 @@ to!(
          t`Multiline
            string`;
     "#,
-     r#"
+    r#"
         import { i18n as $_i18n } from "@lingui/core";
         $_i18n._({
             id: "amQF7O",
@@ -351,7 +351,7 @@ to!(
          t`Multiline\
            string`;
     "#,
-     r#"
+    r#"
         import { i18n as $_i18n } from "@lingui/core";
         $_i18n._({
             id: "d1nA7b",
@@ -366,7 +366,7 @@ to!(
        t`Message \u0020`;
        t`Bienvenue\xA0!`
     "#,
-     r#"
+    r#"
         import { i18n as $_i18n } from "@lingui/core";
         $_i18n._({
             id: "dZXeyN",
@@ -384,7 +384,7 @@ to!(
         import { t } from '@lingui/core/macro'
         const msg = t({ message: `Hello ${name}`, id: 'msgId', comment: 'description for translators'  })
     "#,
-     r#"
+    r#"
          import { i18n as $_i18n } from "@lingui/core";
          const msg = $_i18n._({
           id: "msgId",
@@ -402,7 +402,7 @@ to!(
         import { t } from '@lingui/core/macro'
         const msg = message.error(t({message: "dasd"}))
     "#,
-     r#"
+    r#"
         import { i18n as $_i18n } from "@lingui/core";
         const msg = message.error(
           $_i18n._(
@@ -493,7 +493,6 @@ to!(
         });
     "#
 );
-
 
 to!(
     should_generate_diffrent_id_when_context_provided,

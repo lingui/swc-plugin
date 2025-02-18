@@ -9,11 +9,7 @@ pub struct LinguiJsOptions {
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
-struct RuntimeModulesConfig(
-    String,
-    #[serde(default)]
-    Option<String>,
-);
+struct RuntimeModulesConfig(String, #[serde(default)] Option<String>);
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -33,35 +29,42 @@ pub struct RuntimeModulesConfigMapNormalized {
 impl LinguiJsOptions {
     pub fn to_options(self, env_name: &str) -> LinguiOptions {
         LinguiOptions {
-            strip_non_essential_fields: self.strip_non_essential_fields
+            strip_non_essential_fields: self
+                .strip_non_essential_fields
                 .unwrap_or_else(|| matches!(env_name, "production")),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
-                    self.runtime_modules.as_ref()
+                    self.runtime_modules
+                        .as_ref()
                         .and_then(|o| o.i18n.as_ref())
                         .and_then(|o| Some(o.0.clone()))
                         .unwrap_or("@lingui/core".into()),
-                    self.runtime_modules.as_ref()
+                    self.runtime_modules
+                        .as_ref()
                         .and_then(|o| o.i18n.as_ref())
                         .and_then(|o| o.1.clone())
                         .unwrap_or("i18n".into()),
                 ),
                 trans: (
-                    self.runtime_modules.as_ref()
+                    self.runtime_modules
+                        .as_ref()
                         .and_then(|o| o.trans.as_ref())
                         .and_then(|o| Some(o.0.clone()))
                         .unwrap_or("@lingui/react".into()),
-                    self.runtime_modules.as_ref()
+                    self.runtime_modules
+                        .as_ref()
                         .and_then(|o| o.trans.as_ref())
                         .and_then(|o| o.1.clone())
                         .unwrap_or("Trans".into()),
                 ),
                 use_lingui: (
-                    self.runtime_modules.as_ref()
+                    self.runtime_modules
+                        .as_ref()
                         .and_then(|o| o.use_lingui.as_ref())
                         .and_then(|o| Some(o.0.clone()))
                         .unwrap_or("@lingui/react".into()),
-                    self.runtime_modules.as_ref()
+                    self.runtime_modules
+                        .as_ref()
                         .and_then(|o| o.use_lingui.as_ref())
                         .and_then(|o| o.1.clone())
                         .unwrap_or("useLingui".into()),
@@ -103,18 +106,30 @@ mod lib_tests {
                     "trans": ["my-react", "myTrans"],
                     "useLingui": ["my-react", "myUseLingui"]
                 }
-               }"#
+               }"#,
         )
-            .expect("invalid config for lingui-plugin");
+        .expect("invalid config for lingui-plugin");
 
-        assert_eq!(config, LinguiJsOptions {
-            runtime_modules: Some(RuntimeModulesConfigMap {
-                i18n: Some(RuntimeModulesConfig("my-core".into(), Some("myI18n".into()))),
-                trans: Some(RuntimeModulesConfig("my-react".into(), Some("myTrans".into()))),
-                use_lingui: Some(RuntimeModulesConfig("my-react".into(), Some("myUseLingui".into()))),
-            }),
-            strip_non_essential_fields: None,
-        })
+        assert_eq!(
+            config,
+            LinguiJsOptions {
+                runtime_modules: Some(RuntimeModulesConfigMap {
+                    i18n: Some(RuntimeModulesConfig(
+                        "my-core".into(),
+                        Some("myI18n".into())
+                    )),
+                    trans: Some(RuntimeModulesConfig(
+                        "my-react".into(),
+                        Some("myTrans".into())
+                    )),
+                    use_lingui: Some(RuntimeModulesConfig(
+                        "my-react".into(),
+                        Some("myUseLingui".into())
+                    )),
+                }),
+                strip_non_essential_fields: None,
+            }
+        )
     }
 
     #[test]
@@ -124,18 +139,21 @@ mod lib_tests {
                 "runtimeModules": {
                     "i18n": ["@lingui/core"]
                 }
-               }"#
+               }"#,
         )
-            .expect("invalid config for lingui-plugin");
+        .expect("invalid config for lingui-plugin");
 
-        assert_eq!(config, LinguiJsOptions {
-            runtime_modules: Some(RuntimeModulesConfigMap {
-                i18n: Some(RuntimeModulesConfig("@lingui/core".into(), None)),
-                trans: None,
-                use_lingui: None,
-            }),
-            strip_non_essential_fields: None,
-        })
+        assert_eq!(
+            config,
+            LinguiJsOptions {
+                runtime_modules: Some(RuntimeModulesConfigMap {
+                    i18n: Some(RuntimeModulesConfig("@lingui/core".into(), None)),
+                    trans: None,
+                    use_lingui: None,
+                }),
+                strip_non_essential_fields: None,
+            }
+        )
     }
 
     #[test]
@@ -144,9 +162,9 @@ mod lib_tests {
             r#"{
                 "stripNonEssentialFields": true,
                 "runtimeModules": {}
-               }"#
+               }"#,
         )
-            .unwrap();
+        .unwrap();
 
         let options = config.to_options("development");
         assert!(options.strip_non_essential_fields);
@@ -155,9 +173,9 @@ mod lib_tests {
             r#"{
                 "stripNonEssentialFields": false,
                 "runtimeModules": {}
-               }"#
+               }"#,
         )
-            .unwrap();
+        .unwrap();
 
         let options = config.to_options("production");
         assert!(!options.strip_non_essential_fields);
@@ -168,9 +186,9 @@ mod lib_tests {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "runtimeModules": {}
-               }"#
+               }"#,
         )
-            .unwrap();
+        .unwrap();
 
         let options = config.to_options("development");
         assert!(!options.strip_non_essential_fields);
@@ -178,9 +196,9 @@ mod lib_tests {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "runtimeModules": {}
-               }"#
+               }"#,
         )
-            .unwrap(); 
+        .unwrap();
 
         let options = config.to_options("production");
         assert!(options.strip_non_essential_fields);
