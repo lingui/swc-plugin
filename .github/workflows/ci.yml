@@ -9,9 +9,6 @@ on:
       - 'README.md'
       - 'LICENSE'
 
-env:
-  TOOLCHAIN: 1.80.0
-
 jobs:
   check:
     name: Check
@@ -19,11 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ env.TOOLCHAIN }}
-          targets: wasm32-wasip1
-          components: rustfmt
+      # Uses values from rust-toolchain.toml
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - uses: Swatinem/rust-cache@v2
 
