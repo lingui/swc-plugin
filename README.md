@@ -88,6 +88,26 @@ SWC Plugin support is still experimental. They do not guarantee a semver backwar
 
 So you need to select an appropriate version of the plugin to match compatible `swc_core` using a https://plugins.swc.rs/.
 
+Below is a table referencing the swc_core version used during the plugin build, along with a link to the plugin's site to check compatibility with runtimes for this swc_core range.
+
+| Plugin Version                                    | used `swc_core`                                       |
+|---------------------------------------------------|-------------------------------------------------------|
+| `0.1.0`, `4.0.0-next.0`                           | `0.52.8`                                              |
+| `0.2.*`, `4.0.0-next.1` ~ `4.0.0-next.3`          | `0.56.1`                                              |
+| `4.0.0`                                           | `0.75.33`                                             |
+| `4.0.1`                                           | `0.76.0`                                              |
+| `4.0.2`                                           | `0.76.41`                                             |
+| `4.0.3`                                           | `0.78.28`                                             |
+| `4.0.4`                                           | `0.79.x`                                              |
+| `4.0.5`, `4.0.6`                                  | [`0.87.x`](https://plugins.swc.rs/versions/range/10)  |
+| `4.0.7`, `4.0.8`, `5.0.0-next.0` ~ `5.0.0-next.1` | [`0.90.35`](https://plugins.swc.rs/versions/range/12) |
+| `4.0.9`                                           | [`0.96.9`](https://plugins.swc.rs/versions/range/15)  |
+| `4.0.10`                                          | [`0.101.4`](https://plugins.swc.rs/versions/range/94) |
+| `4.1.0`, `5.0.0` ~ `5.2.0`                        | [`0.106.3`](https://plugins.swc.rs/versions/range/95) |
+| `5.3.0`                                           | [`5.0.4`](https://plugins.swc.rs/versions/range/116)  |
+| `5.4.0`                                           | [`14.1.0`](https://plugins.swc.rs/versions/range/138) |
+
+
 > **Note**
 > next `v13.2.4` ~ `v13.3.1` cannot execute SWC Wasm plugins, due to a [bug of next-swc](https://github.com/vercel/next.js/issues/46989#issuecomment-1486989081).
 >
