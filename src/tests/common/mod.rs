@@ -7,13 +7,13 @@ macro_rules! to {
                 ..Default::default()
             }),
             |_| {
-                swc_core::common::chain!(
+                (
                     swc_core::ecma::transforms::base::resolver(
                         swc_core::common::Mark::new(),
                         swc_core::common::Mark::new(),
-                        true
+                        true,
                     ),
-                    $crate::LinguiMacroFolder::default()
+                    swc_core::ecma::visit::fold_pass($crate::LinguiMacroFolder::default()),
                 )
             },
             $name,
@@ -29,16 +29,18 @@ macro_rules! to {
                 ..Default::default()
             }),
             |_| {
-                swc_core::common::chain!(
+                (
                     swc_core::ecma::transforms::base::resolver(
                         swc_core::common::Mark::new(),
                         swc_core::common::Mark::new(),
-                        true
+                        true,
                     ),
-                    $crate::LinguiMacroFolder::new($crate::LinguiOptions {
-                        strip_non_essential_fields: true,
-                        ..Default::default()
-                    })
+                    swc_core::ecma::visit::fold_pass($crate::LinguiMacroFolder::new(
+                        $crate::LinguiOptions {
+                            strip_non_essential_fields: true,
+                            ..Default::default()
+                        },
+                    )),
                 )
             },
             $name,

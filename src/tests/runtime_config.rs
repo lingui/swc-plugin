@@ -8,7 +8,7 @@ macro_rules! to {
                 tsx: true,
                 ..Default::default()
             }),
-            |_| { $crate::LinguiMacroFolder::new($options) },
+            |_| { swc_core::ecma::visit::fold_pass($crate::LinguiMacroFolder::new($options)) },
             $name,
             $from,
             $to
