@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use swc_core::common::DUMMY_SP;
 use swc_core::ecma::ast::*;
-use swc_core::ecma::atoms::JsWord;
+use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::quote_ident;
 
 pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSXAttr> {
@@ -151,7 +151,7 @@ pub fn get_object_prop<'a>(props: &'a Vec<PropOrSpread>, name: &str) -> Option<&
         })
 }
 
-pub fn get_prop_key(prop: &KeyValueProp) -> Option<&JsWord> {
+pub fn get_prop_key(prop: &KeyValueProp) -> Option<&Atom> {
     match &prop.key {
         PropName::Ident(IdentName { sym, .. }) | PropName::Str(Str { value: sym, .. }) => Some(sym),
         _ => None,
@@ -176,7 +176,7 @@ pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     })));
 }
 
-pub fn create_import(source: JsWord, imported: IdentName, local: IdentName) -> ModuleItem {
+pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
         span: DUMMY_SP,
         phase: ImportPhase::default(),
