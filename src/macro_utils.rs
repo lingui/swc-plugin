@@ -3,16 +3,16 @@ use crate::tokens::*;
 use crate::LinguiOptions;
 use std::collections::{HashMap, HashSet};
 use swc_core::ecma::utils::quote_ident;
-use swc_core::ecma::{ast::*, atoms::JsWord};
+use swc_core::ecma::{ast::*, atoms::Atom};
 
 const LINGUI_T: &str = &"t";
 
 #[derive(Default, Clone)]
 pub struct MacroCtx {
     // export name -> local name
-    symbol_to_id_map: HashMap<JsWord, HashSet<Id>>,
+    symbol_to_id_map: HashMap<Atom, HashSet<Id>>,
     // local name -> export name
-    id_to_symbol_map: HashMap<Id, JsWord>,
+    id_to_symbol_map: HashMap<Id, Atom>,
 
     pub should_add_18n_import: bool,
     pub should_add_trans_import: bool,
@@ -74,7 +74,7 @@ impl MacroCtx {
 
     /// given import {plural as i18nPlural} from "@lingui/macro";
     /// get_ident_export_name("i18nPlural") would return `plural`
-    pub fn get_ident_export_name(&self, ident: &Ident) -> Option<&JsWord> {
+    pub fn get_ident_export_name(&self, ident: &Ident) -> Option<&Atom> {
         if let Some(name) = self.id_to_symbol_map.get(&ident.to_id()) {
             return Some(name);
         }
@@ -88,7 +88,7 @@ impl MacroCtx {
             || self.is_lingui_ident("SelectOrdinal", ident)
     }
 
-    pub fn register_reference(&mut self, symbol: &JsWord, id: &Id) {
+    pub fn register_reference(&mut self, symbol: &Atom, id: &Id) {
         self.symbol_to_id_map
             .entry(symbol.clone())
             .or_default()
@@ -228,7 +228,7 @@ impl MacroCtx {
 
     /// Take KeyValueProp and return Key as string if parsable
     /// If key is numeric, return an exact match syntax `={number}`
-    pub fn get_js_choice_case_key(&self, prop: &KeyValueProp) -> Option<JsWord> {
+    pub fn get_js_choice_case_key(&self, prop: &KeyValueProp) -> Option<Atom> {
         match &prop.key {
             // {one: ""}
             PropName::Ident(IdentName { sym, .. })

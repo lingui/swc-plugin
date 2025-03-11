@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use swc_core::common::DUMMY_SP;
 use swc_core::ecma::ast::*;
-use swc_core::ecma::atoms::JsWord;
+use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::visit::{Visit, VisitWith};
 use swc_core::plugin::errors::HANDLER;
 
@@ -77,7 +77,7 @@ fn clean_jsx_element_literal_child(value: &str) -> String {
     result
 }
 
-fn is_allowed_plural_option(key: &str) -> Option<JsWord> {
+fn is_allowed_plural_option(key: &str) -> Option<Atom> {
     if PLURAL_OPTIONS_WHITELIST.is_match(key) {
         let key = NUM_OPTION.replace(key, "=$1");
         let key = WORD_OPTION.replace(&key, "$1");
