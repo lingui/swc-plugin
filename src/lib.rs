@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use swc_core::common::{SyntaxContext, DUMMY_SP};
 
+use swc_core::ecma::utils::private_ident;
 use swc_core::plugin::errors::HANDLER;
 use swc_core::{
     ecma::{
@@ -13,7 +14,6 @@ use swc_core::{
         proxies::TransformPluginProgramMetadata,
     },
 };
-use swc_core::ecma::utils::private_ident;
 
 mod ast_utils;
 mod builder;
