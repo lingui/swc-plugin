@@ -13,6 +13,7 @@ use swc_core::{
         proxies::TransformPluginProgramMetadata,
     },
 };
+use swc_core::ecma::utils::private_ident;
 
 mod ast_utils;
 mod builder;
@@ -140,7 +141,7 @@ impl LinguiMacroFolder {
                         Stmt::Decl(Decl::Var(var_decl)) => {
                             let decl = *var_decl;
 
-                            let underscore_ident = quote_ident!(SyntaxContext::empty(), "$__");
+                            let underscore_ident = private_ident!("$__");
                             let decls: Vec<VarDeclarator> = decl.decls.into_iter().map(|declarator| {
                                 if let Some(init) = &declarator.init {
                                     let expr = init.as_ref();
@@ -163,7 +164,7 @@ impl LinguiMacroFolder {
                                                                     &ident.to_id(),
                                                                 );
 
-                                                                let new_i18n_ident = quote_ident!(ident.ctxt, "$__i18n");
+                                                                let new_i18n_ident = private_ident!("$__i18n");
 
                                                                 ident_replacer = Some(IdentReplacer {
                                                                     from: ident.to_id(),
@@ -290,7 +291,7 @@ impl<'a> Fold for LinguiMacroFolder {
                 create_import(
                     i18n_source.into(),
                     quote_ident!(i18n_export[..]),
-                    self.ctx.runtime_idents.i18n.clone(),
+                    self.ctx.runtime_idents.i18n.clone().into(),
                 ),
             );
         }

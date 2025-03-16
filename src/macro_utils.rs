@@ -24,7 +24,7 @@ pub struct MacroCtx {
 
 #[derive(Clone)]
 pub struct RuntimeIdents {
-    pub i18n: IdentName,
+    pub i18n: Ident,
     pub trans: IdentName,
     pub use_lingui: IdentName,
 }
@@ -32,7 +32,7 @@ pub struct RuntimeIdents {
 impl Default for RuntimeIdents {
     fn default() -> RuntimeIdents {
         RuntimeIdents {
-            i18n: quote_ident!("$_i18n"),
+            i18n: quote_ident!("$_i18n").into(),
             trans: quote_ident!("Trans_"),
             use_lingui: quote_ident!("$_useLingui"),
         }
