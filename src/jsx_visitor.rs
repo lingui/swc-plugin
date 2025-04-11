@@ -39,8 +39,10 @@ fn clean_jsx_element_literal_child(value: &str) -> String {
     let lines: Vec<&str> = value.split('\n').collect();
     let mut last_non_empty_line = 0;
 
+    let re_non_space = Regex::new(r"[^\t ]").unwrap();
+
     for (i, line) in lines.iter().enumerate() {
-        if line.trim().len() > 0 {
+        if re_non_space.is_match(line) {
             last_non_empty_line = i;
         }
     }
