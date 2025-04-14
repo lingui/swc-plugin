@@ -532,6 +532,25 @@ to!(
       />;
     "#
 );
+to!(
+    non_breaking_whitespace_handling_2226,
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  <span>hello</span>
+  &nbsp;
+  <span>world</span>
+</Trans>;
+
+     "#,
+    r#"
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ message={"<0>hello</0> <1>world</1>"} id={"kJt6bJ"} components={{
+    0: <span/>,
+    1: <span/>
+}}/>;
+    "#
+);
 //   {
 //     name: "production - import_type_doesn't_interference_on_normal_import",
 //     production: true,
