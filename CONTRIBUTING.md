@@ -20,6 +20,23 @@ cargo test js_choices_may_contain_expressions
 cargo test jsx_
 ```
 
+## Code Quality Checks
+
+Before submitting a pull request, please ensure your code passes all quality checks. The CI system will run these same checks, so running them locally will save you time.
+
+### Formatting
+```bash
+# this project uses rustfmt to enforce a consistent code style
+cargo fmt
+```
+
+### Linting
+```bash
+# we use clippy to catch common mistakes and improve code quality
+# all clippy warnings are treated as errors in the CI
+cargo clippy --all-targets --all-features -- -D warnings
+```
+
 ## Building for production
 
 ```bash
