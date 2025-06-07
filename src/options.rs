@@ -27,17 +27,17 @@ pub struct RuntimeModulesConfigMapNormalized {
 }
 
 impl LinguiJsOptions {
-    pub fn to_options(self, env_name: &str) -> LinguiOptions {
+    pub fn into_options(self, env_name: &str) -> LinguiOptions {
         LinguiOptions {
             strip_non_essential_fields: self
                 .strip_non_essential_fields
-                .unwrap_or_else(|| matches!(env_name, "production")),
+                .unwrap_or(matches!(env_name, "production")),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules
                         .as_ref()
                         .and_then(|o| o.i18n.as_ref())
-                        .and_then(|o| Some(o.0.clone()))
+                        .map(|o| o.0.clone())
                         .unwrap_or("@lingui/core".into()),
                     self.runtime_modules
                         .as_ref()
@@ -49,7 +49,7 @@ impl LinguiJsOptions {
                     self.runtime_modules
                         .as_ref()
                         .and_then(|o| o.trans.as_ref())
-                        .and_then(|o| Some(o.0.clone()))
+                        .map(|o| o.0.clone())
                         .unwrap_or("@lingui/react".into()),
                     self.runtime_modules
                         .as_ref()
@@ -61,7 +61,7 @@ impl LinguiJsOptions {
                     self.runtime_modules
                         .as_ref()
                         .and_then(|o| o.use_lingui.as_ref())
-                        .and_then(|o| Some(o.0.clone()))
+                        .map(|o| o.0.clone())
                         .unwrap_or("@lingui/react".into()),
                     self.runtime_modules
                         .as_ref()
@@ -166,7 +166,7 @@ mod lib_tests {
         )
         .unwrap();
 
-        let options = config.to_options("development");
+        let options = config.into_options("development");
         assert!(options.strip_non_essential_fields);
 
         let config = serde_json::from_str::<LinguiJsOptions>(
@@ -177,7 +177,7 @@ mod lib_tests {
         )
         .unwrap();
 
-        let options = config.to_options("production");
+        let options = config.into_options("production");
         assert!(!options.strip_non_essential_fields);
     }
 
@@ -190,7 +190,7 @@ mod lib_tests {
         )
         .unwrap();
 
-        let options = config.to_options("development");
+        let options = config.into_options("development");
         assert!(!options.strip_non_essential_fields);
 
         let config = serde_json::from_str::<LinguiJsOptions>(
@@ -200,7 +200,7 @@ mod lib_tests {
         )
         .unwrap();
 
-        let options = config.to_options("production");
+        let options = config.into_options("production");
         assert!(options.strip_non_essential_fields);
     }
 }

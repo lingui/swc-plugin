@@ -38,12 +38,10 @@ impl<'a> JsMacroFolder<'a> {
             props.push(create_key_value_prop("values", v))
         }
 
-        let message_descriptor = Expr::Object(ObjectLit {
+        Expr::Object(ObjectLit {
             span: DUMMY_SP,
             props,
-        });
-
-        return message_descriptor;
+        })
     }
 
     fn create_i18n_fn_call_from_tokens(
@@ -52,7 +50,8 @@ impl<'a> JsMacroFolder<'a> {
         tokens: Vec<MsgToken>,
     ) -> CallExpr {
         let message_descriptor = Box::new(self.create_message_descriptor_from_tokens(tokens));
-        return self.create_i18n_fn_call(callee_obj, vec![message_descriptor.as_arg()]);
+
+        self.create_i18n_fn_call(callee_obj, vec![message_descriptor.as_arg()])
     }
 
     fn create_i18n_fn_call(
@@ -67,7 +66,7 @@ impl<'a> JsMacroFolder<'a> {
                 obj: callee_obj.unwrap_or_else(|| {
                     self.ctx.should_add_18n_import = true;
 
-                    return Box::new(self.ctx.runtime_idents.i18n.clone().into());
+                    Box::new(self.ctx.runtime_idents.i18n.clone().into())
                 }),
                 prop: MemberProp::Ident(IdentName::new("_".into(), DUMMY_SP)),
             })
@@ -97,14 +96,11 @@ impl<'a> JsMacroFolder<'a> {
             }
 
             if let Some(prop) = message_prop {
-                let tokens = self
-                    .ctx
-                    .try_tokenize_expr(&prop.value)
-                    .unwrap_or_else(|| Vec::new());
+                let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_default();
 
                 let parsed = MessageBuilder::parse(tokens);
 
-                if !id_prop.is_some() {
+                if id_prop.is_none() {
                     new_props.push(create_key_value_prop(
                         "id",
                         generate_message_id(
@@ -134,7 +130,7 @@ impl<'a> JsMacroFolder<'a> {
     }
 }
 
-impl<'a> Fold for JsMacroFolder<'a> {
+impl Fold for JsMacroFolder<'_> {
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         // t`Message`
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
@@ -151,7 +147,7 @@ impl<'a> Fold for JsMacroFolder<'a> {
         // defineMessage`Message`
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
             if let Expr::Ident(ident) = tagged_tpl.tag.as_ref() {
-                if self.ctx.is_define_message_ident(&ident) {
+                if self.ctx.is_define_message_ident(ident) {
                     let tokens = self.ctx.tokenize_tpl(&tagged_tpl.tpl);
                     return self.create_message_descriptor_from_tokens(tokens);
                 }
@@ -160,14 +156,14 @@ impl<'a> Fold for JsMacroFolder<'a> {
 
         // defineMessage({message: "Message"})
         if let Expr::Call(call) = &expr {
-            if let Some(_) = match_callee_name(&call, |n| self.ctx.is_define_message_ident(n)) {
-                if call.args.len() == 1 {
-                    let descriptor = self.update_msg_descriptor_props(
-                        call.args.clone().into_iter().next().unwrap().expr,
-                    );
+            if match_callee_name(call, |n| self.ctx.is_define_message_ident(n)).is_some()
+                && call.args.len() == 1
+            {
+                let descriptor = self.update_msg_descriptor_props(
+                    call.args.clone().into_iter().next().unwrap().expr,
+                );
 
-                    return *descriptor;
-                }
+                return *descriptor;
             }
         }
 

@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use swc_core::ecma::utils::quote_ident;
 use swc_core::ecma::{ast::*, atoms::Atom};
 
-const LINGUI_T: &str = &"t";
+const LINGUI_T: &str = "t";
 
 #[derive(Default, Clone)]
 pub struct MacroCtx {
@@ -56,7 +56,7 @@ impl MacroCtx {
     }
 
     pub fn is_lingui_placeholder_expr(&self, ident: &Ident) -> bool {
-        self.is_lingui_ident("ph", &ident)
+        self.is_lingui_ident("ph", ident)
     }
 
     /// is given ident exported from @lingui/macro?
@@ -68,8 +68,7 @@ impl MacroCtx {
     }
 
     pub fn is_define_message_ident(&self, ident: &Ident) -> bool {
-        return self.is_lingui_ident("defineMessage", &ident)
-            || self.is_lingui_ident("msg", &ident);
+        self.is_lingui_ident("defineMessage", ident) || self.is_lingui_ident("msg", ident)
     }
 
     /// given import {plural as i18nPlural} from "@lingui/macro";
@@ -110,23 +109,20 @@ impl MacroCtx {
 
     /// Take a callee expression and detect is it a lingui t`` macro call
     /// Returns a callee object depending whether custom i18n instance was passed or not
-    pub fn is_lingui_t_call_expr(&self, callee_expr: &Box<Expr>) -> (bool, Option<Box<Expr>>) {
-        match callee_expr.as_ref() {
+    pub fn is_lingui_t_call_expr(&self, callee_expr: &Expr) -> (bool, Option<Box<Expr>>) {
+        match callee_expr {
             // t(i18n)...
             Expr::Call(call)
-                if matches!(
-                    match_callee_name(call, |n| self.is_lingui_ident(LINGUI_T, n)),
-                    Some(_)
-                ) =>
+                if match_callee_name(call, |n| self.is_lingui_ident(LINGUI_T, n)).is_some() =>
             {
-                if let Some(v) = call.args.get(0) {
+                if let Some(v) = call.args.first() {
                     (true, Some(v.expr.clone()))
                 } else {
                     (false, None)
                 }
             }
             // t..
-            Expr::Ident(ident) if self.is_lingui_ident(LINGUI_T, &ident) => (true, None),
+            Expr::Ident(ident) if self.is_lingui_ident(LINGUI_T, ident) => (true, None),
             _ => (false, None),
         }
     }
@@ -167,14 +163,14 @@ impl MacroCtx {
     /// Try to tokenize call expression as ICU Choice macro
     /// Return None if this call is not related to macros or is not parsable
     pub fn try_tokenize_call_expr_as_choice_cmp(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
-        if let Some(ident) = match_callee_name(&expr, |name| self.is_lingui_fn_choice_cmp(name)) {
+        if let Some(ident) = match_callee_name(expr, |name| self.is_lingui_fn_choice_cmp(name)) {
             if expr.args.len() != 2 {
                 // malformed plural call, exit
                 return None;
             }
 
             // ICU value
-            let arg = expr.args.get(0).unwrap();
+            let arg = expr.args.first().unwrap();
             let icu_value = arg.expr.clone();
 
             // ICU Choice Cases
@@ -194,24 +190,24 @@ impl MacroCtx {
             }
         }
 
-        return None;
+        None
     }
 
     pub fn try_tokenize_call_expr_as_placeholder_call(&self, expr: &CallExpr) -> Option<MsgToken> {
         if expr.callee.as_expr().is_some_and(|c| {
             c.as_ident()
-                .map_or(false, |i| self.is_lingui_placeholder_expr(i))
+                .is_some_and(|i| self.is_lingui_placeholder_expr(i))
         }) {
             if let Some(first) = expr.args.first() {
                 return Some(MsgToken::Expression(first.expr.clone()));
             }
         }
 
-        return None;
+        None
     }
 
-    pub fn try_tokenize_expr(&self, expr: &Box<Expr>) -> Option<Vec<MsgToken>> {
-        match expr.as_ref() {
+    pub fn try_tokenize_expr(&self, expr: &Expr) -> Option<Vec<MsgToken>> {
+        match expr {
             // String Literal: "has # friend"
             Expr::Lit(Lit::Str(str)) => Some(vec![MsgToken::String(str.clone().value.to_string())]),
             // Template Literal: `${name} has # friend`

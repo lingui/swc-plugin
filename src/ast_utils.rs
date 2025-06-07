@@ -6,16 +6,16 @@ use swc_core::ecma::utils::quote_ident;
 
 pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSXAttr> {
     for attr in &el.attrs {
-        if let JSXAttrOrSpread::JSXAttr(attr) = &attr {
+        if let JSXAttrOrSpread::JSXAttr(attr) = attr {
             if let JSXAttrName::Ident(ident) = &attr.name {
-                if (&ident.sym) == name {
+                if ident.sym == *name {
                     return Some(attr);
                 }
             }
         }
     }
 
-    return None;
+    None
 }
 
 // get_local_ident_from_object_pat_prop(prop, "t")
@@ -25,28 +25,26 @@ pub fn get_local_ident_from_object_pat_prop(
     prop: &ObjectPatProp,
     imported_symbol: &str,
 ) -> Option<BindingIdent> {
-    return match prop {
+    match prop {
         ObjectPatProp::KeyValue(key_value)
             if key_value
                 .key
                 .as_ident()
-                .is_some_and(|ident| ident.sym == imported_symbol.to_string()) =>
+                .is_some_and(|ident| ident.sym == imported_symbol) =>
         {
             Some(key_value.value.as_ident().unwrap().clone())
         }
-        ObjectPatProp::Assign(assign) if assign.key.sym == imported_symbol.to_string() => {
+        ObjectPatProp::Assign(assign) if assign.key.sym == imported_symbol => {
             Some(assign.key.clone())
         }
         _ => None,
-    };
+    }
 }
 
 pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
     match val {
         // offset="5"
-        JSXAttrValue::Lit(Lit::Str(Str { value, .. })) => {
-            return Some(value.to_string());
-        }
+        JSXAttrValue::Lit(Lit::Str(Str { value, .. })) => Some(value.to_string()),
         // offset={..}
         JSXAttrValue::JSXExprContainer(JSXExprContainer {
             expr: JSXExpr::Expr(expr),
@@ -54,13 +52,9 @@ pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
         }) => {
             match expr.as_ref() {
                 // offset={"5"}
-                Expr::Lit(Lit::Str(Str { value, .. })) => {
-                    return Some(value.to_string());
-                }
+                Expr::Lit(Lit::Str(Str { value, .. })) => Some(value.to_string()),
                 // offset={5}
-                Expr::Lit(Lit::Num(Number { value, .. })) => {
-                    return Some(value.to_string());
-                }
+                Expr::Lit(Lit::Num(Number { value, .. })) => Some(value.to_string()),
                 _ => None,
             }
         }
@@ -68,17 +62,15 @@ pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
     }
 }
 
-pub fn get_expr_as_string(val: &Box<Expr>) -> Option<String> {
-    match val.as_ref() {
+pub fn get_expr_as_string(val: &Expr) -> Option<String> {
+    match val {
         // "Hello"
-        Expr::Lit(Lit::Str(Str { value, .. })) => {
-            return Some(value.to_string());
-        }
+        Expr::Lit(Lit::Str(Str { value, .. })) => Some(value.to_string()),
 
         // `Hello`
         Expr::Tpl(Tpl { quasis, .. }) => {
             if quasis.len() == 1 {
-                return Some(quasis.get(0).unwrap().raw.to_string());
+                Some(quasis.first().unwrap().raw.to_string())
             } else {
                 None
             }
@@ -95,13 +87,11 @@ pub fn pick_jsx_attrs(
     attrs.retain(|attr| {
         if let JSXAttrOrSpread::JSXAttr(attr) = attr {
             if let JSXAttrName::Ident(ident) = &attr.name {
-                let name: &str = &ident.sym.to_string();
-                if let Some(_) = names.get(name) {
-                    return true;
-                }
+                let name: &str = &ident.sym;
+                return names.contains(name);
             }
         }
-        return false;
+        false
     });
 
     attrs
@@ -121,7 +111,7 @@ pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
 pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
     if let Callee::Expr(expr) = &call.callee {
         if let Expr::Ident(ident) = expr.as_ref() {
-            if predicate(&ident) {
+            if predicate(ident) {
                 return Some(ident);
             }
         }
@@ -140,7 +130,7 @@ pub fn to_key_value_prop(prop_or_spread: &PropOrSpread) -> Option<&KeyValueProp>
     None
 }
 
-pub fn get_object_prop<'a>(props: &'a Vec<PropOrSpread>, name: &str) -> Option<&'a KeyValueProp> {
+pub fn get_object_prop<'a>(props: &'a [PropOrSpread], name: &str) -> Option<&'a KeyValueProp> {
     props
         .iter()
         .filter_map(|prop_or_spread| to_key_value_prop(prop_or_spread))
@@ -170,10 +160,10 @@ pub fn expand_ts_as_expr(mut expr: Box<Expr>) -> Box<Expr> {
 }
 
 pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
-    return PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
+    PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
         key: PropName::Ident(quote_ident!(key)),
         value,
-    })));
+    })))
 }
 
 pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> ModuleItem {

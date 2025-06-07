@@ -90,7 +90,7 @@ fn is_allowed_plural_option(key: &str) -> Option<Atom> {
     None
 }
 
-impl<'a> TransJSXVisitor<'a> {
+impl TransJSXVisitor<'_> {
     // <Plural /> <Select /> <SelectOrdinal />
     fn visit_icu_macro(&mut self, el: &JSXOpeningElement, icu_format: &str) -> Vec<CaseOrOffset> {
         let mut choices: Vec<CaseOrOffset> = Vec::new();
@@ -129,7 +129,7 @@ impl<'a> TransJSXVisitor<'a> {
                                         }
                                         // some={`<Books />`}
                                         Expr::JSXElement(exp) => {
-                                            let mut visitor = TransJSXVisitor::new(&self.ctx);
+                                            let mut visitor = TransJSXVisitor::new(self.ctx);
                                             exp.visit_children_with(&mut visitor);
 
                                             tokens.extend(visitor.tokens)
@@ -157,20 +157,20 @@ impl<'a> TransJSXVisitor<'a> {
             }
         }
 
-        return choices;
+        choices
     }
 }
 
-impl<'a> Visit for TransJSXVisitor<'a> {
+impl Visit for TransJSXVisitor<'_> {
     fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
         if let JSXElementName::Ident(ident) = &el.name {
-            if self.ctx.is_lingui_ident("Trans", &ident) {
+            if self.ctx.is_lingui_ident("Trans", ident) {
                 el.visit_children_with(self);
                 return;
             }
 
-            if self.ctx.is_lingui_jsx_choice_cmp(&ident) {
-                let value = match get_jsx_attr(&el, "value").and_then(|attr| attr.value.as_ref()) {
+            if self.ctx.is_lingui_jsx_choice_cmp(ident) {
+                let value = match get_jsx_attr(el, "value").and_then(|attr| attr.value.as_ref()) {
                     Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
                         expr: JSXExpr::Expr(exp),
                         ..
@@ -213,9 +213,7 @@ impl<'a> Visit for TransJSXVisitor<'a> {
 
     fn visit_jsx_text(&mut self, el: &JSXText) {
         self.tokens
-            .push(MsgToken::String(clean_jsx_element_literal_child(
-                &el.value.to_string(),
-            )));
+            .push(MsgToken::String(clean_jsx_element_literal_child(&el.value)));
     }
 
     fn visit_jsx_expr_container(&mut self, cont: &JSXExprContainer) {
