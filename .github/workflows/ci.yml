@@ -6,8 +6,15 @@ on:
       - main
       - next
     paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
+      - "README.md"
+      - "LICENSE"
+  push:
+    branches:
+      - main
+      - next
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
 
 jobs:
   check:
@@ -24,5 +31,18 @@ jobs:
       - name: Check formatting
         run: cargo fmt --check
 
-      - name: Run cargo test
-        run: cargo test
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
+
+      - name: Generate code coverage
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
