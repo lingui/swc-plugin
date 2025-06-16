@@ -6,8 +6,8 @@ on:
       - main
       - next
     paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
+      - "README.md"
+      - "LICENSE"
 
 jobs:
   check:
@@ -18,8 +18,6 @@ jobs:
 
       # Uses values from rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
 
