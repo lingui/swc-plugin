@@ -80,11 +80,11 @@ impl LinguiMacroFolder {
 
         let context_attr_val = get_jsx_attr(&el.opening, "context")
             .and_then(|attr| attr.value.as_ref())
-            .and_then(|value| get_jsx_attr_value_as_string(value));
+            .and_then(get_jsx_attr_value_as_string);
 
-        let mut attrs = vec![create_jsx_attribute("message".into(), parsed.message)];
+        let mut attrs = vec![create_jsx_attribute("message", parsed.message)];
 
-        if !id_attr.is_some() {
+        if id_attr.is_none() {
             attrs.push(create_jsx_attribute(
                 "id",
                 generate_message_id(&parsed.message_str, &context_attr_val.unwrap_or_default())
@@ -114,7 +114,7 @@ impl LinguiMacroFolder {
 
         self.ctx.should_add_trans_import = true;
 
-        return JSXElement {
+        JSXElement {
             span: el.span,
             children: vec![],
             closing: None,
@@ -125,7 +125,7 @@ impl LinguiMacroFolder {
                 type_args: None,
                 attrs,
             },
-        };
+        }
     }
 
     pub fn handle_use_lingui(&mut self, n: BlockStmt) -> BlockStmt {
@@ -134,108 +134,125 @@ impl LinguiMacroFolder {
         let mut ident_replacer: Option<IdentReplacer> = None;
 
         let stmts: Vec<Stmt> = n
-                .stmts
-                .into_iter()
-                .map(|stmt| {
-                    return match stmt {
-                        Stmt::Decl(Decl::Var(var_decl)) => {
-                            let decl = *var_decl;
+            .stmts
+            .into_iter()
+            .map(|stmt| match stmt {
+                Stmt::Decl(Decl::Var(var_decl)) => {
+                    let decl = *var_decl;
 
-                            let underscore_ident = private_ident!("$__");
-                            let decls: Vec<VarDeclarator> = decl.decls.into_iter().map(|declarator| {
-                                if let Some(init) = &declarator.init {
-                                    let expr = init.as_ref();
+                    let underscore_ident = private_ident!("$__");
+                    let decls: Vec<VarDeclarator> = decl
+                        .decls
+                        .into_iter()
+                        .map(|declarator| {
+                            if let Some(init) = &declarator.init {
+                                let expr = init.as_ref();
 
-                                    if let Expr::Call(call) = &expr {
-                                        if match_callee_name(call, |n| {
-                                            self.ctx.is_lingui_ident("useLingui", n)
-                                        })
-                                            .is_some()
-                                        {
-                                            self.ctx.should_add_uselingui_import = true;
+                                if let Expr::Call(call) = &expr {
+                                    if match_callee_name(call, |n| {
+                                        self.ctx.is_lingui_ident("useLingui", n)
+                                    })
+                                    .is_some()
+                                    {
+                                        self.ctx.should_add_uselingui_import = true;
 
-                                            if let Pat::Object(obj_pat) = declarator.name {
-                                                let mut new_props: Vec<ObjectPatProp> =
-                                                    obj_pat.props.into_iter().map(|prop| {
-                                                        return get_local_ident_from_object_pat_prop(&prop, "t")
-                                                            .and_then(|ident| {
-                                                                ctx.register_reference(
-                                                                    &"t".into(),
-                                                                    &ident.to_id(),
-                                                                );
+                                        if let Pat::Object(obj_pat) = declarator.name {
+                                            let mut new_props: Vec<ObjectPatProp> = obj_pat
+                                                .props
+                                                .into_iter()
+                                                .map(|prop| {
+                                                    get_local_ident_from_object_pat_prop(&prop, "t")
+                                                        .map(|ident| {
+                                                            ctx.register_reference(
+                                                                &"t".into(),
+                                                                &ident.to_id(),
+                                                            );
 
-                                                                let new_i18n_ident = private_ident!("$__i18n");
+                                                            let new_i18n_ident =
+                                                                private_ident!("$__i18n");
 
-                                                                ident_replacer = Some(IdentReplacer {
-                                                                    from: ident.to_id(),
-                                                                    to: underscore_ident.clone(),
-                                                                });
+                                                            ident_replacer = Some(IdentReplacer {
+                                                                from: ident.to_id(),
+                                                                to: underscore_ident.clone(),
+                                                            });
 
-                                                                ctx.runtime_idents.i18n = new_i18n_ident.clone().into();
+                                                            ctx.runtime_idents.i18n =
+                                                                new_i18n_ident.clone();
 
-                                                                return Some(ObjectPatProp::KeyValue(
-                                                                    KeyValuePatProp {
-                                                                        value: Box::new(Pat::Ident(new_i18n_ident.into())),
-                                                                        key: PropName::Ident(quote_ident!("i18n")),
-                                                                    },
-                                                                ))
-                                                            })
-                                                            .unwrap_or(prop);
-                                                    }).collect();
+                                                            ObjectPatProp::KeyValue(
+                                                                KeyValuePatProp {
+                                                                    value: Box::new(Pat::Ident(
+                                                                        new_i18n_ident.into(),
+                                                                    )),
+                                                                    key: PropName::Ident(
+                                                                        quote_ident!("i18n"),
+                                                                    ),
+                                                                },
+                                                            )
+                                                        })
+                                                        .unwrap_or(prop)
+                                                })
+                                                .collect();
 
-                                                new_props.push(ObjectPatProp::KeyValue(
-                                                    KeyValuePatProp {
-                                                        value: Box::new(Pat::Ident(underscore_ident.clone().into())),
-                                                        key: PropName::Ident(quote_ident!("_")),
-                                                    },
-                                                ));
+                                            new_props.push(ObjectPatProp::KeyValue(
+                                                KeyValuePatProp {
+                                                    value: Box::new(Pat::Ident(
+                                                        underscore_ident.clone().into(),
+                                                    )),
+                                                    key: PropName::Ident(quote_ident!("_")),
+                                                },
+                                            ));
 
-                                                return VarDeclarator {
-                                                    init: Some(Box::new(Expr::Call(CallExpr {
-                                                        callee: Callee::Expr(Box::new(Expr::Ident(ctx.runtime_idents.use_lingui.clone().into()))),
-                                                        ..call.clone()
-                                                    }))),
+                                            return VarDeclarator {
+                                                init: Some(Box::new(Expr::Call(CallExpr {
+                                                    callee: Callee::Expr(Box::new(Expr::Ident(
+                                                        ctx.runtime_idents
+                                                            .use_lingui
+                                                            .clone()
+                                                            .into(),
+                                                    ))),
+                                                    ..call.clone()
+                                                }))),
 
-                                                    definite: true,
-                                                    span:  declarator.span,
-                                                    name: Pat::Object(ObjectPat {
-                                                        optional: false,
-                                                        type_ann: None,
-                                                        span: DUMMY_SP,
-                                                        props: new_props
-
-                                                    }),
-                                                }
-                                            } else {
-                                                HANDLER.with(|h| {
-                                                    h.struct_span_warn(decl.span, "Unsupported Syntax")
+                                                definite: true,
+                                                span: declarator.span,
+                                                name: Pat::Object(ObjectPat {
+                                                    optional: false,
+                                                    type_ann: None,
+                                                    span: DUMMY_SP,
+                                                    props: new_props,
+                                                }),
+                                            };
+                                        } else {
+                                            HANDLER.with(|h| {
+                                                h.struct_span_warn(decl.span, "Unsupported Syntax")
                                                         .note(
 r#"You have to destructure `t` when using the `useLingui` macro, i.e:
  const { t } = useLingui()
  or
  const { t: _ } = useLingui()"#)
                                                         .emit()
-                                                });
-                                            }
+                                            });
                                         }
                                     }
                                 }
+                            }
 
-                                return declarator;
-                            }).collect();
+                            declarator
+                        })
+                        .collect();
 
-                            return Stmt::Decl(Decl::Var(Box::new(VarDecl {
-                                span: decl.span,
-                                decls,
-                                declare: false,
-                                kind: decl.kind,
-                                ctxt: SyntaxContext::empty()
-                            })))
-                        }
-                        _ => stmt,
-                    };
-                })
-                .collect();
+                    Stmt::Decl(Decl::Var(Box::new(VarDecl {
+                        span: decl.span,
+                        decls,
+                        declare: false,
+                        kind: decl.kind,
+                        ctxt: SyntaxContext::empty(),
+                    })))
+                }
+                _ => stmt,
+            })
+            .collect();
 
         let mut block = BlockStmt {
             span: n.span,
@@ -251,11 +268,11 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
                 .fold_children_with(&mut ident_replacer.unwrap());
         }
 
-        return block.fold_children_with(self);
+        block.fold_children_with(self)
     }
 }
 
-impl<'a> Fold for LinguiMacroFolder {
+impl Fold for LinguiMacroFolder {
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
         let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
@@ -400,11 +417,11 @@ impl<'a> Fold for LinguiMacroFolder {
         el = el.fold_with(&mut JsMacroFolder::new(&mut self.ctx));
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
-            if self.ctx.is_lingui_ident("Trans", &ident) {
+            if self.ctx.is_lingui_ident("Trans", ident) {
                 return self.transform_jsx_macro(el, true);
             }
 
-            if self.ctx.is_lingui_jsx_choice_cmp(&ident) {
+            if self.ctx.is_lingui_jsx_choice_cmp(ident) {
                 return self.transform_jsx_macro(el, false);
             }
         }
@@ -422,7 +439,7 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
     )
     .expect("invalid config for lingui-plugin");
 
-    let config = config.to_options(
+    let config = config.into_options(
         &metadata
             .get_context(&TransformPluginMetadataContextKind::Env)
             .unwrap_or_default(),

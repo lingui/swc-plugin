@@ -19,7 +19,7 @@ pub struct ValueWithPlaceholder {
 }
 
 impl ValueWithPlaceholder {
-    pub fn to_prop(self) -> PropOrSpread {
+    pub fn into_prop(self) -> PropOrSpread {
         let ident = IdentName::new(self.placeholder.into(), DUMMY_SP);
 
         PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
@@ -56,11 +56,11 @@ impl MessageBuilder {
             values_indexed: Vec::new(),
         };
 
-        builder.from_tokens(tokens);
-        builder.to_args()
+        builder.process_tokens(tokens);
+        builder.into_args()
     }
 
-    pub fn to_args(mut self) -> MessageBuilderResult {
+    pub fn into_args(mut self) -> MessageBuilderResult {
         let message_str = self.message;
 
         let message = Box::new(Expr::Lit(Lit::Str(Str {
@@ -71,29 +71,29 @@ impl MessageBuilder {
 
         self.values.append(&mut self.values_indexed);
 
-        let values = if self.values.len() > 0 {
+        let values = if self.values.is_empty() {
+            None
+        } else {
             Some(Box::new(Expr::Object(ObjectLit {
                 span: DUMMY_SP,
                 props: dedup_values(self.values)
                     .into_iter()
-                    .map(|item| item.to_prop())
+                    .map(|item| item.into_prop())
                     .collect(),
             })))
-        } else {
-            None
         };
 
-        let components = if self.components.len() > 0 {
+        let components = if self.components.is_empty() {
+            None
+        } else {
             Some(Box::new(Expr::Object(ObjectLit {
                 span: DUMMY_SP,
                 props: self
                     .components
                     .into_iter()
-                    .map(|item| item.to_prop())
+                    .map(|item| item.into_prop())
                     .collect(),
             })))
-        } else {
-            None
         };
 
         MessageBuilderResult {
@@ -104,7 +104,7 @@ impl MessageBuilder {
         }
     }
 
-    fn from_tokens(&mut self, tokens: Vec<MsgToken>) {
+    fn process_tokens(&mut self, tokens: Vec<MsgToken>) {
         for token in tokens {
             match token {
                 MsgToken::String(str) => {
@@ -241,7 +241,7 @@ impl MessageBuilder {
                     let key = choice.key;
 
                     self.push_msg(&format!(" {key} {{"));
-                    self.from_tokens(choice.tokens);
+                    self.process_tokens(choice.tokens);
                     self.push_msg("}");
                 }
             }
