@@ -6,8 +6,8 @@ on:
       - main
       - next
     paths-ignore:
-      - 'README.md'
-      - 'LICENSE'
+      - "README.md"
+      - "LICENSE"
 
 jobs:
   check:
@@ -23,6 +23,9 @@ jobs:
 
       - name: Check formatting
         run: cargo fmt --check
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Run cargo test
         run: cargo test
