@@ -66,4 +66,19 @@ It's important to build a plugin with the same Rust version used to build SWC it
 
 This project uses `rust-toolchain` file in the root of project to define rust version.
 
-To update Rust, put new version into `rust-toolchain` and call `rustup update` command
+To update Rust, put new version into `rust-toolchain` and call `rustup update` command.
+
+## Code Coverage
+
+This project uses [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) to generate code coverage reports.
+
+### Installing cargo-llvm-cov
+```bash
+cargo install cargo-llvm-cov
+```
+
+### Running coverage locally
+```bash
+# Generate HTML coverage report for local viewing
+cargo llvm-cov --all-features --workspace --html --open
+```
