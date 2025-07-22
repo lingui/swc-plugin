@@ -3,7 +3,7 @@ use swc_core::ecma::atoms::Atom;
 
 pub enum MsgToken {
     String(String),
-    Expression(Box<Expr>),
+    Argument(Argument),
     TagOpening(TagOpening),
     TagClosing,
     IcuChoice(IcuChoice),
@@ -19,6 +19,12 @@ pub struct IcuChoice {
     /// plural | select | selectOrdinal
     pub format: Atom,
     pub cases: Vec<CaseOrOffset>,
+}
+
+pub struct Argument {
+    /// ph | arg
+    pub used_utility_name: Option<Atom>,
+    pub value: Box<Expr>,
 }
 
 pub enum CaseOrOffset {
