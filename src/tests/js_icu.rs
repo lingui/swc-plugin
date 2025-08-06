@@ -249,6 +249,31 @@ to!(
 );
 
 to!(
+    js_plural_with_arg_macro,
+    r#"
+        import { plural, arg } from '@lingui/core/macro';
+        plural(count, {
+          "one": `# book on {${arg(today)}, date}`,
+          other: `# books on {${arg(today)}, date}`
+        });
+     "#,
+    r#"
+      import { i18n as $_i18n } from "@lingui/core";
+      $_i18n._(
+        {
+          id: "lEIbMo",
+          message:
+            "{count, plural, one {# book on {today, date}} other {# books on {today, date}}}",
+          values: {
+            count: count,
+            today: today,
+          },
+        }
+      );
+    "#
+);
+
+to!(
     js_should_not_treat_offset_in_select,
     r#"
         import { select } from '@lingui/macro'
