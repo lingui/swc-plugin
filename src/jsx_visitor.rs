@@ -36,7 +36,7 @@ static TRIM_END: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ ]+$").unwrap());
 
 // taken from babel repo -> packages/babel-types/src/utils/react/cleanJSXElementLiteralChild.ts
 fn clean_jsx_element_literal_child(value: &str) -> String {
-    let lines: Vec<&str> = value.split('\n').collect();
+    let lines: Vec<&str> = Regex::new(r"\r\n|\n|\r").unwrap().split(value).collect();
     let mut last_non_empty_line = 0;
 
     let re_non_space = Regex::new(r"[^\t ]").unwrap();

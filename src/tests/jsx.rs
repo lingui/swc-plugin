@@ -551,6 +551,23 @@ import { Trans as Trans_ } from "@lingui/react";
 }}/>;
     "#
 );
+
+to!(
+    normalize_crlf_lf_cr,
+    concat!(
+        "import { Trans } from \"@lingui/react/macro\";\n",
+        "<Trans>\nhello\n</Trans>;\n",
+        "<Trans>\r\nhello\r\n</Trans>;\n",
+        "<Trans>\rhello\r</Trans>;\n"
+    ),
+    r#"
+    import { Trans as Trans_ } from "@lingui/react";
+<Trans_ message={"hello"} id={"WfCysZ"}/>;
+<Trans_ message={"hello"} id={"WfCysZ"}/>;
+<Trans_ message={"hello"} id={"WfCysZ"}/>;
+
+    "#
+);
 //   {
 //     name: "production - import_type_doesn't_interference_on_normal_import",
 //     production: true,
