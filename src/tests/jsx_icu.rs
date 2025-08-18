@@ -252,6 +252,24 @@ to!(
 );
 
 to!(
+    jsx_select_without_other,
+    r#"
+      import { Select } from '@lingui/macro';
+      <Select
+        value={count}
+        _male="He"
+        _female={`She`}
+      />;
+   "#,
+    r#"
+      import { Trans as Trans_ } from "@lingui/react";
+      <Trans_ message={"{count, select, male {He} female {She} other {} id={"Imwef9"} values={{
+        count: count
+      }} />;
+  "#
+);
+
+to!(
     jsx_select_with_expressions_in_cases,
     r#"
         import { Select } from '@lingui/macro';
