@@ -1,6 +1,6 @@
 use crate::ast_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
 use crate::macro_utils::MacroCtx;
-use crate::tokens::{CaseOrOffset, ChoiceCase, IcuChoice, MsgToken, TagOpening};
+use crate::tokens::{Argument, CaseOrOffset, ChoiceCase, IcuChoice, MsgToken, TagOpening};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use swc_core::common::DUMMY_SP;
@@ -135,7 +135,10 @@ impl TransJSXVisitor<'_> {
                                             tokens.extend(visitor.tokens)
                                         }
 
-                                        _ => tokens.push(MsgToken::Expression(exp.clone())),
+                                        _ => tokens.push(MsgToken::Argument(Argument {
+                                            used_utility_name: None,
+                                            value: exp.clone(),
+                                        })),
                                     }
                                 }
 
@@ -228,12 +231,15 @@ impl Visit for TransJSXVisitor<'_> {
                 Expr::Call(call) => {
                     if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(call) {
                         self.tokens.extend(tokens);
-                    } else if let Some(placeholder) =
-                        self.ctx.try_tokenize_call_expr_as_placeholder_call(call)
+                    } else if let Some(arg_token) =
+                        self.ctx.try_tokenize_call_expr_as_utility_macro_call(call)
                     {
-                        self.tokens.push(placeholder);
+                        self.tokens.push(arg_token);
                     } else {
-                        self.tokens.push(MsgToken::Expression(exp.clone()));
+                        self.tokens.push(MsgToken::Argument(Argument {
+                            used_utility_name: None,
+                            value: exp.clone(),
+                        }));
                     }
                 }
 
@@ -245,7 +251,10 @@ impl Visit for TransJSXVisitor<'_> {
                     self.tokens.extend(self.ctx.tokenize_tpl(tpl));
                 }
                 _ => {
-                    self.tokens.push(MsgToken::Expression(exp.clone()));
+                    self.tokens.push(MsgToken::Argument(Argument {
+                        used_utility_name: None,
+                        value: exp.clone(),
+                    }));
                 }
             }
         }

@@ -329,6 +329,27 @@ to!(
 );
 
 to!(
+    js_variables_with_arg_macro_is_not_wrapped_in_curly_brackets,
+    r#"
+      import { t, arg } from '@lingui/core/macro';
+      t`Number {${arg(num)}, number, myNumberStyle}`;
+  "#,
+    r#"
+      import { i18n as $_i18n } from "@lingui/core";
+      $_i18n._(
+        /*i18n*/
+        {
+          id: "6HvXd1",
+          message: "Number {num, number, myNumberStyle}",
+          values: {
+            num: num,
+          },
+        }
+      );
+   "#
+);
+
+to!(
     js_newlines_are_preserved,
     r#"
        import { t } from '@lingui/core/macro';
