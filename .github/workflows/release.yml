@@ -8,6 +8,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -24,14 +28,8 @@ jobs:
 
       - name: Build and publish 'latest' tag
         if: ${{ github.event.action == 'released' }}
-        run: |
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
 
       - name: Build and publish 'next' tag
         if: ${{ github.event.action == 'prereleased' }}
-        run: |
-          npm publish --tag next
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag next
