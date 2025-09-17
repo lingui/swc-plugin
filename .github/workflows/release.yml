@@ -22,9 +22,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           registry-url: 'https://registry.npmjs.org'
-          node-version: 16.x
+          node-version: 20
 
       - uses: Swatinem/rust-cache@v2
+
+      - name: Install npm CLI
+        run: npm install -g npm@latest
 
       - name: Build and publish 'latest' tag
         if: ${{ github.event.action == 'released' }}
