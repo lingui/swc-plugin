@@ -109,6 +109,7 @@ Below is a table referencing the swc_core version used during the plugin build, 
 | `5.4.0`                                           | [`14.1.0`](https://plugins.swc.rs/versions/range/138) |
 | `5.5.0` ~ `5.5.2`                                 | [`15.0.1`](https://plugins.swc.rs/versions/range/271) |
 | `5.6.0` ~ `5.6.1`                                 | [`27.0.6`](https://plugins.swc.rs/versions/range/364) |
+| `5.7.0`                                           | [`46.0.3`](https://plugins.swc.rs/versions/range/713)|
 
 
 > **Note**
