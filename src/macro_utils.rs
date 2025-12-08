@@ -61,8 +61,9 @@ impl MacroCtx {
 
     /// is given ident exported from @lingui/macro?
     pub fn is_lingui_ident(&self, name: &str, ident: &Ident) -> bool {
+        let name_atom: Atom = name.into();
         self.symbol_to_id_map
-            .get(&name.into())
+            .get(&name_atom)
             .and_then(|refs| refs.get(&ident.to_id()))
             .is_some()
     }
@@ -132,13 +133,12 @@ impl MacroCtx {
         let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
-            tokens.push(MsgToken::String(
-                tpl_element
-                    .cooked
-                    .as_ref()
-                    .unwrap_or(&tpl_element.raw)
-                    .to_string(),
-            ));
+            let value = tpl_element
+                .cooked
+                .as_ref()
+                .map(|c| c.to_string_lossy().into_owned())
+                .unwrap_or_else(|| tpl_element.raw.to_string());
+            tokens.push(MsgToken::String(value));
 
             if let Some(exp) = tpl.exprs.get(i) {
                 if let Expr::Call(call) = exp.as_ref() {
@@ -209,7 +209,9 @@ impl MacroCtx {
     pub fn try_tokenize_expr(&self, expr: &Expr) -> Option<Vec<MsgToken>> {
         match expr {
             // String Literal: "has # friend"
-            Expr::Lit(Lit::Str(str)) => Some(vec![MsgToken::String(str.clone().value.to_string())]),
+            Expr::Lit(Lit::Str(str)) => Some(vec![MsgToken::String(
+                str.value.to_string_lossy().into_owned(),
+            )]),
             // Template Literal: `${name} has # friend`
             Expr::Tpl(tpl) => Some(self.tokenize_tpl(tpl)),
 
@@ -227,18 +229,12 @@ impl MacroCtx {
     pub fn get_js_choice_case_key(&self, prop: &KeyValueProp) -> Option<Atom> {
         match &prop.key {
             // {one: ""}
-            PropName::Ident(IdentName { sym, .. })
+            PropName::Ident(IdentName { sym, .. }) => Some(sym.clone()),
             // {"one": ""}
-            | PropName::Str(Str { value: sym, .. }) => {
-                Some(sym.clone())
-            }
+            PropName::Str(Str { value, .. }) => Some(value.to_string_lossy().into_owned().into()),
             // {0: ""} -> `={number}`
-            PropName::Num(Number { value, .. }) => {
-                Some(format!("={value}").into())
-            }
-            _ => {
-                None
-            }
+            PropName::Num(Number { value, .. }) => Some(format!("={value}").into()),
+            _ => None,
         }
     }
 
