@@ -1,6 +1,6 @@
 {
   "name": "@lingui/swc-plugin",
-  "version": "5.6.1",
+  "version": "5.8.0",
   "description": "A SWC Plugin for LinguiJS",
   "author": {
     "name": "Timofei Iatsenko",
