@@ -1,0 +1,53 @@
+name: Bug report
+description: Create a bug report
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug! Please note:
+        - For SWC plugin API compatibility issues, check the [compatibility table](https://github.com/lingui/swc-plugin#compatibility).
+        - Bug reports without reproduction steps may be closed.
+  - type: textarea
+    attributes:
+      label: Description
+      description: A clear description of the bug.
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Verifications
+      options:
+        - label: I've checked [the docs](https://lingui.dev) and this isn't covered there.
+          required: true
+        - label: I've checked the compatibility table.
+          required: true
+  - type: textarea
+    attributes:
+      label: Reproduction Steps
+      description: Steps to reproduce with minimal code sample.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Plugin Version
+      description: Version of `@lingui/swc-plugin`.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Lingui Version
+      description: Output of `lingui --version`.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Environment
+      description: E.g. Next.js version, SWC version, Rspack, Turbopack
