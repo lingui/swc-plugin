@@ -7,8 +7,13 @@ body:
     attributes:
       value: |
         Thanks for reporting a bug! Please note:
-        - For SWC plugin API compatibility issues, check the [compatibility table](https://github.com/lingui/swc-plugin#compatibility).
-        - Bug reports without reproduction steps may be closed.
+
+        ⚠️ **If you see errors like:**
+        - `failed to invoke plugin on 'Some("...")'`
+        - `failed to run Wasm plugin transform`
+        - `RuntimeError: out of bounds memory access`
+
+        **This means you're using an incompatible version of `@lingui/swc-plugin` with your SWC/Next.js runtime.** This is NOT a bug—please check the [compatibility table](https://github.com/lingui/swc-plugin#compatibility) and ensure your versions match.
   - type: textarea
     attributes:
       label: Description
