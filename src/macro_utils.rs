@@ -246,7 +246,7 @@ impl MacroCtx {
         icu_format: &str,
     ) -> Vec<CaseOrOffset> {
         // todo: there might be more props then real choices. Id for example
-        let mut choices: Vec<CaseOrOffset> = Vec::with_capacity(props.len());
+        let mut choices: Vec<CaseOrOffset> = Vec::with_capacity(props.len() + 1);
 
         for prop_or_spread in props {
             if let PropOrSpread::Prop(prop) = prop_or_spread {
@@ -272,6 +272,17 @@ impl MacroCtx {
             } else {
                 // todo: panic here, we could not parse spread
             }
+        }
+
+        let no_other_case = !choices
+            .iter()
+            .any(|c| matches!(c, CaseOrOffset::Case(case) if case.key == "other"));
+
+        if no_other_case {
+            choices.push(CaseOrOffset::Case(ChoiceCase {
+                tokens: vec![],
+                key: "other".into(),
+            }));
         }
 
         choices
