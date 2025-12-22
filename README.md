@@ -112,6 +112,7 @@ Below is a table referencing the swc_core version used during the plugin build, 
 | `5.7.0`                                           | [`39.0.3`](https://plugins.swc.rs/versions/range/426) |
 | `5.8.0`                                           | [`45.0.2`](https://plugins.swc.rs/versions/range/497) |
 | `5.9.0`                                           | [`46.0.3`](https://plugins.swc.rs/versions/range/713) |
+| `5.10.0`                                          | [`50.2.3`](https://plugins.swc.rs/versions/range/768) |
 
 > **Note**
 > next `v13.2.4` ~ `v13.3.1` cannot execute SWC Wasm plugins, due to a [bug of next-swc](https://github.com/vercel/next.js/issues/46989#issuecomment-1486989081).
