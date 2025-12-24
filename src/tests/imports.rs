@@ -50,13 +50,13 @@ to!(
        import { Trans as Trans_ } from "@lingui/react";
        import { Select } from "./my-select-cmp";
 
-       ;<Trans_
+       <Trans_
             message={"{count, plural, one {Message} other {Messages}}"}
             id={"V4EO9s"}
            values={{ count: count }}
-        />
+        />;
 
-      ;<Select prop="propValue">Should be untouched</Select>
+      <Select prop="propValue">Should be untouched</Select>;
     "#
 );
 
@@ -78,12 +78,12 @@ to!(
        import { Trans } from "@lingui/react";
        import { Trans as Trans_ } from "@lingui/react";
 
-       ;<Trans_
+       <Trans_
             message={"{count, plural, one {Message} other {Messages}}"}
             id={"V4EO9s"}
            values={{ count: count }}
-        />
-       ;<Trans>Should be untouched</Trans>
+        />;
+       <Trans>Should be untouched</Trans>;
     "#
 );
 
@@ -173,11 +173,11 @@ to!(
     r#"
         import { Trans as Trans_ } from "@lingui/react";
 
-        ;<Trans_  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
+        <Trans_  message={"{count, plural, one {Message} other {Messages}}"} id={"V4EO9s"} values={{
             count: count
-        }}/>
+        }}/>;
 
-        ;<Trans_ message={"Hello!"} id={"mAYvqA"}/>;
+        <Trans_ message={"Hello!"} id={"mAYvqA"}/>;
     "#
 );
 to!(

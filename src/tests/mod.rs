@@ -1,4 +1,5 @@
 mod common;
+mod empty_statements;
 mod imports;
 mod js_define_message;
 mod js_icu;

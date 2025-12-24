@@ -302,6 +302,10 @@ impl Fold for LinguiMacroFolder {
 
         n = n.fold_children_with(self);
 
+        // Remove empty statements at module level
+        // This is required to avoid extra semicolons in the output
+        n.retain(|item| !matches!(item, ModuleItem::Stmt(Stmt::Empty(..))));
+
         if self.ctx.should_add_18n_import {
             n.insert(
                 insert_index,
@@ -427,6 +431,23 @@ impl Fold for LinguiMacroFolder {
         }
 
         el.fold_children_with(self)
+    }
+
+    fn fold_stmts(&mut self, mut stmts: Vec<Stmt>) -> Vec<Stmt> {
+        // If no package that we care about is imported, skip the following
+        // transformation logic.
+        if !self.has_lingui_macro_imports {
+            return stmts;
+        }
+
+        // First, process children
+        stmts = stmts.fold_children_with(self);
+
+        // Remove empty statements from the statement list
+        // This is required to avoid extra semicolons in the output
+        stmts.retain(|s| !matches!(s, Stmt::Empty(..)));
+
+        stmts
     }
 }
 
