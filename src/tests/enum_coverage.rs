@@ -119,6 +119,13 @@ fn test_jsx_attr_value_variants() {
         closing: JSXClosingFragment { span: DUMMY_SP },
     });
     assert_eq!(get_jsx_attr_value_as_string(&jsx_frag), None);
+
+    // Test JSXExprContainer with JSXEmptyExpr - should return None
+    let jsx_empty = JSXAttrValue::JSXExprContainer(JSXExprContainer {
+        span: DUMMY_SP,
+        expr: JSXExpr::JSXEmptyExpr(JSXEmptyExpr { span: DUMMY_SP }),
+    });
+    assert_eq!(get_jsx_attr_value_as_string(&jsx_empty), None);
 }
 
 #[test]
