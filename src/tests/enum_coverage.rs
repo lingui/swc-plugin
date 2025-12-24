@@ -11,12 +11,11 @@
 // all known enum variants, plugins can work with newer SWC versions until new features
 // are actually encountered in the code.
 
-use crate::ast_utils::*;
-use swc_core::common::DUMMY_SP;
-use swc_core::ecma::ast::*;
-
 #[test]
 fn test_object_pat_prop_variants() {
+    use crate::ast_utils::*;
+    use swc_core::common::DUMMY_SP;
+    use swc_core::ecma::ast::*;
     use swc_core::ecma::utils::quote_ident;
 
     // Test KeyValue variant
@@ -54,6 +53,10 @@ fn test_object_pat_prop_variants() {
 
 #[test]
 fn test_jsx_attr_value_variants() {
+    use crate::ast_utils::*;
+    use swc_core::common::DUMMY_SP;
+    use swc_core::ecma::ast::*;
+
     // Test Str variant
     let str_val = JSXAttrValue::Str(Str {
         span: DUMMY_SP,
@@ -120,6 +123,9 @@ fn test_jsx_attr_value_variants() {
 
 #[test]
 fn test_expr_as_string_variants() {
+    use crate::ast_utils::*;
+    use swc_core::common::DUMMY_SP;
+    use swc_core::ecma::ast::*;
     // Test Lit::Str variant
     let str_expr = Expr::Lit(Lit::Str(Str {
         span: DUMMY_SP,
@@ -169,6 +175,9 @@ fn test_expr_as_string_variants() {
 
 #[test]
 fn test_prop_name_variants() {
+    use crate::ast_utils::*;
+    use swc_core::common::DUMMY_SP;
+    use swc_core::ecma::ast::*;
     use swc_core::ecma::utils::quote_ident;
 
     // Test Ident variant
@@ -228,8 +237,9 @@ fn test_prop_name_variants() {
 
 #[test]
 fn test_get_expr_as_string_does_not_panic_on_known_variants() {
-    use swc_core::common::SyntaxContext;
-    use swc_core::ecma::ast::Ident;
+    use crate::ast_utils::*;
+    use swc_core::common::{SyntaxContext, DUMMY_SP};
+    use swc_core::ecma::ast::{Expr, Ident};
 
     // Test Expr::Ident - a known variant that get_expr_as_string doesn't support
     let expr = Expr::Ident(Ident {
