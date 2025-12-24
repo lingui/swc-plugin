@@ -135,11 +135,12 @@ impl TransJSXVisitor<'_> {
 
                                             tokens.extend(visitor.tokens)
                                         }
-
+                                        // All other known Expr variants
                                         _ => tokens.push(MsgToken::Expression(exp.clone())),
                                     }
                                 }
 
+                                // All other known JSXAttrValue variants
                                 _ => {
                                     // todo unsupported syntax
                                 }
@@ -246,6 +247,7 @@ impl Visit for TransJSXVisitor<'_> {
                 Expr::Tpl(tpl) => {
                     self.tokens.extend(self.ctx.tokenize_tpl(tpl));
                 }
+                // All other known Expr variants
                 _ => {
                     self.tokens.push(MsgToken::Expression(exp.clone()));
                 }

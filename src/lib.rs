@@ -250,6 +250,7 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
                         ctxt: SyntaxContext::empty(),
                     })))
                 }
+                // All other known Stmt variants
                 _ => stmt,
             })
             .collect();

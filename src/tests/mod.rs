@@ -1,4 +1,5 @@
 mod common;
+mod enum_coverage;
 mod imports;
 mod js_define_message;
 mod js_icu;

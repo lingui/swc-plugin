@@ -213,6 +213,7 @@ impl MessageBuilder {
 
                 index
             }
+            // All other known Expr variants
             _ => {
                 let index = self.values_indexed.len().to_string();
 

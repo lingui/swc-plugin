@@ -4,6 +4,25 @@ use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::quote_ident;
 
+/// Helper function to panic with a helpful message when encountering unknown AST nodes
+#[cfg(swc_ast_unknown)]
+pub fn panic_unknown_node(node_type: &str, node: &dyn std::fmt::Debug) -> ! {
+    panic!(
+        "{} v{}: Unknown {} variant encountered.\n\
+         Node: {:?}\n\n\
+         This likely means your SWC version is newer than this plugin supports.\n\
+         Please try:\n\
+         1. Update this plugin to the latest version\n\
+         2. Or downgrade @swc/core to a compatible version\n\
+         3. Or report this issue at: {}",
+        env!("CARGO_PKG_NAME"),
+        env!("CARGO_PKG_VERSION"),
+        node_type,
+        node,
+        env!("CARGO_PKG_REPOSITORY")
+    )
+}
+
 pub fn get_jsx_attr<'a>(el: &'a JSXOpeningElement, name: &str) -> Option<&'a JSXAttr> {
     for attr in &el.attrs {
         if let JSXAttrOrSpread::JSXAttr(attr) = attr {
@@ -37,7 +56,13 @@ pub fn get_local_ident_from_object_pat_prop(
         ObjectPatProp::Assign(assign) if assign.key.sym == imported_symbol => {
             Some(assign.key.clone())
         }
-        _ => None,
+        // Known variants that we don't support
+        ObjectPatProp::KeyValue(_) => None, // Non-matching key
+        ObjectPatProp::Assign(_) => None,   // Non-matching key
+        ObjectPatProp::Rest(_) => None,
+
+        #[cfg(swc_ast_unknown)]
+        _ => panic_unknown_node("ObjectPatProp", prop),
     }
 }
 
@@ -57,10 +82,17 @@ pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
                 }
                 // offset={5}
                 Expr::Lit(Lit::Num(Number { value, .. })) => Some(value.to_string()),
+                // All other known Expr variants that we don't support
                 _ => None,
             }
         }
-        _ => None,
+        // Known JSXAttrValue variants that we don't support
+        JSXAttrValue::JSXElement(_) => None,
+        JSXAttrValue::JSXFragment(_) => None,
+        JSXAttrValue::JSXExprContainer(_) => None, // Non-Expr variants
+
+        #[cfg(swc_ast_unknown)]
+        _ => panic_unknown_node("JSXAttrValue", val),
     }
 }
 
@@ -78,7 +110,47 @@ pub fn get_expr_as_string(val: &Expr) -> Option<String> {
             }
         }
 
-        _ => None,
+        // All other known Expr variants that we don't support
+        Expr::This(_)
+        | Expr::Array(_)
+        | Expr::Object(_)
+        | Expr::Fn(_)
+        | Expr::Unary(_)
+        | Expr::Update(_)
+        | Expr::Bin(_)
+        | Expr::Assign(_)
+        | Expr::Member(_)
+        | Expr::SuperProp(_)
+        | Expr::Cond(_)
+        | Expr::Call(_)
+        | Expr::New(_)
+        | Expr::Seq(_)
+        | Expr::Ident(_)
+        | Expr::Lit(_)
+        | Expr::Paren(_)
+        | Expr::JSXMember(_)
+        | Expr::JSXNamespacedName(_)
+        | Expr::JSXEmpty(_)
+        | Expr::JSXElement(_)
+        | Expr::JSXFragment(_)
+        | Expr::TsTypeAssertion(_)
+        | Expr::TsConstAssertion(_)
+        | Expr::TsNonNull(_)
+        | Expr::TsAs(_)
+        | Expr::TsInstantiation(_)
+        | Expr::TsSatisfies(_)
+        | Expr::PrivateName(_)
+        | Expr::OptChain(_)
+        | Expr::Invalid(_)
+        | Expr::Yield(_)
+        | Expr::Arrow(_)
+        | Expr::Class(_)
+        | Expr::Await(_)
+        | Expr::MetaProp(_)
+        | Expr::TaggedTpl(_) => None,
+
+        #[cfg(swc_ast_unknown)]
+        _ => panic_unknown_node("Expr", val),
     }
 }
 
@@ -147,7 +219,13 @@ pub fn get_prop_key(prop: &KeyValueProp) -> Option<Atom> {
     match &prop.key {
         PropName::Ident(IdentName { sym, .. }) => Some(sym.clone()),
         PropName::Str(Str { value, .. }) => Some(value.to_string_lossy().into_owned().into()),
-        _ => None,
+        // Known PropName variants that we don't support
+        PropName::Num(_) => None,
+        PropName::Computed(_) => None,
+        PropName::BigInt(_) => None,
+
+        #[cfg(swc_ast_unknown)]
+        _ => panic_unknown_node("PropName", &prop.key),
     }
 }
 

@@ -124,6 +124,7 @@ impl MacroCtx {
             }
             // t..
             Expr::Ident(ident) if self.is_lingui_ident(LINGUI_T, ident) => (true, None),
+            // All other known Expr variants
             _ => (false, None),
         }
     }
@@ -220,6 +221,7 @@ impl MacroCtx {
 
             // Call Expression: {one: plural(numArticles, {...})}
             Expr::Call(expr) => self.try_tokenize_call_expr_as_choice_cmp(expr),
+            // All other known Expr variants
             _ => None,
         }
     }
@@ -234,7 +236,12 @@ impl MacroCtx {
             PropName::Str(Str { value, .. }) => Some(value.to_string_lossy().into_owned().into()),
             // {0: ""} -> `={number}`
             PropName::Num(Number { value, .. }) => Some(format!("={value}").into()),
-            _ => None,
+            // Known PropName variants that we don't support
+            PropName::Computed(_) => None,
+            PropName::BigInt(_) => None,
+
+            #[cfg(swc_ast_unknown)]
+            _ => panic_unknown_node("PropName", &prop.key),
         }
     }
 
