@@ -2,6 +2,7 @@
 name = "lingui_macro_plugin"
 version = "5.10.0"
 edition = "2021"
+repository = "https://github.com/lingui/swc-plugin"
 
 [lib]
 crate-type = ["cdylib"]
