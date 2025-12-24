@@ -256,3 +256,56 @@ fn test_get_expr_as_string_does_not_panic_on_known_variants() {
 
     assert_eq!(result, None);
 }
+
+#[test]
+fn test_macro_ctx_get_js_choice_case_key_with_unsupported_prop() {
+    use crate::macro_utils::MacroCtx;
+    use crate::LinguiOptions;
+    use swc_core::common::DUMMY_SP;
+    use swc_core::ecma::ast::*;
+
+    let ctx = MacroCtx::new(LinguiOptions::default());
+
+    // Test with PropName::Computed - a known variant that get_js_choice_case_key doesn't support
+    let computed_prop = KeyValueProp {
+        key: PropName::Computed(ComputedPropName {
+            span: DUMMY_SP,
+            expr: Box::new(Expr::Lit(Lit::Str(Str {
+                span: DUMMY_SP,
+                value: "computed".into(),
+                raw: None,
+            }))),
+        }),
+        value: Box::new(Expr::Lit(Lit::Null(Null { span: DUMMY_SP }))),
+    };
+
+    // Should return None for unsupported known variants, not panic
+    let result = ctx.get_js_choice_case_key(&computed_prop);
+    assert_eq!(result, None);
+
+    // Test with PropName::BigInt - another known variant that's not supported
+    let bigint_prop = KeyValueProp {
+        key: PropName::BigInt(BigInt {
+            span: DUMMY_SP,
+            value: Box::new(BigIntValue::from(42)),
+            raw: None,
+        }),
+        value: Box::new(Expr::Lit(Lit::Null(Null { span: DUMMY_SP }))),
+    };
+
+    let result = ctx.get_js_choice_case_key(&bigint_prop);
+    assert_eq!(result, None);
+
+    // Test with PropName::Num - should return formatted number
+    let num_prop = KeyValueProp {
+        key: PropName::Num(Number {
+            span: DUMMY_SP,
+            value: 0.0,
+            raw: None,
+        }),
+        value: Box::new(Expr::Lit(Lit::Null(Null { span: DUMMY_SP }))),
+    };
+
+    let result = ctx.get_js_choice_case_key(&num_prop);
+    assert_eq!(result, Some("=0".into()));
+}
