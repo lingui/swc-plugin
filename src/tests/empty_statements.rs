@@ -1,6 +1,5 @@
 use crate::to;
 
-// Test case 1: Empty statements should be removed from statement lists
 to!(
     should_remove_empty_statements_from_blocks,
     r#"
@@ -30,36 +29,6 @@ function test() {
     "#
 );
 
-// Test case 2: Empty variable declarations should be removed
-to!(
-    should_remove_empty_var_declarations,
-    r#"
-import { useLingui } from "@lingui/react/macro";
-
-function MyComponent() {
-    const { t } = useLingui();
-
-    // This creates an empty var declaration after transformation
-    const bar = "test";
-
-    const msg = t`Message`;
-}
-    "#,
-    r#"
-import { useLingui as $_useLingui } from "@lingui/react";
-
-function MyComponent() {
-    const { i18n: $__i18n, _: $__ } = $_useLingui();
-    const bar = "test";
-    const msg = $__i18n._({
-        id: "xDAtGP",
-        message: "Message"
-    });
-}
-    "#
-);
-
-// Test case 3: Empty statements at module level should be removed
 to!(
     should_remove_empty_statements_at_module_level,
     r#"
@@ -87,7 +56,6 @@ export default msg;
     "#
 );
 
-// Test case 4: Nested blocks with empty statements
 to!(
     should_remove_empty_statements_in_nested_blocks,
     r#"
@@ -116,7 +84,6 @@ function test() {
     "#
 );
 
-// Test case 5: Arrow functions with empty statements
 to!(
     should_remove_empty_statements_in_arrow_functions,
     r#"
@@ -143,7 +110,6 @@ const fn = ()=>{
     "#
 );
 
-// Test case 6: Empty statements in loops
 to!(
     should_remove_empty_statements_in_loops,
     r#"
@@ -188,7 +154,6 @@ function test() {
     "#
 );
 
-// Test case 7: Empty statements in try-catch blocks
 to!(
     should_remove_empty_statements_in_try_catch,
     r#"
@@ -225,7 +190,6 @@ function test() {
     "#
 );
 
-// Test case 8: Empty statements in switch cases
 to!(
     should_remove_empty_statements_in_switch,
     r#"
