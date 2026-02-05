@@ -18,6 +18,9 @@ cargo test js_choices_may_contain_expressions
 
 # you may specify only prefix of test name to target more cases
 cargo test jsx_
+
+# update snapshots
+UPDATE=1 cargo test
 ```
 
 ## Code Quality Checks
