@@ -96,6 +96,41 @@ to!(
 );
 
 to!(
+    jsx_comments_should_not_affect_expression_index,
+    r#"
+        import { Trans } from '@lingui/react/macro';
+        // Without comment - expression gets index 0
+        <Trans>
+          Click here
+          <Link>
+            {getText()}
+          </Link>
+        </Trans>;
+        // With comment before expression - expression should STILL get index 0
+        <Trans>
+          Click here
+          <Link>
+            {/* @ts-expect-error */}
+            {getText()}
+          </Link>
+        </Trans>;
+     "#,
+    r#"
+      import { Trans as Trans_ } from "@lingui/react";
+      <Trans_ message={"Click here<0>{0}</0>"} id={"HW7Brx"} values={{
+          0: getText()
+      }} components={{
+          0: <Link/>
+      }}/>;
+      <Trans_ message={"Click here<0>{0}</0>"} id={"HW7Brx"} values={{
+          0: getText()
+      }} components={{
+          0: <Link/>
+      }}/>;
+    "#
+);
+
+to!(
     jsx_components_interpolation,
     r#"
        import { Trans } from "@lingui/react/macro";
