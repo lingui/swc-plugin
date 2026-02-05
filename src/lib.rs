@@ -22,7 +22,6 @@ mod js_macro_folder;
 mod jsx_visitor;
 mod macro_utils;
 mod options;
-mod tests;
 mod tokens;
 
 use crate::generate_id::*;
@@ -430,7 +429,7 @@ impl Fold for LinguiMacroFolder {
     }
 }
 
-pub use self::options::LinguiOptions;
+pub use self::options::{LinguiOptions, RuntimeModulesConfigMapNormalized};
 
 #[plugin_transform]
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {

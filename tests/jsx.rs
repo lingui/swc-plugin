@@ -1,7 +1,7 @@
 #[macro_use]
 mod common;
 
-lingui_test!(
+to!(
     jsx_simple_jsx,
     r#"
 import { Trans } from "@lingui/react/macro";
@@ -11,7 +11,7 @@ const exp3 = <div><Trans>Refresh inbox</Trans></div>;
      "#
 );
 
-lingui_test!(
+to!(
     jsx_should_suppor_legacy_import,
     r#"
 import { Trans } from "@lingui/macro";
@@ -19,7 +19,7 @@ const exp2 = <Trans>Refresh inbox</Trans>;
      "#
 );
 
-lingui_test!(
+to!(
     jsx_with_custom_id,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -27,7 +27,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_with_context,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -36,7 +36,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_preserve_reserved_attrs,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -44,7 +44,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_expressions_are_converted_to_positional_arguments,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -59,7 +59,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_comments_should_not_affect_expression_index,
     r#"
         import { Trans } from '@lingui/react/macro';
@@ -81,7 +81,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_components_interpolation,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -95,7 +95,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_values_dedup,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -106,7 +106,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_explicit_labels_with_as_statement,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -114,7 +114,7 @@ lingui_test!(
        "#
 );
 
-lingui_test!(
+to!(
     jsx_explicit_labels,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -128,7 +128,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_ph_labels,
     r#"
        import { Trans, ph } from "@lingui/react/macro";
@@ -142,7 +142,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_nested_labels,
     r#"
        import { Trans, ph } from "@lingui/react/macro";
@@ -152,7 +152,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     jsx_template_literal_in_children,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -160,7 +160,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     quoted_jsx_attributes_are_handled,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -169,7 +169,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     html_attributes_are_handled,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -179,7 +179,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     use_decoded_html_entities,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -187,7 +187,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     elements_inside_expression_container,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -195,7 +195,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     elements_without_children,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -216,7 +216,7 @@ lingui_test!(
 //     "#
 // );
 
-lingui_test!(
+to!(
     strip_whitespace_around_arguments,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -228,7 +228,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     strip_whitespace_around_tags_but_keep_forced_spaces,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -240,7 +240,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     keep_multiple_forced_newlines,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -252,7 +252,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     use_js_macro_in_jsx_attrs,
     r#"
         import { t } from '@lingui/core/macro';
@@ -261,7 +261,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     use_js_plural_in_jsx_attrs,
     r#"
         import { plural } from '@lingui/core/macro';
@@ -272,7 +272,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     ignore_jsx_empty_expression,
     r#"
         import { Trans } from "@lingui/react/macro";
@@ -280,7 +280,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     production,
     production_only_essential_props_are_kept,
     r#"
@@ -294,7 +294,7 @@ lingui_test!(
      "#
 );
 
-lingui_test!(
+to!(
     strip_whitespaces_in_jsxtext_but_keep_in_jsx_expression_containers,
     r#"
       import { Trans } from "@lingui/react/macro";
@@ -307,7 +307,7 @@ lingui_test!(
       </Trans>
      "#
 );
-lingui_test!(
+to!(
     non_breaking_whitespace_handling_2226,
     r#"
 import { Trans } from "@lingui/react/macro";
@@ -320,7 +320,7 @@ import { Trans } from "@lingui/react/macro";
      "#
 );
 
-lingui_test!(
+to!(
     normalize_crlf_lf_cr,
     concat!(
         "import { Trans } from \"@lingui/react/macro\";\n",

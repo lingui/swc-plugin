@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! lingui_test {
+macro_rules! to {
     ($name:ident, $input:expr) => {
         swc_core::ecma::transforms::testing::test!(
             swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsSyntax {
@@ -42,6 +42,21 @@ macro_rules! lingui_test {
                         },
                     )),
                 )
+            },
+            $name,
+            $input
+        );
+    };
+    (with_options, $name:ident, $options:expr, $input:expr) => {
+        swc_core::ecma::transforms::testing::test!(
+            swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsSyntax {
+                tsx: true,
+                ..Default::default()
+            }),
+            |_| {
+                swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
+                    $options,
+                ))
             },
             $name,
             $input
