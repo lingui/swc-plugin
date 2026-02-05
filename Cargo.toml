@@ -4,7 +4,7 @@ version = "5.10.1"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", 'rlib']
 
 [profile.release]
 # This removes more dead code
@@ -31,6 +31,8 @@ swc_core = { version = "50.2.3", features = [
   "common",
   "testing_transform",
 ] }
+swc_ecma_ast = "19.0.0"
+swc_ecma_parser = "29.0.2"
 # .cargo/config defines few alias to build plugin.
 # cargo build-wasi generates wasm-wasi32 binary
 # cargo build-wasm32 generates wasm32-unknown-unknown binary.

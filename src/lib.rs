@@ -430,6 +430,8 @@ impl Fold for LinguiMacroFolder {
     }
 }
 
+pub use self::options::LinguiOptions;
+
 #[plugin_transform]
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {
     let config = serde_json::from_str::<LinguiJsOptions>(
