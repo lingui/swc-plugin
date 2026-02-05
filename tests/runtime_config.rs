@@ -2,7 +2,6 @@
 mod common;
 
 to!(
-    with_options,
     should_use_provided_runtime_modules,
     lingui_macro_plugin::LinguiOptions {
         runtime_modules: lingui_macro_plugin::RuntimeModulesConfigMapNormalized {

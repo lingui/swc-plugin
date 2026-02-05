@@ -1,3 +1,5 @@
+use lingui_macro_plugin::LinguiOptions;
+
 #[macro_use]
 mod common;
 
@@ -144,8 +146,11 @@ to!(
 );
 
 to!(
-    production,
     js_should_kept_only_essential_props,
+    LinguiOptions {
+        strip_non_essential_fields: true,
+        ..Default::default()
+    },
     r#"
         import { t } from '@lingui/core/macro'
         const msg1 = t`Message`

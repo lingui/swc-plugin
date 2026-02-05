@@ -1,3 +1,5 @@
+use lingui_macro_plugin::LinguiOptions;
+
 #[macro_use]
 mod common;
 
@@ -208,8 +210,11 @@ to!(
 );
 
 to!(
-    production,
     production_only_essential_props_are_kept,
+    LinguiOptions {
+        strip_non_essential_fields: true,
+        ..Default::default()
+    },
     r#"
         import { Plural } from '@lingui/macro';
 

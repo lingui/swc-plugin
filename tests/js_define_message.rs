@@ -1,4 +1,7 @@
-use crate::to;
+use lingui_macro_plugin::LinguiOptions;
+
+#[macro_use]
+mod common;
 
 to!(
     should_transform_define_message,
@@ -12,17 +15,7 @@ to!(
           comment: "Description",
           message: "Message"
         })
-     "#,
-    r#"
-      const message1 = {
-        id: "xDAtGP",
-        message: "Message"
-      };
-      const message2 = {
-        id: "xDAtGP",
-        message: "Message"
-      };
-    "#
+     "#
 );
 
 to!(
@@ -31,17 +24,7 @@ to!(
         import { defineMessage, msg } from '@lingui/macro';
         const message1 = defineMessage`Message`;
         const message2 = msg`Message`
-     "#,
-    r#"
-      const message1 = {
-        id: "xDAtGP",
-        message: "Message"
-      };
-       const message2 = {
-        id: "xDAtGP",
-        message: "Message"
-      };
-    "#
+     "#
 );
 
 to!(
@@ -53,13 +36,7 @@ to!(
           id: "custom.id",
           message: "Message",
         })
-     "#,
-    r#"
-        const message = {
-          id: "custom.id",
-          message: "Message"
-        }
-    "#
+     "#
 );
 
 to!(
@@ -69,16 +46,7 @@ to!(
         const message = defineMessage({
           message: `Hello ${name}`
         })
-     "#,
-    r#"
-      const message = {
-          id: "OVaF9k",
-          message: "Hello {name}",
-          values: {
-              name: name
-          }
-      };
-    "#
+     "#
 );
 
 to!(
@@ -89,21 +57,15 @@ to!(
           comment: "Description",
           message: plural(count, { one: "book", other: "books" })
         })
-     "#,
-    r#"
-      const message = {
-        id: "AJdPPy",
-        message: "{count, plural, one {book} other {books}}",
-        values: {
-            count: count
-        }
-      };
-    "#
+     "#
 );
 
 to!(
-    production,
     should_kept_only_essential_props,
+    LinguiOptions {
+        strip_non_essential_fields: true,
+        ..Default::default()
+    },
     r#"
         import { defineMessage } from '@lingui/macro'
         const message1 = defineMessage`Message`;
@@ -113,17 +75,5 @@ to!(
             comment: 'description for translators',
             context: 'My Context',
         })
-    "#,
-    r#"
-       const message1 = {
-         id: "xDAtGP",
-       };
-
-       const message2 = {
-        id: "msgId",
-        values: {
-          name: name,
-        },
-       };
-     "#
+    "#
 );

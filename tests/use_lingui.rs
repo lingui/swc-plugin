@@ -1,4 +1,5 @@
-use common::to;
+#[macro_use]
+mod common;
 
 to!(
     js_use_lingui_hook,
