@@ -13,12 +13,10 @@ macro_rules! to {
                         swc_core::common::Mark::new(),
                         true,
                     ),
-                    swc_core::ecma::visit::fold_pass(
-                        lingui_macro_plugin::LinguiMacroFolder::new(
-                            Default::default(),
-                            Some(tester.comments.clone()),
-                        ),
-                    ),
+                    swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
+                        Default::default(),
+                        Some(tester.comments.clone()),
+                    )),
                 )
             },
             $name,
