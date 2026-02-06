@@ -51,7 +51,7 @@ where
             props,
         });
 
-        add_i18n_comment(&self.comments, message_descriptor.span().lo);
+        add_i18n_comment(self.comments, message_descriptor.span().lo);
 
         message_descriptor
     }
@@ -133,11 +133,11 @@ where
             }
 
             let message_descriptor = Box::new(Expr::Object(ObjectLit {
-                span: obj.span.clone(),
+                span: obj.span,
                 props: new_props,
             }));
 
-            add_i18n_comment(&self.comments, message_descriptor.span().lo);
+            add_i18n_comment(self.comments, message_descriptor.span().lo);
 
             return message_descriptor;
         }
