@@ -1,4 +1,8 @@
 import { Trans as Trans_ } from "@lingui/react";
-<Trans_ message={"{count, plural, one {Message} other {Messages}}"} values={{
-    count: count
-}} id="plural.id"/>;
+<Trans_ {.../*i18n*/ {
+    id: "plural.id",
+    values: {
+        count: count
+    },
+    message: "{count, plural, one {Message} other {Messages}}"
+}}/>;

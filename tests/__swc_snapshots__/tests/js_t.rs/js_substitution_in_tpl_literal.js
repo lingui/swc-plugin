@@ -1,9 +1,9 @@
 import { i18n as $_i18n } from "@lingui/core";
-$_i18n._({
+$_i18n._(/*i18n*/ {
     id: "EsCV2T",
     message: "Refresh inbox"
 });
-$_i18n._({
+$_i18n._(/*i18n*/ {
     id: "JPS+Xq",
     message: "Refresh {foo} inbox {bar}",
     values: {
@@ -11,7 +11,7 @@ $_i18n._({
         bar: bar
     }
 });
-$_i18n._({
+$_i18n._(/*i18n*/ {
     id: "xplbye",
     message: "Refresh {0} inbox {bar}",
     values: {
@@ -19,7 +19,7 @@ $_i18n._({
         0: foo.bar
     }
 });
-$_i18n._({
+$_i18n._(/*i18n*/ {
     id: "+NCjg/",
     message: "Refresh {0}",
     values: {

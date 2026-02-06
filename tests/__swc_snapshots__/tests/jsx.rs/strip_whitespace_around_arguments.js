@@ -1,4 +1,8 @@
 import { Trans as Trans_ } from "@lingui/react";
-<Trans_ message={"Strip whitespace around arguments: '{name}'"} id={"tRMgLt"} values={{
-    name: name
+<Trans_ {.../*i18n*/ {
+    id: "tRMgLt",
+    values: {
+        name: name
+    },
+    message: "Strip whitespace around arguments: '{name}'"
 }}/>;

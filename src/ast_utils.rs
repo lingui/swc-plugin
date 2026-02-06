@@ -1,5 +1,7 @@
 use std::collections::HashSet;
-use swc_core::common::DUMMY_SP;
+use swc_core::atoms::atom;
+use swc_core::common::comments::{Comment, CommentKind, Comments};
+use swc_core::common::{BytePos, DUMMY_SP};
 use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::quote_ident;
@@ -99,17 +101,6 @@ pub fn pick_jsx_attrs(
     attrs
 }
 
-pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
-    JSXAttrOrSpread::JSXAttr(JSXAttr {
-        span: DUMMY_SP,
-        name: JSXAttrName::Ident(IdentName::new(name.into(), DUMMY_SP)),
-        value: Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
-            span: DUMMY_SP,
-            expr: JSXExpr::Expr(exp),
-        })),
-    })
-}
-
 pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
     if let Callee::Expr(expr) = &call.callee {
         if let Expr::Ident(ident) = expr.as_ref() {
@@ -159,6 +150,7 @@ pub fn expand_ts_as_expr(mut expr: Box<Expr>) -> Box<Expr> {
     {
         expr = inner_expr;
     }
+
     expr
 }
 
@@ -187,4 +179,17 @@ pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> Mod
         with: None,
         type_only: false,
     }))
+}
+
+pub fn add_i18n_comment<C: Comments>(comments: &Option<C>, span_lo: BytePos) {
+    if let Some(comments) = &comments {
+        comments.add_leading(
+            span_lo,
+            Comment {
+                kind: CommentKind::Block,
+                span: DUMMY_SP,
+                text: atom!("i18n"),
+            },
+        );
+    }
 }

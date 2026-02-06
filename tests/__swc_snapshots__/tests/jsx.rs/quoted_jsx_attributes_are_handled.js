@@ -1,3 +1,9 @@
 import { Trans as Trans_ } from "@lingui/react";
-<Trans_ message={'Speak "friend"!'} id={"NWmRwM"}/>;
-<Trans_ message={'Speak "friend"!'} id="custom-id"/>;
+<Trans_ {.../*i18n*/ {
+    id: "NWmRwM",
+    message: 'Speak "friend"!'
+}}/>;
+<Trans_ {.../*i18n*/ {
+    id: "custom-id",
+    message: 'Speak "friend"!'
+}}/>;

@@ -3,7 +3,8 @@ use crate::builder::MessageBuilder;
 use crate::generate_id::generate_message_id;
 use crate::macro_utils::*;
 use crate::tokens::MsgToken;
-use swc_core::common::SyntaxContext;
+use swc_core::common::comments::Comments;
+use swc_core::common::{Span, Spanned, SyntaxContext};
 use swc_core::{
     common::DUMMY_SP,
     ecma::{
@@ -13,13 +14,20 @@ use swc_core::{
     },
 };
 
-pub struct JsMacroFolder<'a> {
+pub struct JsMacroFolder<'a, C>
+where
+    C: Comments,
+{
     pub ctx: &'a mut MacroCtx,
+    pub comments: &'a Option<C>,
 }
 
-impl<'a> JsMacroFolder<'a> {
-    pub fn new(ctx: &'a mut MacroCtx) -> JsMacroFolder<'a> {
-        JsMacroFolder { ctx }
+impl<'a, C> JsMacroFolder<'a, C>
+where
+    C: Comments,
+{
+    pub fn new(ctx: &'a mut MacroCtx, comments: &'a Option<C>) -> JsMacroFolder<'a, C> {
+        JsMacroFolder { ctx, comments }
     }
 
     fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>) -> Expr {
@@ -38,10 +46,14 @@ impl<'a> JsMacroFolder<'a> {
             props.push(create_key_value_prop("values", v))
         }
 
-        Expr::Object(ObjectLit {
-            span: DUMMY_SP,
+        let message_descriptor = Expr::Object(ObjectLit {
+            span: Span::dummy_with_cmt(),
             props,
-        })
+        });
+
+        add_i18n_comment(&self.comments, message_descriptor.span().lo);
+
+        message_descriptor
     }
 
     fn create_i18n_fn_call_from_tokens(
@@ -120,17 +132,24 @@ impl<'a> JsMacroFolder<'a> {
                 }
             }
 
-            return Box::new(Expr::Object(ObjectLit {
-                span: DUMMY_SP,
+            let message_descriptor = Box::new(Expr::Object(ObjectLit {
+                span: obj.span.clone(),
                 props: new_props,
             }));
+
+            add_i18n_comment(&self.comments, message_descriptor.span().lo);
+
+            return message_descriptor;
         }
 
         expr
     }
 }
 
-impl Fold for JsMacroFolder<'_> {
+impl<C> Fold for JsMacroFolder<'_, C>
+where
+    C: Comments,
+{
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         // t`Message`
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
