@@ -1,5 +1,6 @@
 import { Trans as Trans_ } from "@lingui/react";
 <Trans_ {.../*i18n*/ {
+    __lingui__: true,
     id: "custom.id",
     values: {
         count: count

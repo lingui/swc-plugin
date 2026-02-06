@@ -2,6 +2,7 @@ import { Trans as Trans_ } from "@lingui/react";
 import { Select } from "./my-select-cmp";
 ;
 <Trans_ {.../*i18n*/ {
+    __lingui__: true,
     id: "V4EO9s",
     values: {
         count: count

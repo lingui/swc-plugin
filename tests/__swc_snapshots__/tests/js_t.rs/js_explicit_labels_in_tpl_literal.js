@@ -1,5 +1,6 @@
 import { i18n as $_i18n } from "@lingui/core";
 $_i18n._(/*i18n*/ {
+    __lingui__: true,
     id: "rtxU8c",
     message: "Refresh {foo} inbox",
     values: {
@@ -7,6 +8,7 @@ $_i18n._(/*i18n*/ {
     }
 });
 $_i18n._(/*i18n*/ {
+    __lingui__: true,
     id: "rtxU8c",
     message: "Refresh {foo} inbox",
     values: {
@@ -14,6 +16,7 @@ $_i18n._(/*i18n*/ {
     }
 });
 $_i18n._(/*i18n*/ {
+    __lingui__: true,
     id: "rtxU8c",
     message: "Refresh {foo} inbox",
     values: {
@@ -21,6 +24,7 @@ $_i18n._(/*i18n*/ {
     }
 });
 $_i18n._(/*i18n*/ {
+    __lingui__: true,
     id: "rtxU8c",
     message: "Refresh {foo} inbox",
     values: {
@@ -28,6 +32,7 @@ $_i18n._(/*i18n*/ {
     }
 });
 $_i18n._(/*i18n*/ {
+    __lingui__: true,
     id: "AmeQ8b",
     message: "Refresh {0} inbox",
     values: {
@@ -35,6 +40,7 @@ $_i18n._(/*i18n*/ {
     }
 });
 $_i18n._(/*i18n*/ {
+    __lingui__: true,
     id: "AmeQ8b",
     message: "Refresh {0} inbox",
     values: {

@@ -1,6 +1,7 @@
 import { Trans as Trans_ } from "@lingui/react";
 // Without comment - expression gets index 0
 <Trans_ {.../*i18n*/ {
+    __lingui__: true,
     id: "HW7Brx",
     values: {
         0: getText()
@@ -12,6 +13,7 @@ import { Trans as Trans_ } from "@lingui/react";
 }}/>;
 // With comment before expression - expression should STILL get index 0
 <Trans_ {.../*i18n*/ {
+    __lingui__: true,
     id: "HW7Brx",
     values: {
         0: getText()

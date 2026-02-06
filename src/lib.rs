@@ -87,7 +87,7 @@ where
         let context_attr =
             get_jsx_attr(&el.opening, "context").and_then(|attr| attr.value.as_ref());
 
-        let mut message_descriptor_props: Vec<PropOrSpread> = vec![];
+        let mut message_descriptor_props: Vec<PropOrSpread> = vec![create_lingui_mark_prop()];
 
         if let Some(attr) = id_attr {
             message_descriptor_props.push(create_key_value_prop(
