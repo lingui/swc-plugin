@@ -1,4 +1,4 @@
-use data_encoding::BASE64;
+use data_encoding::BASE64URL;
 use sha2::{Digest, Sha256};
 
 const UNIT_SEPARATOR: &char = &'\u{001F}';
@@ -9,7 +9,7 @@ pub fn generate_message_id(message: &str, context: &str) -> String {
 
     let result = hasher.finalize();
 
-    BASE64.encode(result.as_ref())[0..6].into()
+    BASE64URL.encode(result.as_ref())[0..6].into()
 }
 
 #[cfg(test)]
@@ -27,5 +27,11 @@ mod tests {
             generate_message_id("my message", "custom context"),
             "gGUeZH"
         )
+    }
+
+    #[test]
+    fn test_generate_message_id_url_save() {
+        // this normally should produce `SO/WB8` but with urlsafe result should be different
+        assert_eq!(generate_message_id("Hello World", "my context"), "SO_WB8")
     }
 }
