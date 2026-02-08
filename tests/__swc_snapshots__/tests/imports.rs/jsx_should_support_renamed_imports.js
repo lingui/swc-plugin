@@ -1,7 +1,6 @@
 import { Trans as Trans_ } from "@lingui/react";
 ;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "V4EO9s",
     values: {
         count: count
@@ -9,7 +8,6 @@ import { Trans as Trans_ } from "@lingui/react";
     message: "{count, plural, one {Message} other {Messages}}"
 }}/>;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "mAYvqA",
     message: "Hello!"
 }}/>;

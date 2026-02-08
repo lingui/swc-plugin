@@ -33,10 +33,10 @@ where
     fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>) -> Expr {
         let parsed = MessageBuilder::parse(tokens);
 
-        let mut props: Vec<PropOrSpread> = vec![
-            create_lingui_mark_prop(),
-            create_key_value_prop("id", generate_message_id(&parsed.message_str, "").into()),
-        ];
+        let mut props: Vec<PropOrSpread> = vec![create_key_value_prop(
+            "id",
+            generate_message_id(&parsed.message_str, "").into(),
+        )];
 
         if !self.ctx.options.strip_non_essential_fields {
             props.push(create_key_value_prop("message", parsed.message));
@@ -99,7 +99,7 @@ where
 
             let message_prop = get_object_prop(&obj.props, "message");
 
-            let mut new_props: Vec<PropOrSpread> = vec![create_lingui_mark_prop()];
+            let mut new_props: Vec<PropOrSpread> = vec![];
 
             if let Some(prop) = id_prop {
                 if let Some(value) = get_expr_as_string(&prop.value) {

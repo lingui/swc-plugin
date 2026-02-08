@@ -1,6 +1,5 @@
 import { i18n as $_i18n } from "@lingui/core";
 const messagePlural = $_i18n._(/*i18n*/ {
-    __lingui__: true,
     id: "l6reUi",
     message: "{count, plural, one {{0}} other {{variable}}}",
     values: {
@@ -10,7 +9,6 @@ const messagePlural = $_i18n._(/*i18n*/ {
     }
 });
 const messageSelect = $_i18n._(/*i18n*/ {
-    __lingui__: true,
     id: "M4Fisk",
     message: "{gender, select, male {he} female {{variable}} third {{0}} other {{1}}}",
     values: {

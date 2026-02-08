@@ -161,10 +161,6 @@ pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     })))
 }
 
-pub fn create_lingui_mark_prop() -> PropOrSpread {
-    create_key_value_prop("__lingui__", true.into())
-}
-
 pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
         span: DUMMY_SP,

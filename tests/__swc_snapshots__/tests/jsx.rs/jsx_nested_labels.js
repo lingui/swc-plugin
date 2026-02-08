@@ -1,6 +1,5 @@
 import { Trans as Trans_ } from "@lingui/react";
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "USNn2Q",
     values: {
         foo: foo
@@ -11,7 +10,6 @@ import { Trans as Trans_ } from "@lingui/react";
     message: "Refresh <0>{foo}</0> inbox"
 }}/>;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "USNn2Q",
     values: {
         foo: foo

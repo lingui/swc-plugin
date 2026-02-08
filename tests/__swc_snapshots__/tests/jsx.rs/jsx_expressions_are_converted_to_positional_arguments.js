@@ -1,6 +1,5 @@
 import { Trans as Trans_ } from "@lingui/react";
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "HjKDmx",
     values: {
         0: props.name,

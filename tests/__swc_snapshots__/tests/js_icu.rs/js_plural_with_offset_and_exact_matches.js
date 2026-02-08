@@ -1,6 +1,5 @@
 import { i18n as $_i18n } from "@lingui/core";
 $_i18n._(/*i18n*/ {
-    __lingui__: true,
     id: "CF5t+7",
     message: "{0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}",
     values: {

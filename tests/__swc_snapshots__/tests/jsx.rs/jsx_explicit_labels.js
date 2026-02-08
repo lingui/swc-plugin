@@ -1,6 +1,5 @@
 import { Trans as Trans_ } from "@lingui/react";
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "rtxU8c",
     values: {
         foo: foo
@@ -8,7 +7,6 @@ import { Trans as Trans_ } from "@lingui/react";
     message: "Refresh {foo} inbox"
 }}/>;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "rtxU8c",
     values: {
         foo: foo.bar
@@ -16,7 +14,6 @@ import { Trans as Trans_ } from "@lingui/react";
     message: "Refresh {foo} inbox"
 }}/>;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "rtxU8c",
     values: {
         foo: expr()
@@ -24,7 +21,6 @@ import { Trans as Trans_ } from "@lingui/react";
     message: "Refresh {foo} inbox"
 }}/>;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "rtxU8c",
     values: {
         foo: bar
@@ -32,7 +28,6 @@ import { Trans as Trans_ } from "@lingui/react";
     message: "Refresh {foo} inbox"
 }}/>;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "AmeQ8b",
     values: {
         0: {}
@@ -40,7 +35,6 @@ import { Trans as Trans_ } from "@lingui/react";
     message: "Refresh {0} inbox"
 }}/>;
 <Trans_ {.../*i18n*/ {
-    __lingui__: true,
     id: "AmeQ8b",
     values: {
         0: {
