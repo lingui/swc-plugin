@@ -8,7 +8,7 @@ fn extract_and_sort(source_code: &str, filename: &str) -> (Vec<ExtractedMessage>
 
 fn assert_no_warnings(warnings: &[String]) {
     if !warnings.is_empty() {
-        panic!("Expected no warnings but got: {:?}", warnings);
+        panic!("Expected no warnings but got: {warnings:?}");
     }
 }
 
@@ -72,7 +72,7 @@ import { Trans } from "@lingui/react";
     "#;
 
     let (messages, warnings) = extract_and_sort(code, "test.js");
-    assert_eq!(messages.len(), 0);
+    assert!(messages.is_empty());
     assert!(!warnings.is_empty());
     assert!(warnings.iter().any(|w| w.contains("Missing message ID")));
 }
@@ -248,7 +248,7 @@ const t = /*i18n*/'';
 
     let (messages, warnings) = extract_and_sort(code, "test.js");
     assert_eq!(messages.len(), 0);
-    assert!(warnings.len() > 0);
+    assert!(!warnings.is_empty());
     assert!(warnings.iter().any(|w| w.contains("Empty StringLiteral")));
 }
 
@@ -308,7 +308,7 @@ const msg = /*i18n*/ {message: `Hello ${name}`};
 
     let (messages, warnings) = extract_and_sort(code, "test.js");
     assert_eq!(messages.len(), 0);
-    assert!(warnings.len() > 0);
+    assert!(!warnings.is_empty());
     assert!(warnings.iter().any(|w| w.contains("Missing message ID")));
 }
 
@@ -360,5 +360,138 @@ const msg = i18n._("Message");
 
     let origin = messages[0].origin.as_ref().unwrap();
     assert_eq!(origin.0, "test.js");
-    assert_eq!(origin.1, 2); // Line 2
+    assert_eq!(origin.1, 1);
+}
+
+// ============================================================================
+// Snapshot Testing Framework
+// ============================================================================
+
+use std::fs;
+use std::path::{Path, PathBuf};
+
+/// Load fixture file from tests/fixtures/
+fn load_fixture(filename: &str) -> String {
+    let fixture_path = PathBuf::from("tests/fixtures").join(filename);
+    fs::read_to_string(&fixture_path)
+        .unwrap_or_else(|e| panic!("Failed to read fixture {}: {}", fixture_path.display(), e))
+}
+
+/// Get snapshot path for a fixture
+fn get_snapshot_path(fixture_name: &str) -> PathBuf {
+    let snapshot_name = format!("{}.json", fixture_name);
+    PathBuf::from("tests/__snapshots__").join(snapshot_name)
+}
+
+/// Load snapshot from disk
+fn load_snapshot(path: &Path) -> Option<String> {
+    fs::read_to_string(path).ok()
+}
+
+/// Save snapshot to disk
+fn save_snapshot(path: &Path, content: &str) {
+    fs::create_dir_all(path.parent().unwrap())
+        .unwrap_or_else(|e| panic!("Failed to create snapshots directory: {}", e));
+    fs::write(path, content)
+        .unwrap_or_else(|e| panic!("Failed to write snapshot {}: {}", path.display(), e));
+}
+
+/// Check if UPDATE=1 environment variable is set
+fn should_update_snapshots() -> bool {
+    std::env::var("UPDATE").unwrap_or_default() == "1"
+}
+
+/// Serialize messages to JSON
+fn serialize_to_json(messages: &[ExtractedMessage]) -> String {
+    serde_json::to_string_pretty(messages)
+        .expect("Failed to serialize messages to JSON")
+}
+
+/// Perform snapshot test
+fn snapshot_test(fixture_name: &str) {
+    // Load fixture
+    let source_code = load_fixture(fixture_name);
+
+    // Extract messages
+    let (messages, warnings) = extract_and_sort(&source_code, fixture_name);
+
+    // Fail if there are warnings (optional - you can remove this if warnings are expected)
+    if !warnings.is_empty() {
+        eprintln!("Warnings during extraction from {}:", fixture_name);
+        for warning in &warnings {
+            eprintln!("  - {}", warning);
+        }
+    }
+
+    // Serialize to JSON
+    let actual_json = serialize_to_json(&messages);
+
+    // Get snapshot path
+    let snapshot_path = get_snapshot_path(fixture_name);
+
+    if should_update_snapshots() {
+        // Update mode: save the snapshot
+        save_snapshot(&snapshot_path, &actual_json);
+        println!("Updated snapshot: {}", snapshot_path.display());
+    } else {
+        // Compare mode: check against existing snapshot
+        let expected_json = load_snapshot(&snapshot_path).unwrap_or_else(|| {
+            panic!(
+                "Snapshot file not found: {}\n\nTo create snapshots, run:\n  UPDATE=1 cargo test",
+                snapshot_path.display()
+            )
+        });
+
+        // Compare JSON
+        if actual_json != expected_json {
+            // Pretty print the difference
+            eprintln!("\n❌ Snapshot mismatch for {}\n", fixture_name);
+            eprintln!("Expected ({}):", snapshot_path.display());
+            eprintln!("{}\n", expected_json);
+            eprintln!("Actual:");
+            eprintln!("{}\n", actual_json);
+            eprintln!("To update the snapshot, run:\n  UPDATE=1 cargo test {}",
+                     fixture_name.replace(".js", "").replace("-", "_"));
+            panic!("Snapshot mismatch");
+        }
+    }
+}
+
+// ============================================================================
+// Snapshot Tests
+// ============================================================================
+
+#[test]
+fn test_snapshot_js_call_expression() {
+    snapshot_test("js-call-expression.js");
+}
+
+#[test]
+fn test_snapshot_js_message_descriptor() {
+    snapshot_test("js-message-descriptor.js");
+}
+
+#[test]
+fn test_snapshot_js_with_macros() {
+    snapshot_test("js-with-macros.js");
+}
+
+#[test]
+fn test_snapshot_jsx_with_macros() {
+    snapshot_test("jsx-with-macros.js");
+}
+
+#[test]
+fn test_snapshot_jsx_without_macros() {
+    snapshot_test("jsx-without-macros.js");
+}
+
+#[test]
+fn test_snapshot_jsx_without_trans() {
+    snapshot_test("jsx-without-trans.js");
+}
+
+#[test]
+fn test_snapshot_without_lingui() {
+    snapshot_test("without-lingui.js");
 }

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "Message",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-message-descriptor.js",
+      1
+    ]
+  },
+  {
+    "id": "Description",
+    "message": null,
+    "context": null,
+    "comment": "description",
+    "placeholders": {},
+    "origin": [
+      "js-message-descriptor.js",
+      1
+    ]
+  },
+  {
+    "id": "ID",
+    "message": "Message with id",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-message-descriptor.js",
+      1
+    ]
+  },
+  {
+    "id": "Values {param} {0} {name} {value}",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "0": "user.getName()",
+      "param": "param",
+      "value": "user\n      ? user.name\n      : null"
+    },
+    "origin": [
+      "js-message-descriptor.js",
+      1
+    ]
+  },
+  {
+    "id": "Values {param} {0}",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-message-descriptor.js",
+      1
+    ]
+  },
+  {
+    "id": "Some id",
+    "message": null,
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-message-descriptor.js",
+      1
+    ]
+  }
+]

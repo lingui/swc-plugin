@@ -1,0 +1,92 @@
+[
+  {
+    "id": "Message",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  },
+  {
+    "id": "Description",
+    "message": null,
+    "context": null,
+    "comment": "description",
+    "placeholders": {},
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  },
+  {
+    "id": "ID",
+    "message": "Message with id",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  },
+  {
+    "id": "Values {param}",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "param": "param"
+    },
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  },
+  {
+    "id": "Some id",
+    "message": null,
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  },
+  {
+    "id": "my.id",
+    "message": "My Id Message",
+    "context": null,
+    "comment": "My comment",
+    "placeholders": {},
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  },
+  {
+    "id": "Aliased Message",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  },
+  {
+    "id": "my.id",
+    "message": "My Id Message",
+    "context": null,
+    "comment": "My comment",
+    "placeholders": {},
+    "origin": [
+      "js-call-expression.js",
+      1
+    ]
+  }
+]

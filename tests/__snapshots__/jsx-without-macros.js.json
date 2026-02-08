@@ -1,0 +1,79 @@
+[
+  {
+    "id": "msg.hello",
+    "message": null,
+    "context": null,
+    "comment": "Description",
+    "placeholders": {},
+    "origin": [
+      "jsx-without-macros.js",
+      1
+    ]
+  },
+  {
+    "id": "msg.context",
+    "message": null,
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-without-macros.js",
+      1
+    ]
+  },
+  {
+    "id": "msg.notcontext",
+    "message": null,
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-without-macros.js",
+      1
+    ]
+  },
+  {
+    "id": "msg.context",
+    "message": null,
+    "context": "Context2",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-without-macros.js",
+      1
+    ]
+  },
+  {
+    "id": "msg.default",
+    "message": "Hello World",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-without-macros.js",
+      1
+    ]
+  },
+  {
+    "id": "msg.default",
+    "message": "Hello World",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-without-macros.js",
+      1
+    ]
+  },
+  {
+    "id": "Hi, my name is <0>{name}</0>",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-without-macros.js",
+      1
+    ]
+  }
+]

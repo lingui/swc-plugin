@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use serde::Serialize;
+use std::collections::BTreeMap;
 use std::sync::Arc as Lrc;
 use swc_core::common::comments::Comments;
 use swc_core::common::source_map::SmallPos;
@@ -13,14 +14,47 @@ use swc_core::ecma::visit::{Visit, VisitWith};
 pub type Origin = (String, usize, Option<usize>);
 
 /// A message extracted from source code
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ExtractedMessage {
     pub id: String,
+    #[serde(serialize_with = "serialize_option_as_null")]
     pub message: Option<String>,
+    #[serde(serialize_with = "serialize_option_as_null")]
     pub context: Option<String>,
+    #[serde(serialize_with = "serialize_option_as_null")]
     pub comment: Option<String>,
-    pub placeholders: HashMap<String, String>,
+    pub placeholders: BTreeMap<String, String>,
+    #[serde(serialize_with = "serialize_origin")]
     pub origin: Option<Origin>,
+}
+
+/// Serialize Option<String> as null instead of omitting the field
+fn serialize_option_as_null<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    match value {
+        Some(v) => serializer.serialize_some(v),
+        None => serializer.serialize_none(),
+    }
+}
+
+/// Serialize origin as a 2-element array [filename, line_number]
+fn serialize_origin<S>(value: &Option<Origin>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+
+    match value {
+        Some((filename, line, _)) => {
+            let mut seq = serializer.serialize_seq(Some(2))?;
+            seq.serialize_element(filename)?;
+            seq.serialize_element(line)?;
+            seq.end()
+        }
+        None => serializer.serialize_none(),
+    }
 }
 
 /// Internal structure for building messages
@@ -30,7 +64,7 @@ struct RawMessage {
     message: Option<String>,
     comment: Option<String>,
     context: Option<String>,
-    placeholders: Option<HashMap<String, String>>,
+    placeholders: Option<BTreeMap<String, String>>,
 }
 
 /// Result of message extraction containing messages and any warnings
@@ -115,8 +149,8 @@ fn values_object_to_placeholders(
     obj: &ObjectLit,
     source_code: &str,
     warnings: &mut Vec<String>,
-) -> HashMap<String, String> {
-    let mut placeholders = HashMap::new();
+) -> BTreeMap<String, String> {
+    let mut placeholders = BTreeMap::new();
 
     for (i, prop) in obj.props.iter().enumerate() {
         if let PropOrSpread::Prop(prop) = prop {
