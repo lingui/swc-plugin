@@ -360,7 +360,8 @@ const msg = i18n._("Message");
 
     let origin = messages[0].origin.as_ref().unwrap();
     assert_eq!(origin.0, "test.js");
-    assert_eq!(origin.1, 1);
+    assert_eq!(origin.1, 2); // Line 2 because of the blank line at the start
+    assert_eq!(origin.2, Some(13)); // Column where i18n._ starts
 }
 
 // ============================================================================

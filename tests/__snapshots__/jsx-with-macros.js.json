@@ -1,1 +1,78 @@
-[]
+[
+  {
+    "id": "d1Kdl3",
+    "message": "Hi, my name is {name}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "name": "name"
+    },
+    "origin": [
+      "jsx-with-macros.js",
+      3,
+      9
+    ]
+  },
+  {
+    "id": "YikuIL",
+    "message": "Some message",
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-with-macros.js",
+      4,
+      28
+    ]
+  },
+  {
+    "id": "LBCs5C",
+    "message": "Some other message",
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-with-macros.js",
+      5,
+      28
+    ]
+  },
+  {
+    "id": "ru2rzr",
+    "message": "Some message",
+    "context": "Context2",
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-with-macros.js",
+      6,
+      28
+    ]
+  },
+  {
+    "id": "MHrjPM",
+    "message": "Title",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": [
+      "jsx-with-macros.js",
+      7,
+      16
+    ]
+  },
+  {
+    "id": "esnaQO",
+    "message": "{count, plural, one {# book} other {# books}}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "count": "count"
+    },
+    "origin": [
+      "jsx-with-macros.js",
+      9,
+      17
+    ]
+  }
+]

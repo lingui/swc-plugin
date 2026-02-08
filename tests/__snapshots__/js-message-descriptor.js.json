@@ -7,7 +7,8 @@
     "placeholders": {},
     "origin": [
       "js-message-descriptor.js",
-      1
+      1,
+      22
     ]
   },
   {
@@ -18,7 +19,8 @@
     "placeholders": {},
     "origin": [
       "js-message-descriptor.js",
-      1
+      3,
+      34
     ]
   },
   {
@@ -29,7 +31,8 @@
     "placeholders": {},
     "origin": [
       "js-message-descriptor.js",
-      1
+      5,
+      25
     ]
   },
   {
@@ -44,7 +47,8 @@
     },
     "origin": [
       "js-message-descriptor.js",
-      1
+      7,
+      29
     ]
   },
   {
@@ -55,7 +59,8 @@
     "placeholders": {},
     "origin": [
       "js-message-descriptor.js",
-      1
+      23,
+      30
     ]
   },
   {
@@ -66,7 +71,8 @@
     "placeholders": {},
     "origin": [
       "js-message-descriptor.js",
-      1
+      25,
+      30
     ]
   }
 ]

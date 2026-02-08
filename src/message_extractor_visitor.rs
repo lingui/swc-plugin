@@ -17,44 +17,11 @@ pub type Origin = (String, usize, Option<usize>);
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ExtractedMessage {
     pub id: String,
-    #[serde(serialize_with = "serialize_option_as_null")]
     pub message: Option<String>,
-    #[serde(serialize_with = "serialize_option_as_null")]
     pub context: Option<String>,
-    #[serde(serialize_with = "serialize_option_as_null")]
     pub comment: Option<String>,
     pub placeholders: BTreeMap<String, String>,
-    #[serde(serialize_with = "serialize_origin")]
     pub origin: Option<Origin>,
-}
-
-/// Serialize Option<String> as null instead of omitting the field
-fn serialize_option_as_null<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    match value {
-        Some(v) => serializer.serialize_some(v),
-        None => serializer.serialize_none(),
-    }
-}
-
-/// Serialize origin as a 2-element array [filename, line_number]
-fn serialize_origin<S>(value: &Option<Origin>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    use serde::ser::SerializeSeq;
-
-    match value {
-        Some((filename, line, _)) => {
-            let mut seq = serializer.serialize_seq(Some(2))?;
-            seq.serialize_element(filename)?;
-            seq.serialize_element(line)?;
-            seq.end()
-        }
-        None => serializer.serialize_none(),
-    }
 }
 
 /// Internal structure for building messages
@@ -250,16 +217,27 @@ impl<'a> MessageExtractorVisitor<'a> {
     }
 
     /// Collect a message and add it to the list
-    fn collect_message(&mut self, raw: RawMessage, _span: Span) {
+    fn collect_message(&mut self, raw: RawMessage, span: Span) {
         // Prevent from adding undefined msgid
         if raw.id.is_none() {
             return;
         }
 
+        // Extract line and column from span using SourceMap
+        let loc = self.source_map.lookup_char_pos(span.lo);
+
+        // Check if column is valid (not a synthetic/dummy position from macros)
+        // Synthetic spans often have very large column values that would overflow
+        let col = if loc.col.0 < 1000000 {
+            Some(loc.col.to_usize() + 1) // Convert to 1-based
+        } else {
+            None // Invalid/synthetic column, omit it
+        };
+
         let origin = Some((
             self.filename.clone(),
-            1,    // Line number (we'd need more complex logic to get accurate line numbers)
-            None, // Column (optional)
+            loc.line, // Accurate line number (1-based)
+            col,      // Column number (1-based) or None if synthetic
         ));
 
         self.messages.push(ExtractedMessage {

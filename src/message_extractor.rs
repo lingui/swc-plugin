@@ -1,9 +1,6 @@
 use crate::message_extractor_visitor::{ExtractionResult, MessageExtractorVisitor};
 use crate::{LinguiMacroFolder, LinguiOptions};
 use std::sync::Arc;
-// use once_cell::sync::Lazy;
-// use swc::Compiler;
-// use swc_core::common::{sync::Lazy, FilePathMapping};
 use swc_core::common::{Globals, Mark, GLOBALS};
 use swc_core::ecma::transforms::base::resolver;
 use swc_core::{
@@ -42,7 +39,6 @@ pub fn extract_messages(
 
     let mut parser = Parser::new(syntax, StringInput::from(&*source_file), Some(&comments));
 
-    // let mut parser = Parser::new_from(lexer);
     let module = parser
         .parse_module()
         .map_err(|e| format!("Parse error: {:?}", e))?;
@@ -65,10 +61,13 @@ pub fn extract_messages(
         filename.to_string(),
     );
 
-    let lingui_macro = LinguiMacroFolder::new(LinguiOptions {
-        strip_non_essential_fields: false,
-        ..Default::default()
-    });
+    let lingui_macro = LinguiMacroFolder::new(
+        LinguiOptions {
+            strip_non_essential_fields: false,
+            ..Default::default()
+        },
+        Some(&comments as &dyn Comments),
+    );
 
     let globals = Globals::default();
 

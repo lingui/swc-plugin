@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "id": "esnaQO",
+    "message": "{count, plural, one {# book} other {# books}}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "count": "count"
+    },
+    "origin": [
+      "jsx-without-trans.js",
+      2,
+      16
+    ]
+  },
+  {
+    "id": "8qNz+K",
+    "message": "{count, plural, one {# book} other {# books}}",
+    "context": "Some context",
+    "comment": null,
+    "placeholders": {
+      "count": "count"
+    },
+    "origin": [
+      "jsx-without-trans.js",
+      3,
+      16
+    ]
+  }
+]
