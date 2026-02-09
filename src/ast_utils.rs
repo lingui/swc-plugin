@@ -182,10 +182,6 @@ pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> Mod
 }
 
 pub fn add_i18n_comment<C: Comments>(comments: &Option<C>, span: Span) {
-    // if span.lo.is_dummy() {
-    //     span.lo = Span::dummy_with_cmt().lo;
-    // }
-
     if let Some(comments) = &comments {
         comments.add_leading(
             span.lo,

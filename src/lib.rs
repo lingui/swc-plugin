@@ -78,6 +78,30 @@ where
 
         let message_dscrptr_span: Span;
 
+        // SWC attaches comments based on the `span` position of a node.
+        // If a synthesized node reuses the span of an existing node,
+        // the comment may end up in an unexpected place.
+        //
+        // Example:
+        // `MessageDescriptor`’s `ObjectLit` can inherit the span of `<Trans>`.
+        // In that case the comment `/* i18n */` would be emitted as:
+        //
+        //   /* i18n */ <Trans {... {desc}}>
+        //
+        // instead of:
+        //
+        //   <Trans {... /* i18n */ {desc}}>
+        //
+        // To avoid this, the span must come from a real source element that no
+        // longer exists after the transformation, so that source maps stay accurate and
+        // comments are placed correctly.
+        //
+        // Accurate sourcemaps ensures that the extractor can correctly report the original
+        // line and column of the macro invocation.
+        //
+        // Span selection strategy:
+        // - For a regular `<Trans>`, use the span of its first child.
+        // - For `<Plural>`, use the span of the `value` attribute, since this element has no children.
         if is_trans_el {
             // Trans
             message_dscrptr_span = el.children.first().span();
