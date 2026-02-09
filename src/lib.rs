@@ -76,9 +76,18 @@ where
     fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
         let mut trans_visitor = TransJSXVisitor::new(&self.ctx);
 
+        let message_dscrptr_span: Span;
+
         if is_trans_el {
+            // Trans
+            message_dscrptr_span = el.children.first().span();
             el.children.visit_children_with(&mut trans_visitor);
         } else {
+            let value_attr =
+                get_jsx_attr(&el.opening, "value").and_then(|attr| attr.value.as_ref());
+
+            // <Plural />, etc
+            message_dscrptr_span = value_attr.span();
             el.visit_children_with(&mut trans_visitor);
         }
 
@@ -117,8 +126,8 @@ where
         if !self.ctx.options.strip_non_essential_fields {
             message_descriptor_props.push(create_key_value_prop("message", parsed.message));
 
-            if context_attr.is_some() {
-                let context_attr_val = context_attr.and_then(get_jsx_attr_value_as_string).unwrap();
+            if let Some(context_attr) = context_attr {
+                let context_attr_val = get_jsx_attr_value_as_string(context_attr).unwrap();
 
                 message_descriptor_props.push(create_key_value_prop(
                     "context",
@@ -132,11 +141,11 @@ where
         }
 
         let message_descriptor = Expr::Object(ObjectLit {
-            span: Span::dummy_with_cmt(),
+            span: message_dscrptr_span,
             props: message_descriptor_props,
         });
 
-        add_i18n_comment(&self.comments, message_descriptor.span().lo);
+        add_i18n_comment(&self.comments, message_descriptor.span());
 
         let mut attrs = vec![JSXAttrOrSpread::SpreadElement(SpreadElement {
             dot3_token: DUMMY_SP,

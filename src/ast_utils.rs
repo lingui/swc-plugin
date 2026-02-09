@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use swc_core::atoms::atom;
 use swc_core::common::comments::{Comment, CommentKind, Comments};
-use swc_core::common::{BytePos, DUMMY_SP};
+use swc_core::common::{Span, DUMMY_SP};
 use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::quote_ident;
@@ -181,10 +181,14 @@ pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> Mod
     }))
 }
 
-pub fn add_i18n_comment<C: Comments>(comments: &Option<C>, span_lo: BytePos) {
+pub fn add_i18n_comment<C: Comments>(comments: &Option<C>, span: Span) {
+    // if span.lo.is_dummy() {
+    //     span.lo = Span::dummy_with_cmt().lo;
+    // }
+
     if let Some(comments) = &comments {
         comments.add_leading(
-            span_lo,
+            span.lo,
             Comment {
                 kind: CommentKind::Block,
                 span: DUMMY_SP,
