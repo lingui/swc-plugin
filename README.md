@@ -115,7 +115,7 @@ To learn more about SWC Plugins compatibility check this issue https://github.co
 | `5.8.0`                                           | [`45.0.2`](https://plugins.swc.rs/versions/range/497)                                                                                                                 |
 | `5.9.0`                                           | [`46.0.3`](https://plugins.swc.rs/versions/range/713)                                                                                                                 |
 | `5.10.0`                                          | [`50.2.3`](https://plugins.swc.rs/versions/range/768)                                                                                                                 |
-| `5.10.1`                                          | [`50.2.3`](https://plugins.swc.rs/versions/range/768) with [`--cfg=swc_ast_unknown`](https://swc.rs/docs/plugin/ecmascript/compatibility#make-your-plugin-compatible) |
+| `5.10.1`, `5.11.0`                                | [`50.2.3`](https://plugins.swc.rs/versions/range/768) with [`--cfg=swc_ast_unknown`](https://swc.rs/docs/plugin/ecmascript/compatibility#make-your-plugin-compatible) |
 
 
 > **Note**
