@@ -36,7 +36,7 @@ static TRIM_END: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ ]+$").unwrap());
 
 // taken from babel repo -> packages/babel-types/src/utils/react/cleanJSXElementLiteralChild.ts
 fn clean_jsx_element_literal_child(value: &str) -> String {
-    let lines: Vec<&str> = value.split('\n').collect();
+    let lines: Vec<&str> = Regex::new(r"\r\n|\n|\r").unwrap().split(value).collect();
     let mut last_non_empty_line = 0;
 
     let re_non_space = Regex::new(r"[^\t ]").unwrap();
@@ -110,8 +110,8 @@ impl TransJSXVisitor<'_> {
 
                             match attr_value {
                                 // some="# books"
-                                JSXAttrValue::Lit(Lit::Str(str)) => {
-                                    let string: String = str.value.clone().to_string();
+                                JSXAttrValue::Str(str) => {
+                                    let string: String = str.value.to_string_lossy().into_owned();
                                     tokens.push(MsgToken::String(string));
                                 }
 
@@ -121,8 +121,9 @@ impl TransJSXVisitor<'_> {
                                 }) => {
                                     match exp.as_ref() {
                                         // some={"# books"}
-                                        Expr::Lit(Lit::Str(str)) => tokens
-                                            .push(MsgToken::String(str.value.clone().to_string())),
+                                        Expr::Lit(Lit::Str(str)) => tokens.push(MsgToken::String(
+                                            str.value.to_string_lossy().into_owned(),
+                                        )),
                                         // some={`# books ${name}`}
                                         Expr::Tpl(tpl) => {
                                             tokens.extend(self.ctx.tokenize_tpl(tpl));
@@ -223,7 +224,8 @@ impl Visit for TransJSXVisitor<'_> {
         if let JSXExpr::Expr(exp) = &cont.expr {
             match exp.as_ref() {
                 Expr::Lit(Lit::Str(str)) => {
-                    self.tokens.push(MsgToken::String(str.value.to_string()));
+                    self.tokens
+                        .push(MsgToken::String(str.value.to_string_lossy().into_owned()));
                 }
 
                 // todo write tests and validate

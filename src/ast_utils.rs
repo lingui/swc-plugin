@@ -1,5 +1,7 @@
 use std::collections::HashSet;
-use swc_core::common::DUMMY_SP;
+use swc_core::atoms::atom;
+use swc_core::common::comments::{Comment, CommentKind, Comments};
+use swc_core::common::{Span, DUMMY_SP};
 use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::quote_ident;
@@ -44,7 +46,7 @@ pub fn get_local_ident_from_object_pat_prop(
 pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
     match val {
         // offset="5"
-        JSXAttrValue::Lit(Lit::Str(Str { value, .. })) => Some(value.to_string()),
+        JSXAttrValue::Str(Str { value, .. }) => Some(value.to_string_lossy().into_owned()),
         // offset={..}
         JSXAttrValue::JSXExprContainer(JSXExprContainer {
             expr: JSXExpr::Expr(expr),
@@ -52,7 +54,9 @@ pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
         }) => {
             match expr.as_ref() {
                 // offset={"5"}
-                Expr::Lit(Lit::Str(Str { value, .. })) => Some(value.to_string()),
+                Expr::Lit(Lit::Str(Str { value, .. })) => {
+                    Some(value.to_string_lossy().into_owned())
+                }
                 // offset={5}
                 Expr::Lit(Lit::Num(Number { value, .. })) => Some(value.to_string()),
                 _ => None,
@@ -65,7 +69,7 @@ pub fn get_jsx_attr_value_as_string(val: &JSXAttrValue) -> Option<String> {
 pub fn get_expr_as_string(val: &Expr) -> Option<String> {
     match val {
         // "Hello"
-        Expr::Lit(Lit::Str(Str { value, .. })) => Some(value.to_string()),
+        Expr::Lit(Lit::Str(Str { value, .. })) => Some(value.to_string_lossy().into_owned()),
 
         // `Hello`
         Expr::Tpl(Tpl { quasis, .. }) => {
@@ -97,17 +101,6 @@ pub fn pick_jsx_attrs(
     attrs
 }
 
-pub fn create_jsx_attribute(name: &str, exp: Box<Expr>) -> JSXAttrOrSpread {
-    JSXAttrOrSpread::JSXAttr(JSXAttr {
-        span: DUMMY_SP,
-        name: JSXAttrName::Ident(IdentName::new(name.into(), DUMMY_SP)),
-        value: Some(JSXAttrValue::JSXExprContainer(JSXExprContainer {
-            span: DUMMY_SP,
-            expr: JSXExpr::Expr(exp),
-        })),
-    })
-}
-
 pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
     if let Callee::Expr(expr) = &call.callee {
         if let Expr::Ident(ident) = expr.as_ref() {
@@ -136,14 +129,15 @@ pub fn get_object_prop<'a>(props: &'a [PropOrSpread], name: &str) -> Option<&'a 
         .filter_map(|prop_or_spread| to_key_value_prop(prop_or_spread))
         .find(|prop| {
             get_prop_key(prop)
-                .and_then(|key| if key == name { Some(key) } else { None })
-                .is_some()
+                .map(|key| key.as_str() == name)
+                .unwrap_or(false)
         })
 }
 
-pub fn get_prop_key(prop: &KeyValueProp) -> Option<&Atom> {
+pub fn get_prop_key(prop: &KeyValueProp) -> Option<Atom> {
     match &prop.key {
-        PropName::Ident(IdentName { sym, .. }) | PropName::Str(Str { value: sym, .. }) => Some(sym),
+        PropName::Ident(IdentName { sym, .. }) => Some(sym.clone()),
+        PropName::Str(Str { value, .. }) => Some(value.to_string_lossy().into_owned().into()),
         _ => None,
     }
 }
@@ -156,6 +150,7 @@ pub fn expand_ts_as_expr(mut expr: Box<Expr>) -> Box<Expr> {
     {
         expr = inner_expr;
     }
+
     expr
 }
 
@@ -178,10 +173,23 @@ pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> Mod
         })],
         src: Box::new(Str {
             span: DUMMY_SP,
-            value: source,
+            value: source.to_string().into(),
             raw: None,
         }),
         with: None,
         type_only: false,
     }))
+}
+
+pub fn add_i18n_comment<C: Comments>(comments: &Option<C>, span: Span) {
+    if let Some(comments) = &comments {
+        comments.add_leading(
+            span.lo,
+            Comment {
+                kind: CommentKind::Block,
+                span: DUMMY_SP,
+                text: atom!("i18n"),
+            },
+        );
+    }
 }

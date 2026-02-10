@@ -8,6 +8,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -18,20 +22,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           registry-url: 'https://registry.npmjs.org'
-          node-version: 16.x
+          node-version: 20
 
       - uses: Swatinem/rust-cache@v2
 
+      - name: Install npm CLI
+        run: npm install -g npm@latest
+
       - name: Build and publish 'latest' tag
         if: ${{ github.event.action == 'released' }}
-        run: |
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
 
       - name: Build and publish 'next' tag
         if: ${{ github.event.action == 'prereleased' }}
-        run: |
-          npm publish --tag next
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag next
