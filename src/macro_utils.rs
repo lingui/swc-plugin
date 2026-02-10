@@ -158,8 +158,8 @@ impl MacroCtx {
                 }
 
                 tokens.push(MsgToken::Argument(Argument {
-                    used_utility_name: None,
                     value: exp.clone(),
+                    raw: false,
                 }));
             }
         }
@@ -204,15 +204,18 @@ impl MacroCtx {
         &self,
         expr: &CallExpr,
     ) -> Option<MsgToken> {
-        if expr.callee.as_expr().is_some_and(|c| {
-            c.as_ident().is_some_and(|i| {
-                self.is_lingui_placeholder_expr(i) || self.is_lingui_argument_expr(i)
-            })
-        }) {
+        // Extract the callee identifier
+        let ident = expr.callee.as_expr()?.as_ident()?;
+
+        // Check if it's a lingui utility macro (arg or ph)
+        let is_arg = self.is_lingui_argument_expr(ident);
+        let is_ph = self.is_lingui_placeholder_expr(ident);
+
+        if is_arg || is_ph {
             if let Some(first) = expr.args.first() {
                 return Some(MsgToken::Argument(Argument {
-                    used_utility_name: expr.callee.as_expr()?.as_ident()?.sym.clone().into(),
                     value: first.expr.clone(),
+                    raw: is_arg,
                 }));
             }
         }
@@ -275,8 +278,8 @@ impl MacroCtx {
                         } else {
                             let tokens = self.try_tokenize_expr(&prop.value).unwrap_or(vec![
                                 MsgToken::Argument(Argument {
-                                    used_utility_name: None,
                                     value: prop.value.clone(),
+                                    raw: false,
                                 }),
                             ]);
 

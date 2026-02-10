@@ -113,7 +113,7 @@ impl MessageBuilder {
 
                 MsgToken::Argument(val) => {
                     let placeholder = self.push_exp(val.value);
-                    if val.used_utility_name.is_some_and(|n| n == "arg") {
+                    if val.raw {
                         self.push_msg(&placeholder);
                     } else {
                         self.push_msg(&format!("{{{placeholder}}}"));

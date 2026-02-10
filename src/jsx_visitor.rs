@@ -137,7 +137,7 @@ impl TransJSXVisitor<'_> {
                                         }
 
                                         _ => tokens.push(MsgToken::Argument(Argument {
-                                            used_utility_name: None,
+                                            raw: false,
                                             value: exp.clone(),
                                         })),
                                     }
@@ -239,7 +239,7 @@ impl Visit for TransJSXVisitor<'_> {
                         self.tokens.push(arg_token);
                     } else {
                         self.tokens.push(MsgToken::Argument(Argument {
-                            used_utility_name: None,
+                            raw: false,
                             value: exp.clone(),
                         }));
                     }
@@ -254,7 +254,7 @@ impl Visit for TransJSXVisitor<'_> {
                 }
                 _ => {
                     self.tokens.push(MsgToken::Argument(Argument {
-                        used_utility_name: None,
+                        raw: false,
                         value: exp.clone(),
                     }));
                 }

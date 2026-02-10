@@ -22,9 +22,9 @@ pub struct IcuChoice {
 }
 
 pub struct Argument {
-    /// ph | arg
-    pub used_utility_name: Option<Atom>,
     pub value: Box<Expr>,
+    // if true, placeholder would not be wrapped into `{}` in the icu
+    pub raw: bool,
 }
 
 pub enum CaseOrOffset {
@@ -35,13 +35,3 @@ pub struct ChoiceCase {
     pub key: Atom,
     pub tokens: Vec<MsgToken>,
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::{*};
-//
-//     #[test]
-//     fn test_normalize_whitespaces() {
-//
-//     }
-// }
