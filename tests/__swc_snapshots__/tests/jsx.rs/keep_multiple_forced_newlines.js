@@ -1,2 +1,5 @@
 import { Trans as Trans_ } from "@lingui/react";
-<Trans_ message={"Keep multiple\nforced\nnewlines!"} id={"9xE5pD"}/>;
+<Trans_ {.../*i18n*/ {
+    id: "9xE5pD",
+    message: "Keep multiple\nforced\nnewlines!"
+}}/>;

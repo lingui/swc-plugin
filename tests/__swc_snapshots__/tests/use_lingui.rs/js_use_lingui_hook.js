@@ -4,7 +4,7 @@ const bla1 = ()=>{
 };
 function bla() {
     const { i18n: $__i18n, i18n, _: $__ } = $_useLingui();
-    $__i18n._({
+    $__i18n._(/*i18n*/ {
         id: "EsCV2T",
         message: "Refresh inbox"
     });

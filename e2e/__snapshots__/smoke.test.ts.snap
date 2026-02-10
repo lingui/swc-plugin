@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`E2E Smoke Test > should respect ENV production 1`] = `
+"import { i18n as $_i18n } from "@lingui/core";
+var msg = $_i18n._(/*i18n*/ {
+    id: "mY42CM"
+});
+"
+`;
+
+exports[`E2E Smoke Test > should transform t macro using compiled WASM plugin 1`] = `
+"import { i18n as $_i18n } from "@lingui/core";
+var msg = $_i18n._(/*i18n*/ {
+    id: "mY42CM",
+    message: "Hello World"
+});
+"
+`;

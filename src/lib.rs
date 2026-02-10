@@ -1,6 +1,7 @@
 use std::collections::HashSet;
-use swc_core::common::{SyntaxContext, DUMMY_SP};
+use swc_core::common::{Span, Spanned, SyntaxContext, DUMMY_SP};
 
+use swc_core::common::comments::*;
 use swc_core::ecma::utils::private_ident;
 use swc_core::plugin::errors::HANDLER;
 use swc_core::{
@@ -49,17 +50,24 @@ impl Fold for IdentReplacer {
     }
 }
 
-#[derive(Default)]
-pub struct LinguiMacroFolder {
+pub struct LinguiMacroFolder<C>
+where
+    C: Comments + Clone,
+{
     has_lingui_macro_imports: bool,
     ctx: MacroCtx,
+    comments: Option<C>,
 }
 
-impl LinguiMacroFolder {
-    pub fn new(options: LinguiOptions) -> LinguiMacroFolder {
+impl<C> LinguiMacroFolder<C>
+where
+    C: Comments + Clone,
+{
+    pub fn new(options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
             ctx: MacroCtx::new(options),
+            comments,
         }
     }
 
@@ -68,23 +76,63 @@ impl LinguiMacroFolder {
     fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
         let mut trans_visitor = TransJSXVisitor::new(&self.ctx);
 
+        let message_dscrptr_span: Span;
+
+        // SWC attaches comments based on the `span` position of a node.
+        // If a synthesized node reuses the span of an existing node,
+        // the comment may end up in an unexpected place.
+        //
+        // Example:
+        // `MessageDescriptor`’s `ObjectLit` can inherit the span of `<Trans>`.
+        // In that case the comment `/* i18n */` would be emitted as:
+        //
+        //   /* i18n */ <Trans {... {desc}}>
+        //
+        // instead of:
+        //
+        //   <Trans {... /* i18n */ {desc}}>
+        //
+        // To avoid this, the span must come from a real source element that no
+        // longer exists after the transformation, so that source maps stay accurate and
+        // comments are placed correctly.
+        //
+        // Accurate sourcemaps ensures that the extractor can correctly report the original
+        // line and column of the macro invocation.
+        //
+        // Span selection strategy:
+        // - For a regular `<Trans>`, use the span of its first child.
+        // - For `<Plural>`, use the span of the `value` attribute, since this element has no children.
         if is_trans_el {
+            // Trans
+            message_dscrptr_span = el.children.first().span();
             el.children.visit_children_with(&mut trans_visitor);
         } else {
+            let value_attr =
+                get_jsx_attr(&el.opening, "value").and_then(|attr| attr.value.as_ref());
+
+            // <Plural />, etc
+            message_dscrptr_span = value_attr.span();
             el.visit_children_with(&mut trans_visitor);
         }
 
         let parsed = MessageBuilder::parse(trans_visitor.tokens);
-        let id_attr = get_jsx_attr(&el.opening, "id");
+        let id_attr = get_jsx_attr(&el.opening, "id").and_then(|attr| attr.value.as_ref());
+        let context_attr =
+            get_jsx_attr(&el.opening, "context").and_then(|attr| attr.value.as_ref());
 
-        let context_attr_val = get_jsx_attr(&el.opening, "context")
-            .and_then(|attr| attr.value.as_ref())
-            .and_then(get_jsx_attr_value_as_string);
+        let mut message_descriptor_props: Vec<PropOrSpread> = vec![];
 
-        let mut attrs = vec![create_jsx_attribute("message", parsed.message)];
+        if let Some(attr) = id_attr {
+            message_descriptor_props.push(create_key_value_prop(
+                "id",
+                get_jsx_attr_value_as_string(attr)
+                    .unwrap_or_default()
+                    .into(),
+            ));
+        } else {
+            let context_attr_val = context_attr.and_then(get_jsx_attr_value_as_string);
 
-        if id_attr.is_none() {
-            attrs.push(create_jsx_attribute(
+            message_descriptor_props.push(create_key_value_prop(
                 "id",
                 generate_message_id(&parsed.message_str, &context_attr_val.unwrap_or_default())
                     .into(),
@@ -92,24 +140,46 @@ impl LinguiMacroFolder {
         }
 
         if let Some(exp) = parsed.values {
-            attrs.push(create_jsx_attribute("values", exp));
+            message_descriptor_props.push(create_key_value_prop("values", exp));
         }
 
         if let Some(exp) = parsed.components {
-            attrs.push(create_jsx_attribute("components", exp));
+            message_descriptor_props.push(create_key_value_prop("components", exp));
         }
+
+        if !self.ctx.options.strip_non_essential_fields {
+            message_descriptor_props.push(create_key_value_prop("message", parsed.message));
+
+            if let Some(context_attr) = context_attr {
+                let context_attr_val = get_jsx_attr_value_as_string(context_attr).unwrap();
+
+                message_descriptor_props.push(create_key_value_prop(
+                    "context",
+                    Box::new(Expr::Lit(Lit::Str(Str {
+                        span: context_attr.span(),
+                        value: context_attr_val.into(),
+                        raw: None,
+                    }))),
+                ));
+            }
+        }
+
+        let message_descriptor = Expr::Object(ObjectLit {
+            span: message_dscrptr_span,
+            props: message_descriptor_props,
+        });
+
+        add_i18n_comment(&self.comments, message_descriptor.span());
+
+        let mut attrs = vec![JSXAttrOrSpread::SpreadElement(SpreadElement {
+            dot3_token: DUMMY_SP,
+            expr: Box::new(message_descriptor),
+        })];
 
         attrs.extend(pick_jsx_attrs(
             el.opening.attrs,
-            HashSet::from(["id", "component", "render", "i18n"]),
+            HashSet::from(["component", "render", "i18n"]),
         ));
-
-        if self.ctx.options.strip_non_essential_fields {
-            attrs = pick_jsx_attrs(
-                attrs,
-                HashSet::from(["id", "component", "render", "i18n", "values", "components"]),
-            )
-        }
 
         self.ctx.should_add_trans_import = true;
 
@@ -262,7 +332,7 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
         // use lingui matched above
         if ident_replacer.is_some() {
             block = block
-                .fold_children_with(&mut JsMacroFolder::new(&mut ctx))
+                .fold_children_with(&mut JsMacroFolder::new(&mut ctx, &self.comments))
                 // replace other
                 .fold_children_with(&mut ident_replacer.unwrap());
         }
@@ -271,7 +341,10 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
     }
 }
 
-impl Fold for LinguiMacroFolder {
+impl<C> Fold for LinguiMacroFolder<C>
+where
+    C: Comments + Clone,
+{
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
         let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
@@ -387,7 +460,7 @@ impl Fold for LinguiMacroFolder {
             return Expr::Arrow(self.fold_arrow_expr(arrow_expr));
         }
 
-        let mut folder = JsMacroFolder::new(&mut self.ctx);
+        let mut folder = JsMacroFolder::new(&mut self.ctx, &self.comments);
 
         folder.fold_expr(expr).fold_children_with(self)
     }
@@ -399,7 +472,7 @@ impl Fold for LinguiMacroFolder {
             return expr;
         }
 
-        let mut folder = JsMacroFolder::new(&mut self.ctx);
+        let mut folder = JsMacroFolder::new(&mut self.ctx, &self.comments);
 
         folder.fold_call_expr(expr).fold_children_with(self)
     }
@@ -413,7 +486,7 @@ impl Fold for LinguiMacroFolder {
 
         // apply JS Macro transformations to jsx elements
         // before they will be extracted as message components
-        el = el.fold_with(&mut JsMacroFolder::new(&mut self.ctx));
+        el = el.fold_with(&mut JsMacroFolder::new(&mut self.ctx, &self.comments));
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
             if self.ctx.is_lingui_ident("Trans", ident) {
@@ -446,5 +519,5 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
             .unwrap_or_default(),
     );
 
-    program.fold_with(&mut LinguiMacroFolder::new(config))
+    program.fold_with(&mut LinguiMacroFolder::new(config, metadata.comments))
 }

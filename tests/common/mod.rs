@@ -6,16 +6,17 @@ macro_rules! to {
                 tsx: true,
                 ..Default::default()
             }),
-            |_| {
+            |tester| {
                 (
                     swc_core::ecma::transforms::base::resolver(
                         swc_core::common::Mark::new(),
                         swc_core::common::Mark::new(),
                         true,
                     ),
-                    swc_core::ecma::visit::fold_pass(
-                        lingui_macro_plugin::LinguiMacroFolder::default(),
-                    ),
+                    swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
+                        Default::default(),
+                        Some(tester.comments.clone()),
+                    )),
                 )
             },
             $name,
@@ -28,9 +29,10 @@ macro_rules! to {
                 tsx: true,
                 ..Default::default()
             }),
-            |_| {
+            |tester| {
                 swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
                     $options,
+                    Some(tester.comments.clone()),
                 ))
             },
             $name,

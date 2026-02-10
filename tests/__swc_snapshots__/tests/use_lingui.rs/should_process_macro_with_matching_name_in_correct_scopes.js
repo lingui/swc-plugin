@@ -1,7 +1,7 @@
 import { useLingui as $_useLingui } from "@lingui/react";
 function MyComponent() {
     const { i18n: $__i18n, _: $__ } = $_useLingui();
-    const a = $__i18n._({
+    const a = $__i18n._(/*i18n*/ {
         id: "xeiujy",
         message: "Text"
     });
@@ -12,7 +12,7 @@ function MyComponent() {
     }
     {
         // here is child scope which should be processed, since 't' relates to outer scope
-        $__i18n._({
+        $__i18n._(/*i18n*/ {
             id: "xeiujy",
             message: "Text"
         });
