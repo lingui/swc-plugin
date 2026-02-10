@@ -404,8 +404,7 @@ fn should_update_snapshots() -> bool {
 
 /// Serialize messages to JSON
 fn serialize_to_json(messages: &[ExtractedMessage]) -> String {
-    serde_json::to_string_pretty(messages)
-        .expect("Failed to serialize messages to JSON")
+    serde_json::to_string_pretty(messages).expect("Failed to serialize messages to JSON")
 }
 
 /// Perform snapshot test
@@ -451,8 +450,10 @@ fn snapshot_test(fixture_name: &str) {
             eprintln!("{}\n", expected_json);
             eprintln!("Actual:");
             eprintln!("{}\n", actual_json);
-            eprintln!("To update the snapshot, run:\n  UPDATE=1 cargo test {}",
-                     fixture_name.replace(".js", "").replace("-", "_"));
+            eprintln!(
+                "To update the snapshot, run:\n  UPDATE=1 cargo test {}",
+                fixture_name.replace(".js", "").replace("-", "_")
+            );
             panic!("Snapshot mismatch");
         }
     }
@@ -495,4 +496,9 @@ fn test_snapshot_jsx_without_trans() {
 #[test]
 fn test_snapshot_without_lingui() {
     snapshot_test("without-lingui.js");
+}
+
+#[test]
+fn test_snapshot_with_sourcemaps() {
+    snapshot_test("with-sourcemaps.js");
 }

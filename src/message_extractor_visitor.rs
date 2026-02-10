@@ -3,12 +3,13 @@ use std::collections::BTreeMap;
 use std::sync::Arc as Lrc;
 use swc_core::common::comments::Comments;
 use swc_core::common::source_map::SmallPos;
-use swc_core::common::{SourceMap, Span, Spanned};
+use swc_core::common::{SourceMap, SourceMapper, Span, Spanned};
 use swc_core::ecma::ast::{
     BinaryOp, CallExpr, Callee, Expr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXElement,
     JSXElementName, JSXExpr, Lit, MemberProp, ObjectLit, Prop, PropName, PropOrSpread, Str,
 };
 use swc_core::ecma::visit::{Visit, VisitWith};
+use swc_sourcemap as sourcemap;
 
 /// Represents the location where a message was found
 pub type Origin = (String, usize, Option<usize>);
@@ -31,7 +32,7 @@ struct RawMessage {
     message: Option<String>,
     comment: Option<String>,
     context: Option<String>,
-    placeholders: Option<BTreeMap<String, String>>,
+    placeholders: Option<BTreeMap<String, Span>>,
 }
 
 /// Result of message extraction containing messages and any warnings
@@ -99,24 +100,11 @@ fn get_text_from_expression(
     }
 }
 
-/// Get source code text for a span
-fn get_node_source(source_code: &str, span: Span) -> String {
-    let start = span.lo.to_usize() - 1;
-    let end = span.hi.to_usize() - 1;
-
-    if start < source_code.len() && end <= source_code.len() && start < end {
-        source_code[start..end].to_string()
-    } else {
-        String::new()
-    }
-}
-
 /// Convert a values object expression to placeholders HashMap
 fn values_object_to_placeholders(
     obj: &ObjectLit,
-    source_code: &str,
     warnings: &mut Vec<String>,
-) -> BTreeMap<String, String> {
+) -> BTreeMap<String, Span> {
     let mut placeholders = BTreeMap::new();
 
     for (i, prop) in obj.props.iter().enumerate() {
@@ -135,9 +123,7 @@ fn values_object_to_placeholders(
                 };
 
                 if let Some(name) = name {
-                    // kv.value.
-                    let value_source = get_node_source(source_code, kv.value.span());
-                    placeholders.insert(name, value_source);
+                    placeholders.insert(name, kv.value.span());
                 }
             }
         }
@@ -147,11 +133,7 @@ fn values_object_to_placeholders(
 }
 
 /// Extract message properties from an object expression
-fn extract_from_object_expression(
-    obj: &ObjectLit,
-    source_code: &str,
-    warnings: &mut Vec<String>,
-) -> RawMessage {
+fn extract_from_object_expression(obj: &ObjectLit, warnings: &mut Vec<String>) -> RawMessage {
     let mut raw_msg = RawMessage::default();
 
     let text_keys = ["id", "message", "comment", "context"];
@@ -164,11 +146,8 @@ fn extract_from_object_expression(
 
                     if key_name == "values" {
                         if let Expr::Object(obj_expr) = &*kv.value {
-                            raw_msg.placeholders = Some(values_object_to_placeholders(
-                                obj_expr,
-                                source_code,
-                                warnings,
-                            ));
+                            raw_msg.placeholders =
+                                Some(values_object_to_placeholders(obj_expr, warnings));
                         }
                     } else if text_keys.contains(&key_name) {
                         let text = get_text_from_expression(&kv.value, true, warnings);
@@ -195,24 +174,24 @@ pub struct MessageExtractorVisitor<'a> {
     pub warnings: Vec<String>,
     source_map: Lrc<SourceMap>,
     comments: &'a dyn Comments,
-    source_code: String,
     filename: String,
+    input_source_map: Option<sourcemap::SourceMap>,
 }
 
 impl<'a> MessageExtractorVisitor<'a> {
     pub fn new(
         source_map: Lrc<SourceMap>,
         comments: &'a dyn Comments,
-        source_code: String,
         filename: String,
+        inline_source_map: Option<sourcemap::SourceMap>,
     ) -> Self {
         Self {
             messages: Vec::new(),
             warnings: Vec::new(),
             source_map,
             comments,
-            source_code,
             filename,
+            input_source_map: inline_source_map,
         }
     }
 
@@ -234,18 +213,62 @@ impl<'a> MessageExtractorVisitor<'a> {
             None // Invalid/synthetic column, omit it
         };
 
-        let origin = Some((
-            self.filename.clone(),
-            loc.line, // Accurate line number (1-based)
-            col,      // Column number (1-based) or None if synthetic
-        ));
+        let filename = self.source_map.span_to_filename(span).to_string();
+
+        // Try to resolve original location using inline source map if available
+        let origin = self
+            .input_source_map
+            .as_ref()
+            .and_then(|source_map| {
+                // Source maps are 0-based, so we need to convert from 1-based line
+                let line = if loc.line > 0 { loc.line - 1 } else { 0 };
+                let column = loc.col.to_usize();
+
+                // Look up the token in the source map
+                let token = source_map.lookup_token(line as u32, column as u32)?;
+
+                // Get the original source filename
+                let original_file = source_map
+                    .get_source(token.get_src_id())
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| filename.clone());
+
+                // Source map line/column are 0-based, convert to 1-based
+                Some((
+                    original_file,
+                    (token.get_src_line() + 1) as usize,
+                    Some((token.get_src_col() + 1) as usize),
+                ))
+            })
+            .or_else(|| {
+                // Fallback if token not found in source map or no source map
+                Some((
+                    filename.clone(),
+                    loc.line, // Accurate line number (1-based)
+                    col,      // Column number (1-based) or None if synthetic
+                ))
+            });
 
         self.messages.push(ExtractedMessage {
             id: raw.id.unwrap(),
             message: raw.message,
             context: raw.context,
             comment: raw.comment,
-            placeholders: raw.placeholders.unwrap_or_default(),
+            placeholders: raw
+                .placeholders
+                .map(|placeholders| {
+                    // map placeholders spans to snippets
+                    placeholders
+                        .into_iter()
+                        .filter_map(|(key, span)| {
+                            self.source_map
+                                .span_to_snippet(span)
+                                .ok()
+                                .map(|snippet| (key, snippet))
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
             origin,
         });
     }
@@ -292,7 +315,7 @@ impl<'a> MessageExtractorVisitor<'a> {
 
     /// Extract from a message descriptor (object expression with i18n comment)
     fn extract_from_message_descriptor(&mut self, obj: &ObjectLit, span: Span) {
-        let raw = extract_from_object_expression(obj, &self.source_code, &mut self.warnings);
+        let raw = extract_from_object_expression(obj, &mut self.warnings);
 
         if raw.id.is_none() {
             let loc = self.source_map.span_to_string(span);
@@ -360,19 +383,15 @@ impl<'a> Visit for MessageExtractorVisitor<'a> {
         // Extract placeholders from second argument if it's an object
         if let Some(second_arg) = call.args.get(1) {
             if let Expr::Object(obj) = &*second_arg.expr {
-                raw.placeholders = Some(values_object_to_placeholders(
-                    obj,
-                    &self.source_code,
-                    &mut self.warnings,
-                ));
+                // self.source_map.
+                raw.placeholders = Some(values_object_to_placeholders(obj, &mut self.warnings));
             }
         }
 
         // Merge with third argument if it's an object (message descriptor)
         if let Some(third_arg) = call.args.get(2) {
             if let Expr::Object(obj) = &*third_arg.expr {
-                let descriptor =
-                    extract_from_object_expression(obj, &self.source_code, &mut self.warnings);
+                let descriptor = extract_from_object_expression(obj, &mut self.warnings);
 
                 // Merge properties (keeping existing id)
                 if descriptor.message.is_some() {
@@ -453,7 +472,6 @@ impl<'a> Visit for MessageExtractorVisitor<'a> {
                                     if let Expr::Object(obj) = &**expr {
                                         raw.placeholders = Some(values_object_to_placeholders(
                                             obj,
-                                            &self.source_code,
                                             &mut self.warnings,
                                         ));
                                     }
