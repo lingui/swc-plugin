@@ -1,6 +1,6 @@
 import { i18n as $_i18n } from "@lingui/core";
 const messagePlural = $_i18n._(/*i18n*/ {
-    id: "V/M0Vc",
+    id: "V_M0Vc",
     message: "{count, plural, one {# Book} other {# Books}}",
     values: {
         count: count
