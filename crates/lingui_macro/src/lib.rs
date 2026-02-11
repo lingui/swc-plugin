@@ -22,8 +22,6 @@ mod generate_id;
 mod js_macro_folder;
 mod jsx_visitor;
 mod macro_utils;
-pub mod message_extractor;
-pub mod message_extractor_visitor;
 mod options;
 mod tokens;
 
@@ -34,8 +32,6 @@ use ast_utils::*;
 use builder::*;
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
-pub use message_extractor_visitor::ExtractedMessage;
-pub use message_extractor_visitor::ExtractionResult;
 
 pub struct IdentReplacer {
     from: Id,
@@ -515,7 +511,6 @@ where
     }
 }
 
-pub use self::message_extractor::extract_messages;
 pub use self::options::{LinguiOptions, RuntimeModulesConfigMapNormalized};
 
 #[plugin_transform]

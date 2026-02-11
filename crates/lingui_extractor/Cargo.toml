@@ -1,0 +1,20 @@
+[package]
+name = "lingui_extractor"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+lingui_macro = { path = "../lingui_macro" }
+data-encoding = "2.3.3"
+serde = { version = "1.0.207", features = ["derive"] }
+serde_json = "1.0.125"
+swc_sourcemap = "9.3.4"
+swc_core = { version = "56.0.0", features = [
+  "ecma_ast",
+  "ecma_parser",
+  "ecma_visit",
+  "common"
+] }

@@ -1,6 +1,6 @@
 use crate::message_extractor_visitor::{ExtractionResult, MessageExtractorVisitor};
-use crate::{LinguiMacroFolder, LinguiOptions};
 use data_encoding::BASE64;
+use lingui_macro::{LinguiMacroFolder, LinguiOptions};
 use std::sync::Arc;
 
 use swc_sourcemap as sourcemap;
@@ -103,7 +103,6 @@ pub fn extract_messages(
     let mut extractor_visitor = MessageExtractorVisitor::new(
         source_map.clone(),
         &comments as &dyn Comments,
-        filename.to_string(),
         inline_source_map,
     );
 

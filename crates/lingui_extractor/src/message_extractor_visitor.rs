@@ -174,7 +174,6 @@ pub struct MessageExtractorVisitor<'a> {
     pub warnings: Vec<String>,
     source_map: Lrc<SourceMap>,
     comments: &'a dyn Comments,
-    filename: String,
     input_source_map: Option<sourcemap::SourceMap>,
 }
 
@@ -182,7 +181,6 @@ impl<'a> MessageExtractorVisitor<'a> {
     pub fn new(
         source_map: Lrc<SourceMap>,
         comments: &'a dyn Comments,
-        filename: String,
         inline_source_map: Option<sourcemap::SourceMap>,
     ) -> Self {
         Self {
@@ -190,7 +188,6 @@ impl<'a> MessageExtractorVisitor<'a> {
             warnings: Vec::new(),
             source_map,
             comments,
-            filename,
             input_source_map: inline_source_map,
         }
     }

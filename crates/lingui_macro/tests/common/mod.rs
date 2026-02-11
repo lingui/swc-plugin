@@ -13,7 +13,7 @@ macro_rules! to {
                         swc_core::common::Mark::new(),
                         true,
                     ),
-                    swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
+                    swc_core::ecma::visit::fold_pass(lingui_macro::LinguiMacroFolder::new(
                         Default::default(),
                         Some(tester.comments.clone()),
                     )),
@@ -30,7 +30,7 @@ macro_rules! to {
                 ..Default::default()
             }),
             |tester| {
-                swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
+                swc_core::ecma::visit::fold_pass(lingui_macro::LinguiMacroFolder::new(
                     $options,
                     Some(tester.comments.clone()),
                 ))

@@ -1,5 +1,5 @@
-use lingui_macro_plugin::extract_messages;
-use lingui_macro_plugin::message_extractor_visitor::ExtractedMessage;
+use lingui_extractor::extract_messages;
+use lingui_extractor::ExtractedMessage;
 
 fn extract_and_sort(source_code: &str, filename: &str) -> (Vec<ExtractedMessage>, Vec<String>) {
     let result = extract_messages(source_code, filename).expect("Failed to extract messages");
