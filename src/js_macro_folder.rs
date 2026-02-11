@@ -3,7 +3,8 @@ use crate::builder::MessageBuilder;
 use crate::generate_id::generate_message_id;
 use crate::macro_utils::*;
 use crate::tokens::MsgToken;
-use swc_core::common::SyntaxContext;
+use swc_core::common::comments::Comments;
+use swc_core::common::{Span, Spanned, SyntaxContext};
 use swc_core::{
     common::DUMMY_SP,
     ecma::{
@@ -13,16 +14,23 @@ use swc_core::{
     },
 };
 
-pub struct JsMacroFolder<'a> {
+pub struct JsMacroFolder<'a, C>
+where
+    C: Comments,
+{
     pub ctx: &'a mut MacroCtx,
+    pub comments: &'a Option<C>,
 }
 
-impl<'a> JsMacroFolder<'a> {
-    pub fn new(ctx: &'a mut MacroCtx) -> JsMacroFolder<'a> {
-        JsMacroFolder { ctx }
+impl<'a, C> JsMacroFolder<'a, C>
+where
+    C: Comments,
+{
+    pub fn new(ctx: &'a mut MacroCtx, comments: &'a Option<C>) -> JsMacroFolder<'a, C> {
+        JsMacroFolder { ctx, comments }
     }
 
-    fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>) -> Expr {
+    fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>, span: Span) -> Expr {
         let parsed = MessageBuilder::parse(tokens);
 
         let mut props: Vec<PropOrSpread> = vec![create_key_value_prop(
@@ -38,29 +46,38 @@ impl<'a> JsMacroFolder<'a> {
             props.push(create_key_value_prop("values", v))
         }
 
-        Expr::Object(ObjectLit {
-            span: DUMMY_SP,
-            props,
-        })
+        let message_descriptor = Expr::Object(ObjectLit { span, props });
+
+        add_i18n_comment(self.comments, span);
+
+        message_descriptor
     }
 
     fn create_i18n_fn_call_from_tokens(
         &mut self,
         callee_obj: Option<Box<Expr>>,
         tokens: Vec<MsgToken>,
+        msg_dscrptr_span: Span,
+        call_expr_span: Span,
     ) -> CallExpr {
-        let message_descriptor = Box::new(self.create_message_descriptor_from_tokens(tokens));
+        let message_descriptor =
+            Box::new(self.create_message_descriptor_from_tokens(tokens, msg_dscrptr_span));
 
-        self.create_i18n_fn_call(callee_obj, vec![message_descriptor.as_arg()])
+        self.create_i18n_fn_call(
+            callee_obj,
+            vec![message_descriptor.as_arg()],
+            call_expr_span,
+        )
     }
 
     fn create_i18n_fn_call(
         &mut self,
         callee_obj: Option<Box<Expr>>,
         args: Vec<ExprOrSpread>,
+        span: Span,
     ) -> CallExpr {
         CallExpr {
-            span: DUMMY_SP,
+            span,
             callee: Expr::Member(MemberExpr {
                 span: DUMMY_SP,
                 obj: callee_obj.unwrap_or_else(|| {
@@ -78,7 +95,7 @@ impl<'a> JsMacroFolder<'a> {
     }
 
     // take {message: "", id: "", ...} object literal, process message and return updated props
-    fn update_msg_descriptor_props(&self, expr: Box<Expr>) -> Box<Expr> {
+    fn update_msg_descriptor_props(&self, expr: Box<Expr>, span: Span) -> Box<Expr> {
         if let Expr::Object(obj) = *expr {
             let id_prop = get_object_prop(&obj.props, "id");
 
@@ -120,17 +137,24 @@ impl<'a> JsMacroFolder<'a> {
                 }
             }
 
-            return Box::new(Expr::Object(ObjectLit {
-                span: DUMMY_SP,
+            let message_descriptor = Box::new(Expr::Object(ObjectLit {
+                span,
                 props: new_props,
             }));
+
+            add_i18n_comment(self.comments, span);
+
+            return message_descriptor;
         }
 
         expr
     }
 }
 
-impl Fold for JsMacroFolder<'_> {
+impl<C> Fold for JsMacroFolder<'_, C>
+where
+    C: Comments,
+{
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         // t`Message`
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
@@ -140,16 +164,19 @@ impl Fold for JsMacroFolder<'_> {
                 return Expr::Call(self.create_i18n_fn_call_from_tokens(
                     callee,
                     self.ctx.tokenize_tpl(&tagged_tpl.tpl),
+                    tagged_tpl.tpl.span(),
+                    expr.span(),
                 ));
             }
         }
 
         // defineMessage`Message`
         if let Expr::TaggedTpl(tagged_tpl) = &expr {
+            let span = tagged_tpl.span();
             if let Expr::Ident(ident) = tagged_tpl.tag.as_ref() {
                 if self.ctx.is_define_message_ident(ident) {
                     let tokens = self.ctx.tokenize_tpl(&tagged_tpl.tpl);
-                    return self.create_message_descriptor_from_tokens(tokens);
+                    return self.create_message_descriptor_from_tokens(tokens, span);
                 }
             }
         }
@@ -161,6 +188,7 @@ impl Fold for JsMacroFolder<'_> {
             {
                 let descriptor = self.update_msg_descriptor_props(
                     call.args.clone().into_iter().next().unwrap().expr,
+                    call.span(),
                 );
 
                 return *descriptor;
@@ -175,17 +203,28 @@ impl Fold for JsMacroFolder<'_> {
         if let Callee::Expr(callee) = &expr.callee {
             let (is_t, callee) = self.ctx.is_lingui_t_call_expr(callee);
 
+            let span = expr.span();
             if is_t && expr.args.len() == 1 {
-                let descriptor =
-                    self.update_msg_descriptor_props(expr.args.into_iter().next().unwrap().expr);
+                let msg_dscrpt_expr = expr.args.into_iter().next().unwrap().expr;
 
-                return self.create_i18n_fn_call(callee, vec![descriptor.as_arg()]);
+                let msg_dscrpt_expr_span = msg_dscrpt_expr.span();
+                let descriptor =
+                    self.update_msg_descriptor_props(msg_dscrpt_expr, msg_dscrpt_expr_span);
+
+                return self.create_i18n_fn_call(callee, vec![descriptor.as_arg()], span);
             }
         }
 
         // plural / selectOrdinal / select
         if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(&expr) {
-            return self.create_i18n_fn_call_from_tokens(None, tokens);
+            let msg_dscrptr_span = expr.args.first().map(|arg| arg.span()).unwrap_or(DUMMY_SP);
+
+            return self.create_i18n_fn_call_from_tokens(
+                None,
+                tokens,
+                msg_dscrptr_span,
+                expr.span(),
+            );
         }
 
         expr.fold_children_with(self)

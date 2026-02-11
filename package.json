@@ -1,12 +1,13 @@
 {
   "name": "@lingui/swc-plugin",
-  "version": "5.10.1",
+  "version": "5.11.0",
   "description": "A SWC Plugin for LinguiJS",
   "author": {
     "name": "Timofei Iatsenko",
     "email": "timiatsenko@gmail.com"
   },
   "repository": "lingui/swc-plugin",
+  "type": "module",
   "bugs": "https://github.com/lingui/swc-plugin/issues",
   "license": "MIT",
   "keywords": [
@@ -25,7 +26,8 @@
     ".": "./target/wasm32-wasip1/release/lingui_macro_plugin.wasm"
   },
   "scripts": {
-    "prepublishOnly": "cargo build-wasi --release"
+    "prepublishOnly": "cargo build-wasi --release",
+    "test:e2e": "cargo build-wasi --release && vitest run"
   },
   "files": [],
   "peerDependencies": {
@@ -38,5 +40,12 @@
     "next": {
       "optional": true
     }
-  }
+  },
+  "devDependencies": {
+    "@swc/core": "^1.15.11",
+    "@types/node": "22.13.14",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
 }

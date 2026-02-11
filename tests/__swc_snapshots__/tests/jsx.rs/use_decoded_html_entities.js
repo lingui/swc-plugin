@@ -1,2 +1,5 @@
 import { Trans as Trans_ } from "@lingui/react";
-<Trans_ message={"&"} id={"EwTON7"}/>;
+<Trans_ {.../*i18n*/ {
+    id: "EwTON7",
+    message: "&"
+}}/>;
