@@ -4,7 +4,7 @@ $_i18n._(/*i18n*/ {
     message: "Refresh inbox"
 });
 $_i18n._(/*i18n*/ {
-    id: "JPS+Xq",
+    id: "JPS-Xq",
     message: "Refresh {foo} inbox {bar}",
     values: {
         foo: foo,
@@ -20,7 +20,7 @@ $_i18n._(/*i18n*/ {
     }
 });
 $_i18n._(/*i18n*/ {
-    id: "+NCjg/",
+    id: "-NCjg_",
     message: "Refresh {0}",
     values: {
         0: expr()

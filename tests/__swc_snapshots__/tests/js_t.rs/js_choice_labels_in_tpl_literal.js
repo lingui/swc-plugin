@@ -1,6 +1,6 @@
 import { i18n as $_i18n } from "@lingui/core";
 $_i18n._(/*i18n*/ {
-    id: "+7z66M",
+    id: "-7z66M",
     message: "We have {count, plural, one {# developer} other {# developers}}",
     values: {
         count: getDevelopersCount()
