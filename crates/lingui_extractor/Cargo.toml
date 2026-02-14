@@ -7,6 +7,8 @@ edition.workspace = true
 crate-type = ["rlib"]
 
 [dependencies]
+napi-derive = { version = "3.0.0", features = ["type-def"] }
+napi = "3.8.3"
 lingui_macro = { path = "../lingui_macro" }
 data-encoding = "2.3.3"
 serde = { version = "1.0.207", features = ["derive"] }

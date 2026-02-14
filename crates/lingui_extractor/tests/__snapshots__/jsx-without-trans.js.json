@@ -7,11 +7,11 @@
     "placeholders": {
       "count": "count"
     },
-    "origin": [
-      "jsx-without-trans.js",
-      2,
-      16
-    ]
+    "origin": {
+      "filename": "jsx-without-trans.js",
+      "line": 2,
+      "column": 16
+    }
   },
   {
     "id": "8qNz+K",
@@ -21,10 +21,10 @@
     "placeholders": {
       "count": "count"
     },
-    "origin": [
-      "jsx-without-trans.js",
-      3,
-      16
-    ]
+    "origin": {
+      "filename": "jsx-without-trans.js",
+      "line": 3,
+      "column": 16
+    }
   }
 ]

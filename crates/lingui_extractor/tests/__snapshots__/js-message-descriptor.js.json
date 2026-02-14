@@ -5,11 +5,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-message-descriptor.js",
-      1,
-      22
-    ]
+    "origin": {
+      "filename": "js-message-descriptor.js",
+      "line": 1,
+      "column": 22
+    }
   },
   {
     "id": "Description",
@@ -17,11 +17,11 @@
     "context": null,
     "comment": "description",
     "placeholders": {},
-    "origin": [
-      "js-message-descriptor.js",
-      3,
-      34
-    ]
+    "origin": {
+      "filename": "js-message-descriptor.js",
+      "line": 3,
+      "column": 34
+    }
   },
   {
     "id": "ID",
@@ -29,11 +29,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-message-descriptor.js",
-      5,
-      25
-    ]
+    "origin": {
+      "filename": "js-message-descriptor.js",
+      "line": 5,
+      "column": 25
+    }
   },
   {
     "id": "Values {param} {0} {name} {value}",
@@ -45,11 +45,11 @@
       "param": "param",
       "value": "user\n      ? user.name\n      : null"
     },
-    "origin": [
-      "js-message-descriptor.js",
-      7,
-      29
-    ]
+    "origin": {
+      "filename": "js-message-descriptor.js",
+      "line": 7,
+      "column": 29
+    }
   },
   {
     "id": "Values {param} {0}",
@@ -57,11 +57,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-message-descriptor.js",
-      23,
-      30
-    ]
+    "origin": {
+      "filename": "js-message-descriptor.js",
+      "line": 23,
+      "column": 30
+    }
   },
   {
     "id": "Some id",
@@ -69,10 +69,10 @@
     "context": "Context1",
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-message-descriptor.js",
-      25,
-      30
-    ]
+    "origin": {
+      "filename": "js-message-descriptor.js",
+      "line": 25,
+      "column": 30
+    }
   }
 ]

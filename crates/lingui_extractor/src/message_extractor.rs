@@ -20,16 +20,6 @@ use swc_core::{
     },
 };
 
-// static COMPILER: Lazy<Arc<Compiler>> = Lazy::new(|| {
-//     let cm = Arc::new(SourceMap::new(FilePathMapping::empty()));
-//
-//     Arc::new(Compiler::new(cm))
-// });
-//
-// fn get_compiler() -> Arc<Compiler> {
-//   COMPILER.clone()
-// }
-
 /// Extract inline source map from source code
 /// Looks for sourceMappingURL comments with inline base64 data
 fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {

@@ -5,11 +5,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      4,
-      2
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 4,
+      "column": 2
+    }
   },
   {
     "id": "xDAtGP",
@@ -17,11 +17,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      6,
-      15
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 6,
+      "column": 15
+    }
   },
   {
     "id": "Nu4oKW",
@@ -29,11 +29,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      8,
-      25
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 8,
+      "column": 25
+    }
   },
   {
     "id": "ID",
@@ -41,11 +41,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      13,
-      16
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 13,
+      "column": 16
+    }
   },
   {
     "id": "QCVtWw",
@@ -55,11 +55,11 @@
     "placeholders": {
       "param": "param"
     },
-    "origin": [
-      "js-with-macros.js",
-      18,
-      21
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 18,
+      "column": 21
+    }
   },
   {
     "id": "ID Some",
@@ -67,11 +67,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      20,
-      19
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 20,
+      "column": 19
+    }
   },
   {
     "id": "Backtick",
@@ -79,11 +79,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      25,
-      27
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 25,
+      "column": 27
+    }
   },
   {
     "id": "Some ID",
@@ -91,11 +91,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      29,
-      25
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 29,
+      "column": 25
+    }
   },
   {
     "id": "Some other ID",
@@ -103,11 +103,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      34,
-      25
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 34,
+      "column": 25
+    }
   },
   {
     "id": "Some ID",
@@ -115,11 +115,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      39,
-      34
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 39,
+      "column": 34
+    }
   },
   {
     "id": "Some ID",
@@ -127,11 +127,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      44,
-      28
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 44,
+      "column": 28
+    }
   },
   {
     "id": "sD7MQ4",
@@ -139,11 +139,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      49,
-      29
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 49,
+      "column": 29
+    }
   },
   {
     "id": "VO4BJY",
@@ -151,11 +151,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-with-macros.js",
-      54,
-      4
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 54,
+      "column": 4
+    }
   },
   {
     "id": "ZxxjOE",
@@ -165,10 +165,10 @@
     "placeholders": {
       "0": "users.length"
     },
-    "origin": [
-      "js-with-macros.js",
-      57,
-      14
-    ]
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 57,
+      "column": 14
+    }
   }
 ]

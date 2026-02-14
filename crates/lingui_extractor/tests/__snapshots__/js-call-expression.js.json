@@ -5,11 +5,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-call-expression.js",
-      1,
-      13
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 1,
+      "column": 13
+    }
   },
   {
     "id": "Description",
@@ -17,11 +17,11 @@
     "context": null,
     "comment": "description",
     "placeholders": {},
-    "origin": [
-      "js-call-expression.js",
-      3,
-      25
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 3,
+      "column": 25
+    }
   },
   {
     "id": "ID",
@@ -29,11 +29,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-call-expression.js",
-      5,
-      16
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 5,
+      "column": 16
+    }
   },
   {
     "id": "Values {param}",
@@ -43,11 +43,11 @@
     "placeholders": {
       "param": "param"
     },
-    "origin": [
-      "js-call-expression.js",
-      7,
-      20
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 7,
+      "column": 20
+    }
   },
   {
     "id": "Some id",
@@ -55,11 +55,11 @@
     "context": "Context1",
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-call-expression.js",
-      9,
-      21
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 9,
+      "column": 21
+    }
   },
   {
     "id": "my.id",
@@ -67,11 +67,11 @@
     "context": null,
     "comment": "My comment",
     "placeholders": {},
-    "origin": [
-      "js-call-expression.js",
-      12,
-      1
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 12,
+      "column": 1
+    }
   },
   {
     "id": "Aliased Message",
@@ -79,11 +79,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "js-call-expression.js",
-      19,
-      1
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 19,
+      "column": 1
+    }
   },
   {
     "id": "my.id",
@@ -91,10 +91,10 @@
     "context": null,
     "comment": "My comment",
     "placeholders": {},
-    "origin": [
-      "js-call-expression.js",
-      22,
-      1
-    ]
+    "origin": {
+      "filename": "js-call-expression.js",
+      "line": 22,
+      "column": 1
+    }
   }
 ]

@@ -7,11 +7,11 @@
     "placeholders": {
       "name": "name"
     },
-    "origin": [
-      "jsx-with-macros.js",
-      3,
-      9
-    ]
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 3,
+      "column": 9
+    }
   },
   {
     "id": "YikuIL",
@@ -19,11 +19,11 @@
     "context": "Context1",
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "jsx-with-macros.js",
-      4,
-      28
-    ]
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 4,
+      "column": 28
+    }
   },
   {
     "id": "LBCs5C",
@@ -31,11 +31,11 @@
     "context": "Context1",
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "jsx-with-macros.js",
-      5,
-      28
-    ]
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 5,
+      "column": 28
+    }
   },
   {
     "id": "ru2rzr",
@@ -43,11 +43,11 @@
     "context": "Context2",
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "jsx-with-macros.js",
-      6,
-      28
-    ]
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 6,
+      "column": 28
+    }
   },
   {
     "id": "MHrjPM",
@@ -55,11 +55,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "jsx-with-macros.js",
-      7,
-      16
-    ]
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 7,
+      "column": 16
+    }
   },
   {
     "id": "esnaQO",
@@ -69,10 +69,10 @@
     "placeholders": {
       "count": "count"
     },
-    "origin": [
-      "jsx-with-macros.js",
-      9,
-      17
-    ]
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 9,
+      "column": 17
+    }
   }
 ]

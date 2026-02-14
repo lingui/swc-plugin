@@ -1,3 +1,4 @@
+use napi_derive::napi;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::sync::Arc as Lrc;
@@ -12,10 +13,17 @@ use swc_core::ecma::visit::{Visit, VisitWith};
 use swc_sourcemap as sourcemap;
 
 /// Represents the location where a message was found
-pub type Origin = (String, usize, Option<usize>);
+#[napi(object)]
+#[derive(Debug, Clone, Serialize)]
+pub struct Origin {
+    pub filename: String,
+    pub line: u32,
+    pub column: Option<u32>,
+}
 
 /// A message extracted from source code
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[napi(object)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ExtractedMessage {
     pub id: String,
     pub message: Option<String>,
@@ -36,6 +44,7 @@ struct RawMessage {
 }
 
 /// Result of message extraction containing messages and any warnings
+#[napi(object)]
 #[derive(Debug)]
 pub struct ExtractionResult {
     pub messages: Vec<ExtractedMessage>,
@@ -231,19 +240,19 @@ impl<'a> MessageExtractorVisitor<'a> {
                     .unwrap_or_else(|| filename.clone());
 
                 // Source map line/column are 0-based, convert to 1-based
-                Some((
-                    original_file,
-                    (token.get_src_line() + 1) as usize,
-                    Some((token.get_src_col() + 1) as usize),
-                ))
+                Some(Origin {
+                    filename: original_file,
+                    line: (token.get_src_line() + 1),
+                    column: Some(token.get_src_col() + 1),
+                })
             })
             .or_else(|| {
                 // Fallback if token not found in source map or no source map
-                Some((
-                    filename.clone(),
-                    loc.line, // Accurate line number (1-based)
-                    col,      // Column number (1-based) or None if synthetic
-                ))
+                Some(Origin {
+                    filename: filename.clone(),
+                    line: loc.line as u32,
+                    column: col.map(|c| c as u32),
+                })
             });
 
         self.messages.push(ExtractedMessage {

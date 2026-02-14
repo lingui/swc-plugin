@@ -5,11 +5,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "../a.jsx",
-      1,
-      1
-    ]
+    "origin": {
+      "filename": "../a.jsx",
+      "line": 1,
+      "column": 1
+    }
   },
   {
     "id": "Message from file b.jsx",
@@ -17,11 +17,11 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "../b.jsx",
-      1,
-      1
-    ]
+    "origin": {
+      "filename": "../b.jsx",
+      "line": 1,
+      "column": 1
+    }
   },
   {
     "id": "Message from file c.jsx",
@@ -29,10 +29,10 @@
     "context": null,
     "comment": null,
     "placeholders": {},
-    "origin": [
-      "../c.jsx",
-      1,
-      1
-    ]
+    "origin": {
+      "filename": "../c.jsx",
+      "line": 1,
+      "column": 1
+    }
   }
 ]
