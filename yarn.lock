@@ -228,7 +228,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.0.18"
   peerDependencies:
-    "@lingui/core": 5
+    "@lingui/core": 6
   peerDependenciesMeta:
     "@swc/core":
       optional: true

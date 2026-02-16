@@ -1,6 +1,6 @@
 {
   "name": "@lingui/swc-plugin",
-  "version": "6.0.0-next.0",
+  "version": "6.0.0-next.1",
   "description": "A SWC Plugin for LinguiJS",
   "author": {
     "name": "Timofei Iatsenko",
@@ -31,7 +31,7 @@
   },
   "files": [],
   "peerDependencies": {
-    "@lingui/core": "5"
+    "@lingui/core": "6"
   },
   "peerDependenciesMeta": {
     "@swc/core": {
