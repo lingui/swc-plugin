@@ -1,8 +1,17 @@
-use lingui_extractor::extract_messages;
 use lingui_extractor::ExtractedMessage;
+use lingui_extractor::{extract_messages, ExtractorOptions};
 
 fn extract_and_sort(source_code: &str, filename: &str) -> (Vec<ExtractedMessage>, Vec<String>) {
-    let result = extract_messages(source_code, filename).expect("Failed to extract messages");
+    let options = ExtractorOptions {
+        syntax: Syntax::Typescript(TsSyntax {
+            tsx: true,
+
+            ..Default::default()
+        }),
+    };
+
+    let result =
+        extract_messages(source_code, filename, &options).expect("Failed to extract messages");
     (result.messages, result.warnings)
 }
 
@@ -370,6 +379,7 @@ const msg = /*i18n*/{
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use swc_core::ecma::parser::{Syntax, TsSyntax};
 
 /// Load fixture file from tests/fixtures/
 fn load_fixture(filename: &str) -> String {

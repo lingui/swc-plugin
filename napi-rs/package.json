@@ -2,7 +2,7 @@
   "name": "lingui-extractor-swc",
   "version": "1.0.0",
   "description": "Template project for writing node package with napi-rs",
-  "main": "index.js",
+  "main": "index.ts",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/napi-rs/package-template.git"
@@ -19,7 +19,7 @@
   ],
   "files": [
     "index.d.ts",
-    "index.js",
+    "index.ts",
     "browser.js"
   ],
   "napi": {
@@ -47,7 +47,7 @@
   "scripts": {
     "artifacts": "napi artifacts",
     "bench": "node --import @oxc-node/core/register benchmark/bench.ts",
-    "build": "napi build --platform --release",
+    "build": "napi build --platform --release --js ./binding.js --dts ./binding.d.ts",
     "build:debug": "napi build --platform",
     "format": "run-p format:prettier format:rs format:toml",
     "format:prettier": "prettier . -w",
@@ -55,7 +55,7 @@
     "format:rs": "cargo fmt",
     "lint": "oxlint .",
     "prepublishOnly": "napi prepublish -t npm",
-    "test": "ava",
+    "test": "vitest run",
     "preversion": "napi build --platform && git add .",
     "version": "napi version",
     "prepare": "husky"
@@ -65,6 +65,7 @@
     "@emnapi/runtime": "^1.8.1",
     "@napi-rs/cli": "^3.5.1",
     "@oxc-node/core": "^0.0.35",
+    "@swc/types": "^0.1.25",
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.0",
     "ava": "^6.4.1",

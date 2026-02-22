@@ -1,10 +1,8 @@
 use crate::message_extractor_visitor::{ExtractionResult, MessageExtractorVisitor};
 use data_encoding::BASE64;
 use lingui_macro::{LinguiMacroFolder, LinguiOptions};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-
-use swc_sourcemap as sourcemap;
-
 use swc_core::common::{Globals, Mark, GLOBALS};
 use swc_core::ecma::transforms::base::resolver;
 use swc_core::{
@@ -15,10 +13,11 @@ use swc_core::{
     },
     ecma::{
         ast::*,
-        parser::{Parser, StringInput, Syntax, TsSyntax},
+        parser::{Parser, StringInput, Syntax},
         visit::VisitWith,
     },
 };
+use swc_sourcemap as sourcemap;
 
 /// Extract inline source map from source code
 /// Looks for sourceMappingURL comments with inline base64 data
@@ -54,22 +53,19 @@ fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {
     None
 }
 
+#[derive(Default, Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ExtractorOptions {
+    pub parser: Syntax,
+}
+
 /// Extract messages from source code
 pub fn extract_messages(
     source_code: &str,
     filename: &str,
+    options: &ExtractorOptions,
 ) -> Result<ExtractionResult, Box<dyn std::error::Error>> {
-    // Set up parser with JSX support
-    let syntax = Syntax::Typescript(TsSyntax {
-        tsx: true,
-        ..Default::default()
-    });
-
-    // let fm = c.cm.new_source_file(filename.into(), src);
-
     let source_map = Lrc::new(SourceMap::default());
-    // source_map.new_source_file()
-    // let source_file = source_map.new_source_file(FileName::Anon, src.into());
 
     let source_file = source_map.new_source_file(
         Arc::new(FileName::Custom(filename.to_string())),
@@ -78,7 +74,11 @@ pub fn extract_messages(
 
     let comments = Lrc::new(SingleThreadedComments::default());
 
-    let mut parser = Parser::new(syntax, StringInput::from(&*source_file), Some(&comments));
+    let mut parser = Parser::new(
+        options.parser,
+        StringInput::from(&*source_file),
+        Some(&comments),
+    );
 
     let module = parser
         .parse_module()
@@ -111,7 +111,11 @@ pub fn extract_messages(
         let top_level_mark = Mark::new();
 
         program
-            .apply(&mut resolver(unresolved_mark, top_level_mark, false))
+            .apply(&mut resolver(
+                unresolved_mark,
+                top_level_mark,
+                options.parser.typescript(),
+            ))
             .apply(swc_core::ecma::visit::fold_pass(lingui_macro))
             .visit_with(&mut extractor_visitor);
     });

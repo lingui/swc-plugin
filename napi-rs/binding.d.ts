@@ -46,4 +46,30 @@ export interface Origin {
  * console.log(result.messages);
  * ```
  */
-export declare function extractMessages(sourceCode: string, filename: string): Promise<ExtractionResult>
+export declare function extractMessages(sourceCode: string, filename: string, options: Buffer): Promise<ExtractionResult>
+
+/**
+ * Extract messages from multiple files in parallel
+ *
+ * This function reads multiple files and extracts internationalization
+ * messages from all of them in parallel using all available CPU cores.
+ *
+ * # Arguments
+ *
+ * * `file_paths` - Array of file paths to process
+ * * `options` - Extraction options (parser configuration)
+ *
+ * # Returns
+ *
+ * A Promise that resolves to an ExtractionResult containing:
+ * * `messages` - Array of all extracted messages from all files
+ * * `warnings` - Array of warning messages (including file read errors)
+ *
+ * # Example
+ *
+ * ```javascript
+ * const result = await extractMessagesFromFiles(['app.tsx', 'components/Header.tsx']);
+ * console.log(result.messages);
+ * ```
+ */
+export declare function extractMessagesFromFiles(filePaths: Array<string>, options: Buffer): Promise<ExtractionResult>

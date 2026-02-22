@@ -1,0 +1,164 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`extractMessagesFromFiles: messages should include origin with filename 1`] = `
+[
+  {
+    "id": "1nGWAC",
+    "message": "Hello world",
+    "origin": {
+      "column": 19,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file1.js",
+      "line": 3,
+    },
+    "placeholders": {},
+  },
+  {
+    "id": "cs9Rfg",
+    "message": "Goodbye, {name}!",
+    "origin": {
+      "column": 19,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file1.js",
+      "line": 4,
+    },
+    "placeholders": {
+      "name": "name",
+    },
+  },
+  {
+    "id": "Vw8l6h",
+    "message": "An error occurred",
+    "origin": {
+      "column": 11,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file3.ts",
+      "line": 9,
+    },
+    "placeholders": {},
+  },
+  {
+    "id": "x5qT5N",
+    "message": "Operation completed successfully",
+    "origin": {
+      "column": 13,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file3.ts",
+      "line": 10,
+    },
+    "placeholders": {},
+  },
+]
+`;
+
+exports[`extractMessagesFromFiles: should extract from multiple files 1`] = `
+[
+  {
+    "id": "1nGWAC",
+    "message": "Hello world",
+    "origin": {
+      "column": 19,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file1.js",
+      "line": 3,
+    },
+    "placeholders": {},
+  },
+  {
+    "id": "cs9Rfg",
+    "message": "Goodbye, {name}!",
+    "origin": {
+      "column": 19,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file1.js",
+      "line": 4,
+    },
+    "placeholders": {
+      "name": "name",
+    },
+  },
+  {
+    "id": "user-greeting",
+    "message": "Hello {userName}",
+    "origin": {
+      "column": 33,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file2.tsx",
+      "line": 7,
+    },
+    "placeholders": {
+      "userName": "userName",
+    },
+  },
+  {
+    "id": "Vw8l6h",
+    "message": "An error occurred",
+    "origin": {
+      "column": 11,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file3.ts",
+      "line": 9,
+    },
+    "placeholders": {},
+  },
+  {
+    "id": "welcome",
+    "message": "Welcome to our app",
+    "origin": {
+      "column": 27,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file2.tsx",
+      "line": 6,
+    },
+    "placeholders": {},
+  },
+  {
+    "id": "x5qT5N",
+    "message": "Operation completed successfully",
+    "origin": {
+      "column": 13,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file3.ts",
+      "line": 10,
+    },
+    "placeholders": {},
+  },
+]
+`;
+
+exports[`extractMessagesFromFiles: should handle non-existent files gracefully 1`] = `
+[
+  {
+    "id": "1nGWAC",
+    "message": "Hello world",
+    "origin": {
+      "column": 19,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file1.js",
+      "line": 3,
+    },
+    "placeholders": {},
+  },
+  {
+    "id": "cs9Rfg",
+    "message": "Goodbye, {name}!",
+    "origin": {
+      "column": 19,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file1.js",
+      "line": 4,
+    },
+    "placeholders": {
+      "name": "name",
+    },
+  },
+  {
+    "id": "Vw8l6h",
+    "message": "An error occurred",
+    "origin": {
+      "column": 11,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file3.ts",
+      "line": 9,
+    },
+    "placeholders": {},
+  },
+  {
+    "id": "x5qT5N",
+    "message": "Operation completed successfully",
+    "origin": {
+      "column": 13,
+      "filename": "/Users/timofei.Iatsenko/Projects/swc-plugin/napi-rs/__test__/fixtures/file3.ts",
+      "line": 10,
+    },
+    "placeholders": {},
+  },
+]
+`;

@@ -17,3 +17,6 @@ lto = false
 opt-level = "s"
 # Optimize for performance, this is default so you don't need to specify it
 # opt-level = "z"
+
+[workspace.dependencies]
+swc_core = { version = "56.0.0", default-features = false }
