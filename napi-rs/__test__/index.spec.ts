@@ -68,7 +68,7 @@ test('extractMessagesFromFiles: should extract from multiple files', async () =>
   ]
 
   const result = await extractMessagesFromFiles(filePaths, {
-    parser: {jsx: true, tsx: true, syntax: "typescript"}
+    parser: {tsx: true, syntax: "typescript"}
   })
 
   // Sort messages by id for deterministic results
@@ -90,7 +90,7 @@ test('extractMessagesFromFiles: should handle non-existent files gracefully', as
   ]
 
   const result = await extractMessagesFromFiles(filePaths, {
-    parser: {jsx: true, tsx: true, syntax: "typescript"}
+    parser: {tsx: true, syntax: "typescript"}
   })
 
   // Sort messages by id for deterministic results
