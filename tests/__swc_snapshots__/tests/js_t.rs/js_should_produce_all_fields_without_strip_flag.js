@@ -1,9 +1,10 @@
 import { i18n as $_i18n } from "@lingui/core";
-const msg = $_i18n._(/*i18n*/ {
+const msg2 = $_i18n._(/*i18n*/ {
     id: "msgId",
-    message: "{val, plural, one {...} other {...}}",
+    message: "Hello {name}",
     values: {
-        val: val
+        name: name
     },
+    context: "My Context",
     comment: "description for translators"
 });

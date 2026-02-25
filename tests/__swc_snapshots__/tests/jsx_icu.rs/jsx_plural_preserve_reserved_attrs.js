@@ -4,6 +4,7 @@ import { Trans as Trans_ } from "@lingui/react";
     values: {
         count: count
     },
+    comment: "Translators Comment",
     message: "{count, plural, one {...} other {...}}",
     context: "Message Context"
 }} render={(v)=>v}/>;
