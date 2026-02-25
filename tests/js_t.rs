@@ -197,3 +197,11 @@ to!(
         t({ message: 'Ola', context: `My Context`})
     "#
 );
+
+to!(
+    js_variables_with_arg_macro_is_not_wrapped_in_curly_brackets,
+    r#"
+      import { t, arg } from '@lingui/core/macro';
+      t`Number {${arg(num)}, number, myNumberStyle}`;
+  "#
+);

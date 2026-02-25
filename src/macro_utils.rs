@@ -59,6 +59,10 @@ impl MacroCtx {
         self.is_lingui_ident("ph", ident)
     }
 
+    pub fn is_lingui_argument_expr(&self, ident: &Ident) -> bool {
+        self.is_lingui_ident("arg", ident)
+    }
+
     /// is given ident exported from @lingui/macro?
     pub fn is_lingui_ident(&self, name: &str, ident: &Ident) -> bool {
         let name_atom: Atom = name.into();
@@ -146,14 +150,17 @@ impl MacroCtx {
                         tokens.extend(call_tokens);
                         continue;
                     }
-                    if let Some(placeholder) = self.try_tokenize_call_expr_as_placeholder_call(call)
+                    if let Some(arg_token) = self.try_tokenize_call_expr_as_utility_macro_call(call)
                     {
-                        tokens.push(placeholder);
+                        tokens.push(arg_token);
                         continue;
                     }
                 }
 
-                tokens.push(MsgToken::Expression(exp.clone()));
+                tokens.push(MsgToken::Argument(Argument {
+                    value: exp.clone(),
+                    raw: false,
+                }));
             }
         }
 
@@ -193,13 +200,23 @@ impl MacroCtx {
         None
     }
 
-    pub fn try_tokenize_call_expr_as_placeholder_call(&self, expr: &CallExpr) -> Option<MsgToken> {
-        if expr.callee.as_expr().is_some_and(|c| {
-            c.as_ident()
-                .is_some_and(|i| self.is_lingui_placeholder_expr(i))
-        }) {
+    pub fn try_tokenize_call_expr_as_utility_macro_call(
+        &self,
+        expr: &CallExpr,
+    ) -> Option<MsgToken> {
+        // Extract the callee identifier
+        let ident = expr.callee.as_expr()?.as_ident()?;
+
+        // Check if it's a lingui utility macro (arg or ph)
+        let is_arg = self.is_lingui_argument_expr(ident);
+        let is_ph = self.is_lingui_placeholder_expr(ident);
+
+        if is_arg || is_ph {
             if let Some(first) = expr.args.first() {
-                return Some(MsgToken::Expression(first.expr.clone()));
+                return Some(MsgToken::Argument(Argument {
+                    value: first.expr.clone(),
+                    raw: is_arg,
+                }));
             }
         }
 
@@ -259,9 +276,12 @@ impl MacroCtx {
                                 // todo: panic offset might be only a number, other forms is not supported
                             }
                         } else {
-                            let tokens = self
-                                .try_tokenize_expr(&prop.value)
-                                .unwrap_or(vec![MsgToken::Expression(prop.value.clone())]);
+                            let tokens = self.try_tokenize_expr(&prop.value).unwrap_or(vec![
+                                MsgToken::Argument(Argument {
+                                    value: prop.value.clone(),
+                                    raw: false,
+                                }),
+                            ]);
 
                             choices.push(CaseOrOffset::Case(ChoiceCase { tokens, key }));
                         }

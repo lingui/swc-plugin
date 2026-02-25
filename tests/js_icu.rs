@@ -142,3 +142,14 @@ to!(
         });
      "#
 );
+
+to!(
+    js_plural_with_arg_macro,
+    r#"
+        import { plural, arg } from '@lingui/core/macro';
+        plural(count, {
+          "one": `# book on {${arg(today)}, date}`,
+          other: `# books on {${arg(today)}, date}`
+        });
+     "#
+);

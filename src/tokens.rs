@@ -3,7 +3,7 @@ use swc_core::ecma::atoms::Atom;
 
 pub enum MsgToken {
     String(String),
-    Expression(Box<Expr>),
+    Argument(Argument),
     TagOpening(TagOpening),
     TagClosing,
     IcuChoice(IcuChoice),
@@ -21,6 +21,12 @@ pub struct IcuChoice {
     pub cases: Vec<CaseOrOffset>,
 }
 
+pub struct Argument {
+    pub value: Box<Expr>,
+    // if true, placeholder would not be wrapped into `{}` in the icu
+    pub raw: bool,
+}
+
 pub enum CaseOrOffset {
     Case(ChoiceCase),
     Offset(String),
@@ -29,13 +35,3 @@ pub struct ChoiceCase {
     pub key: Atom,
     pub tokens: Vec<MsgToken>,
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::{*};
-//
-//     #[test]
-//     fn test_normalize_whitespaces() {
-//
-//     }
-// }
