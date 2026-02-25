@@ -1,5 +1,5 @@
-import { t, defineMessage, msg, plural } from "@lingui/core/macro"
-import { useLingui } from "@lingui/react/macro"
+import {t, defineMessage, msg, plural} from "@lingui/core/macro"
+import {useLingui} from "@lingui/react/macro"
 
 t`Message`
 
@@ -49,7 +49,7 @@ const defineMessageAlias = msg({
 const defineMessageAlias2 = msg`TplLiteral`
 
 function MyComponent() {
-  const { t } = useLingui()
+  const {t} = useLingui()
 
   t`[useLingui]: TplLiteral`
 
@@ -61,3 +61,9 @@ function MyComponent() {
     other: "# books",
   })}`
 }
+
+const defineMessageWithAllFields = msg({
+  message: "Some ID",
+  context: "Context2",
+  comment: "This is a comment for a message"
+})

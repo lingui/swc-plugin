@@ -27,7 +27,7 @@
     "id": "Nu4oKW",
     "message": "Description",
     "context": null,
-    "comment": null,
+    "comment": "description",
     "placeholders": {},
     "origin": {
       "filename": "js-with-macros.js",
@@ -88,7 +88,7 @@
   {
     "id": "Some ID",
     "message": null,
-    "context": null,
+    "context": "Context1",
     "comment": null,
     "placeholders": {},
     "origin": {
@@ -100,7 +100,7 @@
   {
     "id": "Some other ID",
     "message": null,
-    "context": null,
+    "context": "Context1",
     "comment": null,
     "placeholders": {},
     "origin": {
@@ -112,7 +112,7 @@
   {
     "id": "Some ID",
     "message": null,
-    "context": null,
+    "context": "Context2",
     "comment": null,
     "placeholders": {},
     "origin": {
@@ -124,7 +124,7 @@
   {
     "id": "Some ID",
     "message": null,
-    "context": null,
+    "context": "Context2",
     "comment": null,
     "placeholders": {},
     "origin": {
@@ -169,6 +169,18 @@
       "filename": "js-with-macros.js",
       "line": 57,
       "column": 14
+    }
+  },
+  {
+    "id": "AZczQP",
+    "message": "Some ID",
+    "context": "Context2",
+    "comment": "This is a comment for a message",
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 65,
+      "column": 36
     }
   }
 ]

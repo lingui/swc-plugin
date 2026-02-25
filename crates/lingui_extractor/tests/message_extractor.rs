@@ -3,7 +3,7 @@ use lingui_extractor::{extract_messages, ExtractorOptions};
 
 fn extract_and_sort(source_code: &str, filename: &str) -> (Vec<ExtractedMessage>, Vec<String>) {
     let options = ExtractorOptions {
-        syntax: Syntax::Typescript(TsSyntax {
+        parser: Syntax::Typescript(TsSyntax {
             tsx: true,
 
             ..Default::default()
