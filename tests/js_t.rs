@@ -164,6 +164,31 @@ to!(
 );
 
 to!(
+    js_should_produce_all_fields_without_strip_flag,
+    r#"
+        import { t } from '@lingui/core/macro'
+        const msg2 = t({
+            message: `Hello ${name}`,
+            id: 'msgId',
+            comment: 'description for translators',
+            context: 'My Context',
+        })
+    "#
+);
+
+to!(
+    js_should_produce_all_fields_when_no_message_set,
+    r#"
+        import { t } from '@lingui/core/macro'
+        const msg2 = t({
+            id: 'msgId',
+            comment: 'description for translators',
+            context: 'My Context',
+        })
+    "#
+);
+
+to!(
     js_support_template_strings_in_t_macro_message_with_custom_i18n_instance,
     r#"
     import { t } from '@lingui/core/macro'

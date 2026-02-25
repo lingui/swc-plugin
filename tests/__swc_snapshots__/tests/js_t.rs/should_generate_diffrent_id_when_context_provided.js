@@ -5,9 +5,11 @@ $_i18n._(/*i18n*/ {
 });
 $_i18n._(/*i18n*/ {
     id: "7hFP9A",
-    message: "Ola"
+    message: "Ola",
+    context: "My Context"
 });
 $_i18n._(/*i18n*/ {
     id: "7hFP9A",
-    message: "Ola"
+    message: "Ola",
+    context: "My Context"
 });

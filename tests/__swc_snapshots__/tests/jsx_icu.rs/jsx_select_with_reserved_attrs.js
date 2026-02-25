@@ -7,6 +7,7 @@ import { Trans as Trans_ } from "@lingui/react";
     components: {
         0: <strong/>
     },
+    comment: "Translators Comment",
     message: "{count, select, male {He} female {She} other {<0>Other</0>}}",
     context: "Message Context"
 }} render={(v)=>v}/>;
