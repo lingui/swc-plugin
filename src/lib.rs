@@ -134,8 +134,12 @@ where
 
             message_descriptor_props.push(create_key_value_prop(
                 "id",
-                generate_message_id(&parsed.message_str, &context_attr_val.unwrap_or_default())
-                    .into(),
+                generate_message_id(
+                    &parsed.message_str,
+                    &context_attr_val.unwrap_or_default(),
+                    self.ctx.options.use_lingui_v5_id_generation,
+                )
+                .into(),
             ));
         }
 
