@@ -85,6 +85,7 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v6
+      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
@@ -139,6 +140,7 @@ jobs:
     name: Build FreeBSD
     steps:
       - uses: actions/checkout@v6
+      - run: corepack enable
       - name: Build
         id: build
         uses: cross-platform-actions/action@v0.32.0
@@ -203,6 +205,7 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v6
+      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
@@ -239,6 +242,7 @@ jobs:
     runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v6
+      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
@@ -303,6 +307,7 @@ jobs:
       - test-linux-binding
     steps:
       - uses: actions/checkout@v6
+      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
