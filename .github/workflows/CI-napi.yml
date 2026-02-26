@@ -31,13 +31,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: yarn
-      - name: Install
+      - run: corepack enable
+      - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
@@ -85,13 +84,11 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v6
-      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: yarn
-      - name: Install
+      - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
@@ -155,9 +152,10 @@ jobs:
           cpu_count: 3
           environment_variables: DEBUG RUSTUP_IO_THREADS
           shell: bash
+          # language=bash
           run: |
             sudo pkg install -y -f curl node libnghttp2 npm cmake
-            sudo npm install -g yarn --ignore-scripts
+            #            sudo npm install -g yarn --ignore-scripts
             curl https://sh.rustup.rs -sSf --output rustup.sh
             sh rustup.sh -y --profile minimal --default-toolchain stable
             source "$HOME/.cargo/env"
@@ -206,13 +204,12 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v6
-      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
           architecture: ${{ matrix.settings.architecture }}
+      - run: corepack enable
       - name: Install dependencies
         run: yarn install
       - name: Download artifacts
@@ -243,12 +240,11 @@ jobs:
     runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v6
-      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+      - run: corepack enable
       - name: Output docker params
         id: docker
         run: |
@@ -308,12 +304,11 @@ jobs:
       - test-linux-binding
     steps:
       - uses: actions/checkout@v6
-      - run: corepack enable
       - name: Setup node
         uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: yarn
+      - run: corepack enable
       - name: Install dependencies
         run: yarn install
       - name: create npm dirs
