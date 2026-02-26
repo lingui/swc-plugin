@@ -176,9 +176,6 @@ jobs:
   #            freebsd-version
   #            yarn install
   #            yarn build
-  #            rm -rf node_modules
-  #            rm -rf target
-  #            rm -rf .yarn/cache
   #      - name: Upload artifact
   #        uses: actions/upload-artifact@v6
   #        with:
@@ -244,35 +241,36 @@ jobs:
     runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v6
-      - name: Setup node
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ matrix.node }}
+      #      - name: Setup node
+      #        uses: actions/setup-node@v6
+      #        with:
+      #          node-version: ${{ matrix.node }}
       - run: corepack enable
       - name: Output docker params
+        uses: actions/github-script@v8
         id: docker
-        run: |
-          node -e "
-            if ('${{ matrix.target }}'.startsWith('aarch64')) {
-              console.log('PLATFORM=linux/arm64')
-            } else if ('${{ matrix.target }}'.startsWith('armv7')) {
-              console.log('PLATFORM=linux/arm/v7')
+        with:
+          # language=javascript
+          script: |
+            const target = '${{ matrix.target }}';
+            const node = '${{ matrix.node }}';
+
+            if (target.startsWith('aarch64')) {
+              core.setOutput('PLATFORM', 'linux/arm64');
+            } else if (target.startsWith('armv7')) {
+              core.setOutput('PLATFORM', 'linux/arm/v7');
             } else {
-              console.log('PLATFORM=linux/amd64')
+              core.setOutput('PLATFORM', 'linux/amd64');
             }
-          " >> $GITHUB_OUTPUT
-          node -e "
-            if ('${{ matrix.target }}'.endsWith('-musl')) {
-              console.log('IMAGE=node:${{ matrix.node }}-alpine')
-            } else {
-              console.log('IMAGE=node:${{ matrix.node }}-slim')
-            }
-          " >> $GITHUB_OUTPUT
-      - name: Install dependencies
-        run: |
-          yarn config set --json supportedArchitectures.cpu '["current", "arm64", "x64", "arm"]'
-          yarn config set --json supportedArchitectures.libc '["current", "musl", "gnu"]'
-          yarn install
+
+            const suffix = target.endsWith('-musl') ? 'alpine' : 'slim';
+            core.setOutput('IMAGE', `node:${node}-${suffix}`)
+
+      #      - name: Install dependencies
+      #        run: |
+      #          yarn config set --json supportedArchitectures.cpu '["current", "arm64", "x64", "arm"]'
+      #          yarn config set --json supportedArchitectures.libc '["current", "musl", "gnu"]'
+      #          yarn install
       - name: Download artifacts
         uses: actions/download-artifact@v7
         with:
@@ -295,7 +293,7 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           name: test-bindings-${{ matrix.target }}
           options: '-v ${{ github.workspace }}/napi-rs:/app -w /app --platform ${{ steps.docker.outputs.PLATFORM }}'
-          args: ls -la .yarn && corepack enable && yarn test
+          args: corepack enable && yarn install && yarn test
   publish:
     name: Publish
     runs-on: ubuntu-latest
