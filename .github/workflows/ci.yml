@@ -25,6 +25,8 @@ jobs:
 
       # Uses values from rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: 'wasm32-wasip1'
 
       - name: Check formatting
         run: cargo fmt --check

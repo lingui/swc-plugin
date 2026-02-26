@@ -2,6 +2,7 @@ use crate::message_extractor_visitor::{ExtractionResult, MessageExtractorVisitor
 use data_encoding::BASE64;
 use lingui_macro::{LinguiMacroFolder, LinguiOptions};
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 use std::sync::Arc;
 use swc_core::common::{Globals, Mark, GLOBALS};
 use swc_core::ecma::transforms::base::resolver;
@@ -72,7 +73,7 @@ pub fn extract_messages(
         source_code.to_string(),
     );
 
-    let comments = Lrc::new(SingleThreadedComments::default());
+    let comments = Rc::new(SingleThreadedComments::default());
 
     let mut parser = Parser::new(
         options.parser,

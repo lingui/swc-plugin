@@ -1,4 +1,4 @@
-import {extractMessages, extractMessagesFromFiles} from '../index'
+import {extractMessages, extractMessagesFromFiles} from '../src-js/index'
 import {describe, expect, test} from 'vitest'
 import path from 'path'
 
