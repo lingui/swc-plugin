@@ -1,0 +1,38 @@
+[
+  {
+    "id": "Message from file a.jsx",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "../a.jsx",
+      "line": 1,
+      "column": 1
+    }
+  },
+  {
+    "id": "Message from file b.jsx",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "../b.jsx",
+      "line": 1,
+      "column": 1
+    }
+  },
+  {
+    "id": "Message from file c.jsx",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "../c.jsx",
+      "line": 1,
+      "column": 1
+    }
+  }
+]

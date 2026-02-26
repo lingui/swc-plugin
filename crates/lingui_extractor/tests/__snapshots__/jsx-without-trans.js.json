@@ -1,0 +1,30 @@
+[
+  {
+    "id": "esnaQO",
+    "message": "{count, plural, one {# book} other {# books}}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "count": "count"
+    },
+    "origin": {
+      "filename": "jsx-without-trans.js",
+      "line": 2,
+      "column": 16
+    }
+  },
+  {
+    "id": "8qNz-K",
+    "message": "{count, plural, one {# book} other {# books}}",
+    "context": "Some context",
+    "comment": null,
+    "placeholders": {
+      "count": "count"
+    },
+    "origin": {
+      "filename": "jsx-without-trans.js",
+      "line": 3,
+      "column": 16
+    }
+  }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "d1Kdl3",
+    "message": "Hi, my name is {name}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "name": "name"
+    },
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 4,
+      "column": 8
+    }
+  },
+  {
+    "id": "YikuIL",
+    "message": "Some message",
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 5,
+      "column": 28
+    }
+  },
+  {
+    "id": "LBCs5C",
+    "message": "Some other message",
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 6,
+      "column": 28
+    }
+  },
+  {
+    "id": "ru2rzr",
+    "message": "Some message",
+    "context": "Context2",
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 7,
+      "column": 28
+    }
+  },
+  {
+    "id": "MHrjPM",
+    "message": "Title",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 8,
+      "column": 16
+    }
+  },
+  {
+    "id": "esnaQO",
+    "message": "{count, plural, one {# book} other {# books}}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "count": "count"
+    },
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 10,
+      "column": 17
+    }
+  },
+  {
+    "id": "TFdOtc",
+    "message": "Some message with comment",
+    "context": null,
+    "comment": "This is comment",
+    "placeholders": {},
+    "origin": {
+      "filename": "jsx-with-macros.js",
+      "line": 15,
+      "column": 35
+    }
+  }
+]

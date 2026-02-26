@@ -339,11 +339,11 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
         };
 
         // use lingui matched above
-        if ident_replacer.is_some() {
+        if let Some(mut ident_replacer) = ident_replacer {
             block = block
                 .fold_children_with(&mut JsMacroFolder::new(&mut ctx, &self.comments))
                 // replace other
-                .fold_children_with(&mut ident_replacer.unwrap());
+                .fold_children_with(&mut ident_replacer);
         }
 
         block.fold_children_with(self)
