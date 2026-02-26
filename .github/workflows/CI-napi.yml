@@ -291,7 +291,7 @@ jobs:
 
           image: ${{ steps.docker.outputs.IMAGE }}
           name: test-bindings-${{ matrix.target }}
-          options: '-v ${{ github.workspace }}:/app -w /app --platform ${{ steps.docker.outputs.PLATFORM }}'
+          options: '-v ${{ github.workspace }}/napi-rs:/app -w /app --platform ${{ steps.docker.outputs.PLATFORM }}'
           args: ls . && corepack enable && yarn test
   publish:
     name: Publish
