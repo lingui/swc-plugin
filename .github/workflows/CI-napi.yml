@@ -266,11 +266,6 @@ jobs:
             const suffix = target.endsWith('-musl') ? 'alpine' : 'slim';
             core.setOutput('IMAGE', `node:${node}-${suffix}`)
 
-      #      - name: Install dependencies
-      #        run: |
-      #          yarn config set --json supportedArchitectures.cpu '["current", "arm64", "x64", "arm"]'
-      #          yarn config set --json supportedArchitectures.libc '["current", "musl", "gnu"]'
-      #          yarn install
       - name: Download artifacts
         uses: actions/download-artifact@v7
         with:
@@ -293,7 +288,7 @@ jobs:
             -w /app \
             --platform ${{ steps.docker.outputs.PLATFORM }} \
             ${{ steps.docker.outputs.IMAGE }} \
-            sh -c "ls -la . && cat package.json && corepack enable && yarn install && yarn test"
+            sh -c "corepack enable && yarn install && yarn test"
   publish:
     name: Publish
     runs-on: ubuntu-latest
