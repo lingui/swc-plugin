@@ -1,11 +1,11 @@
 #![deny(clippy::all)]
 
+use anyhow::Result as AnyhowResult;
 use lingui_extractor::{ExtractionResult, ExtractorOptions};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use rayon::prelude::*;
 use std::fs;
-use anyhow::Result as AnyhowResult;
 
 use swc_core::node::get_deserialized;
 
