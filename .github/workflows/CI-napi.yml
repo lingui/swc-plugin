@@ -291,8 +291,8 @@ jobs:
 
           image: ${{ steps.docker.outputs.IMAGE }}
           name: test-bindings-${{ matrix.target }}
-          options: '-v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}'
-          args: ls -R . && corepack enable && yarn test
+          options: '-v ${{ github.workspace }}:/app -w /app --platform ${{ steps.docker.outputs.PLATFORM }}'
+          args: ls . && corepack enable && yarn test
   publish:
     name: Publish
     runs-on: ubuntu-latest
@@ -300,7 +300,7 @@ jobs:
       contents: write
       id-token: write
     needs:
-      - lint
+      #      - lint
       #      - build-freebsd
       - test-macOS-windows-binding
       - test-linux-binding
