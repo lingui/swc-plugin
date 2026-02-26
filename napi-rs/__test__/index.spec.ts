@@ -1,5 +1,6 @@
-import {extractMessages} from '../index'
-import {expect, test} from 'vitest'
+import {extractMessages, extractMessagesFromFiles} from '../index'
+import {describe, expect, test} from 'vitest'
+import path from 'path'
 
 test('test bindings', async () => {
   const code = `
@@ -57,100 +58,90 @@ test('parser options: should parse typescript', async () => {
 
 })
 
-test('extractMessagesFromFiles: should extract from multiple files', async () => {
-  const {extractMessagesFromFiles} = await import('../index')
-  const path = await import('path')
+describe('extractMessagesFromFiles', () => {
+  test('should extract from multiple files', async () => {
+    const filePaths = [
+      path.join(import.meta.dirname, 'fixtures/file1.js'),
+      path.join(import.meta.dirname, 'fixtures/file2.tsx'),
+      path.join(import.meta.dirname, 'fixtures/file3.ts'),
+    ]
 
-  const filePaths = [
-    path.join(__dirname, 'fixtures/file1.js'),
-    path.join(__dirname, 'fixtures/file2.tsx'),
-    path.join(__dirname, 'fixtures/file3.ts'),
-  ]
+    const result = await extractMessagesFromFiles(filePaths, {
+      parser: {tsx: true, syntax: "typescript"}
+    })
 
-  const result = await extractMessagesFromFiles(filePaths, {
-    parser: {tsx: true, syntax: "typescript"}
+    // Sort messages by id for deterministic results
+    result.messages.sort((a, b) => a.id.localeCompare(b.id))
+
+    result.messages.forEach((msg) => {
+      msg.origin!.filename = path.relative(path.join(import.meta.dirname, 'fixtures'), msg.origin?.filename!)
+    })
+
+    expect(result.warnings).toHaveLength(0)
+    expect(result.messages).toHaveLength(6)
+    expect(result.messages).toMatchSnapshot()
   })
 
-  // Sort messages by id for deterministic results
-  result.messages.sort((a, b) => a.id.localeCompare(b.id))
+  test('should handle non-existent files gracefully', async () => {
+    const filePaths = [
+      path.join(import.meta.dirname, 'fixtures/file1.js'),
+      path.join(import.meta.dirname, 'fixtures/non-existent.js'),
+      path.join(import.meta.dirname, 'fixtures/file3.ts'),
+    ]
 
-  expect(result.warnings).toHaveLength(0)
-  expect(result.messages).toHaveLength(6)
-  expect(result.messages).toMatchSnapshot()
-})
+    const result = await extractMessagesFromFiles(filePaths, {
+      parser: {tsx: true, syntax: "typescript"}
+    })
 
-test('extractMessagesFromFiles: should handle non-existent files gracefully', async () => {
-  const {extractMessagesFromFiles} = await import('../index')
-  const path = await import('path')
+    // Sort messages by id for deterministic results
+    result.messages.sort((a, b) => a.id.localeCompare(b.id))
 
-  const filePaths = [
-    path.join(__dirname, 'fixtures/file1.js'),
-    path.join(__dirname, 'fixtures/non-existent.js'),
-    path.join(__dirname, 'fixtures/file3.ts'),
-  ]
-
-  const result = await extractMessagesFromFiles(filePaths, {
-    parser: {tsx: true, syntax: "typescript"}
+    expect(result.warnings.length).toBeGreaterThan(0)
+    expect(result.warnings.some(w => w.includes('non-existent.js'))).toBe(true)
+    expect(result.messages.length).toBeGreaterThan(0) // Should still have messages from valid files
   })
 
-  // Sort messages by id for deterministic results
-  result.messages.sort((a, b) => a.id.localeCompare(b.id))
+  test('should handle empty array', async () => {
+    const result = await extractMessagesFromFiles([])
 
-  expect(result.warnings.length).toBeGreaterThan(0)
-  expect(result.warnings.some(w => w.includes('non-existent.js'))).toBe(true)
-  expect(result.messages.length).toBeGreaterThan(0) // Should still have messages from valid files
-  expect(result.messages).toMatchSnapshot()
-})
-
-test('extractMessagesFromFiles: should handle empty array', async () => {
-  const {extractMessagesFromFiles} = await import('../index')
-
-  const result = await extractMessagesFromFiles([])
-
-  expect(result.messages).toHaveLength(0)
-  expect(result.warnings).toHaveLength(0)
-})
-
-test('extractMessagesFromFiles: should work with different parser options', async () => {
-  const {extractMessagesFromFiles} = await import('../index')
-  const path = await import('path')
-
-  const filePaths = [
-    path.join(__dirname, 'fixtures/file1.js'),
-  ]
-
-  const result = await extractMessagesFromFiles(filePaths, {
-    parser: {syntax: "ecmascript"}
+    expect(result.messages).toHaveLength(0)
+    expect(result.warnings).toHaveLength(0)
   })
 
-  expect(result.messages.length).toBeGreaterThan(0)
-  expect(result.warnings).toHaveLength(0)
-})
+  test('should work with different parser options', async () => {
+    const filePaths = [
+      path.join(import.meta.dirname, 'fixtures/file1.js'),
+    ]
 
-test('extractMessagesFromFiles: messages should include origin with filename', async () => {
-  const {extractMessagesFromFiles} = await import('../index')
-  const path = await import('path')
+    const result = await extractMessagesFromFiles(filePaths, {
+      parser: {syntax: "ecmascript"}
+    })
 
-  const filePaths = [
-    path.join(__dirname, 'fixtures/file1.js'),
-    path.join(__dirname, 'fixtures/file3.ts'),
-  ]
-
-  const result = await extractMessagesFromFiles(filePaths, {
-    parser: {syntax: "typescript"}
+    expect(result.messages.length).toBeGreaterThan(0)
+    expect(result.warnings).toHaveLength(0)
   })
 
-  // Sort messages by id for deterministic results
-  result.messages.sort((a, b) => a.id.localeCompare(b.id))
+  test('messages should include origin with filename', async () => {
+    const filePaths = [
+      path.join(import.meta.dirname, 'fixtures/file1.js'),
+      path.join(import.meta.dirname, 'fixtures/file3.ts'),
+    ]
 
-  expect(result.messages.length).toBeGreaterThan(0)
+    const result = await extractMessagesFromFiles(filePaths, {
+      parser: {syntax: "typescript"}
+    })
 
-  // Check that all messages have origin with filename
-  result.messages.forEach(msg => {
-    expect(msg.origin).toBeDefined()
-    expect(msg.origin?.filename).toBeDefined()
-    expect(msg.origin?.filename).toMatch(/file[13]\.(js|ts)$/)
+    // Sort messages by id for deterministic results
+    result.messages.sort((a, b) => a.id.localeCompare(b.id))
+
+    expect(result.messages.length).toBeGreaterThan(0)
+
+    // Check that all messages have origin with filename
+    result.messages.forEach(msg => {
+      expect(msg.origin).toBeDefined()
+      expect(msg.origin?.filename).toBeDefined()
+      expect(msg.origin?.filename).toMatch(/file[13]\.(js|ts)$/)
+    })
   })
-
-  expect(result.messages).toMatchSnapshot()
 })
+

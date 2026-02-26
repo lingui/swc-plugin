@@ -291,7 +291,7 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           name: test-bindings-${{ matrix.target }}
           options: '-v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}'
-          args: yarn test
+          args: corepack enable && yarn test
   publish:
     name: Publish
     runs-on: ubuntu-latest
