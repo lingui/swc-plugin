@@ -127,7 +127,7 @@ where
                         "id",
                         generate_message_id(
                             &parsed.message_str,
-                            &(context_val.unwrap_or_default()),
+                            context_val.as_deref().unwrap_or_default(),
                             self.ctx.options.use_lingui_v5_id_generation,
                         )
                         .into(),
@@ -140,6 +140,19 @@ where
 
                 if let Some(v) = parsed.values {
                     new_props.push(create_key_value_prop("values", v))
+                }
+            }
+
+            if !self.ctx.options.strip_non_essential_fields {
+                if let Some(context) = context_val {
+                    new_props.push(create_key_value_prop("context", context.into()));
+                }
+
+                let comment = get_object_prop(&obj.props, "comment")
+                    .and_then(|prop| get_expr_as_string(&prop.value));
+
+                if let Some(comment) = comment {
+                    new_props.push(create_key_value_prop("comment", comment.into()));
                 }
             }
 

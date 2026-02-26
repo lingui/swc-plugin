@@ -117,6 +117,7 @@ where
 
         let parsed = MessageBuilder::parse(trans_visitor.tokens);
         let id_attr = get_jsx_attr(&el.opening, "id").and_then(|attr| attr.value.as_ref());
+
         let context_attr =
             get_jsx_attr(&el.opening, "context").and_then(|attr| attr.value.as_ref());
 
@@ -152,6 +153,14 @@ where
         }
 
         if !self.ctx.options.strip_non_essential_fields {
+            let comment_attr = get_jsx_attr(&el.opening, "comment")
+                .and_then(|attr| attr.value.as_ref())
+                .and_then(get_jsx_attr_value_as_string);
+
+            if let Some(comment) = comment_attr {
+                message_descriptor_props.push(create_key_value_prop("comment", comment.into()));
+            }
+
             message_descriptor_props.push(create_key_value_prop("message", parsed.message));
 
             if let Some(context_attr) = context_attr {

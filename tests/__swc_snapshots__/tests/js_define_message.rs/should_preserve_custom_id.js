@@ -1,4 +1,5 @@
 const message = /*i18n*/ {
     id: "custom.id",
-    message: "Message"
+    message: "Message",
+    comment: "Description"
 };

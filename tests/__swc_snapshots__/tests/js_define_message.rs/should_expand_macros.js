@@ -3,5 +3,6 @@ const message = /*i18n*/ {
     message: "{count, plural, one {book} other {books}}",
     values: {
         count: count
-    }
+    },
+    comment: "Description"
 };
