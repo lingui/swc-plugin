@@ -4,22 +4,27 @@ env:
   APP_NAME: lingui-extractor-swc
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
-'on':
-  push:
-    branches:
-      - main
-    tags-ignore:
-      - '**'
-    paths-ignore:
-      - '**/*.md'
-      - LICENSE
-      - '**/*.gitignore'
-      - .editorconfig
-      - docs/**
-  pull_request: null
+on:
+  #  push:
+  #    branches:
+  #      - main
+  #    tags-ignore:
+  #      - '**'
+  #    paths-ignore:
+  #      - '**/*.md'
+  #      - LICENSE
+  #      - '**/*.gitignore'
+  #      - .editorconfig
+  #      - docs/**
+  pull_request:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: ./napi-rs
+
 jobs:
   lint:
     name: Lint
@@ -75,7 +80,7 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             build: yarn build --target aarch64-unknown-linux-musl -x
-    name: stable - ${{ matrix.settings.target }} - node@22
+    name: stable - ${{ matrix.settings.target }} - node@24
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v6
