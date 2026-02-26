@@ -1,5 +1,5 @@
-import * as binding from './binding'
-import {ParserConfig} from "@swc/types"
+import binding = require('../binding')
+import type {ParserConfig} from "@swc/types"
 
 export type ExtractorOptions = {
   parser?: ParserConfig
