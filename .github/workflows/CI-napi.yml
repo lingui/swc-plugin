@@ -288,10 +288,11 @@ jobs:
       - name: Test bindings
         uses: tj-actions/docker-run@v2
         with:
+
           image: ${{ steps.docker.outputs.IMAGE }}
           name: test-bindings-${{ matrix.target }}
           options: '-v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}'
-          args: corepack enable && yarn test
+          args: ls -R . && corepack enable && yarn test
   publish:
     name: Publish
     runs-on: ubuntu-latest
