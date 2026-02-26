@@ -287,18 +287,13 @@ jobs:
       - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
         if: ${{ contains(matrix.target, 'armv7') }}
       - name: Test bindings
-        uses: tj-actions/docker-run@v2
-        with:
-
-          image: ${{ steps.docker.outputs.IMAGE }}
-          name: test-bindings-${{ matrix.target }}
-          options: '-v ${{ github.workspace }}/napi-rs:/app -w /app --platform ${{ steps.docker.outputs.PLATFORM }}'
-          args: |
-            ls -la .
-            cat package.json
-            corepack enable
-            yarn install
-            yarn test
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/napi-rs:/app \
+            -w /app \
+            --platform ${{ steps.docker.outputs.PLATFORM }} \
+            ${{ steps.docker.outputs.IMAGE }} \
+            sh -c "ls -la . && cat package.json && corepack enable && yarn install && yarn test"
   publish:
     name: Publish
     runs-on: ubuntu-latest
