@@ -59,9 +59,9 @@ jobs:
           - host: windows-latest
             build: yarn build --target x86_64-pc-windows-msvc
             target: x86_64-pc-windows-msvc
-          - host: windows-latest
-            build: yarn build --target i686-pc-windows-msvc
-            target: i686-pc-windows-msvc
+          #          - host: windows-latest
+          #            build: yarn build --target i686-pc-windows-msvc
+          #            target: i686-pc-windows-msvc#
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             build: yarn build --target x86_64-unknown-linux-gnu --use-napi-cross
@@ -80,6 +80,9 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             build: yarn build --target aarch64-unknown-linux-musl -x
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            build: yarn build --target aarch64-pc-windows-msvc
     name: stable - ${{ matrix.settings.target }} - node@24
     runs-on: ${{ matrix.settings.host }}
     steps:
@@ -292,7 +295,7 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           name: test-bindings-${{ matrix.target }}
           options: '-v ${{ github.workspace }}/napi-rs:/app -w /app --platform ${{ steps.docker.outputs.PLATFORM }}'
-          args: ls -la . && corepack enable && yarn test
+          args: ls -la .yarn && corepack enable && yarn test
   publish:
     name: Publish
     runs-on: ubuntu-latest
