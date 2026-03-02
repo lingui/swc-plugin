@@ -6,6 +6,8 @@ pub struct LinguiJsOptions {
     runtime_modules: Option<RuntimeModulesConfigMap>,
     #[serde(default)]
     strip_non_essential_fields: Option<bool>,
+    #[serde(default)]
+    use_lingui_v5_id_generation: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -32,6 +34,7 @@ impl LinguiJsOptions {
             strip_non_essential_fields: self
                 .strip_non_essential_fields
                 .unwrap_or(matches!(env_name, "production")),
+            use_lingui_v5_id_generation: self.use_lingui_v5_id_generation.unwrap_or(false),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules
@@ -78,12 +81,14 @@ impl LinguiJsOptions {
 pub struct LinguiOptions {
     pub strip_non_essential_fields: bool,
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
+    pub use_lingui_v5_id_generation: bool,
 }
 
 impl Default for LinguiOptions {
     fn default() -> LinguiOptions {
         LinguiOptions {
             strip_non_essential_fields: false,
+            use_lingui_v5_id_generation: false,
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: ("@lingui/core".into(), "i18n".into()),
                 trans: ("@lingui/react".into(), "Trans".into()),
@@ -128,6 +133,7 @@ mod lib_tests {
                     )),
                 }),
                 strip_non_essential_fields: None,
+                use_lingui_v5_id_generation: None,
             }
         )
     }
@@ -152,6 +158,7 @@ mod lib_tests {
                     use_lingui: None,
                 }),
                 strip_non_essential_fields: None,
+                use_lingui_v5_id_generation: None,
             }
         )
     }
@@ -202,5 +209,53 @@ mod lib_tests {
 
         let options = config.into_options("production");
         assert!(options.strip_non_essential_fields);
+    }
+
+    #[test]
+    fn test_use_lingui_v5_id_generation_config() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "useLinguiV5IdGeneration": true,
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert!(options.use_lingui_v5_id_generation);
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "useLinguiV5IdGeneration": false,
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(!options.use_lingui_v5_id_generation);
+    }
+
+    #[test]
+    fn test_use_lingui_v5_id_generation_default() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert!(!options.use_lingui_v5_id_generation);
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(!options.use_lingui_v5_id_generation);
     }
 }

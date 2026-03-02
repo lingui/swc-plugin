@@ -2,7 +2,7 @@
 
 <div align="center">
 
-A Rust versions of [LinguiJS Macro](https://lingui.dev/ref/macro) [<img src="https://img.shields.io/badge/beta-yellow"/>](https://github.com/lingui/swc-plugin)
+A Rust version of [LinguiJS Macro](https://lingui.dev/ref/macro) [<img src="https://img.shields.io/badge/beta-yellow"/>](https://github.com/lingui/swc-plugin)
 
 [![npm](https://img.shields.io/npm/v/@lingui/swc-plugin?logo=npm&cacheSeconds=1800)](https://www.npmjs.com/package/@lingui/swc-plugin)
 [![npm](https://img.shields.io/npm/dt/@lingui/swc-plugin?cacheSeconds=500)](https://www.npmjs.com/package/@lingui/swc-plugin)
@@ -51,8 +51,17 @@ https://swc.rs/docs/configuration/swcrc
             //   "trans": ["@lingui/react", "Trans"]
             // }
             // Lingui strips non-essential fields in production builds for performance.
+            // Docs https://lingui.dev/guides/optimizing-bundle-size
             // You can override the default behavior with:
             // "stripNonEssentialFields": false/true
+
+            // Compatibility option allows to use v6.* SWC Plugin release channel with @lingui/cli@5.*
+            // Controls the BASE64 alphabet used for generating message IDs.
+            // - false (default): Uses URL-safe BASE64 alphabet (Lingui v6 behavior)
+            // - true: Uses standard BASE64 alphabet (Lingui v5 behavior for compatibility)
+            //
+            // IMPORTANT: This option is temporal and will be removed in the next major release.
+            // "useLinguiV5IdGeneration": true
           },
         ],
       ],
@@ -127,6 +136,7 @@ To learn more about SWC Plugins compatibility check this issue https://github.co
 - Version `0.1.0` ~ `0.*` compatible with `@lingui/core@3.*`
 - Version `4.*` compatible with `@lingui/core@4.*`
 - Version `5.*` compatible with `@lingui/core@5.*`
+- Version `6.*` compatible with `@lingui/core@5.*` with `useLinguiV5IdGeneration: true` and `@lingui/core@6.*`
 
 ## License
 

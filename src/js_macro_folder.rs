@@ -35,7 +35,12 @@ where
 
         let mut props: Vec<PropOrSpread> = vec![create_key_value_prop(
             "id",
-            generate_message_id(&parsed.message_str, "").into(),
+            generate_message_id(
+                &parsed.message_str,
+                "",
+                self.ctx.options.use_lingui_v5_id_generation,
+            )
+            .into(),
         )];
 
         if !self.ctx.options.strip_non_essential_fields {
@@ -123,6 +128,7 @@ where
                         generate_message_id(
                             &parsed.message_str,
                             context_val.as_deref().unwrap_or_default(),
+                            self.ctx.options.use_lingui_v5_id_generation,
                         )
                         .into(),
                     ))

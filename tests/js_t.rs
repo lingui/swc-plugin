@@ -222,3 +222,18 @@ to!(
         t({ message: 'Ola', context: `My Context`})
     "#
 );
+
+to!(
+    js_should_use_v5_generate_id_with_parameter,
+    LinguiOptions {
+        use_lingui_v5_id_generation: true,
+        ..Default::default()
+    },
+    r#"
+     import { t } from '@lingui/core/macro'
+     t({
+       message: "Hello World",
+       context: "my context"
+     });
+     "#
+);
