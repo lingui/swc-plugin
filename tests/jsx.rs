@@ -348,3 +348,125 @@ to!(
 //         <Trans id="msg.hello" />;
 //       `,
 //   },
+
+to!(
+    jsx_named_placeholders_basic,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  Hello <strong _t="em">world</strong>!
+</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_stripped_ast,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  <a _t="link" href="/about">About</a>
+</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_defaults,
+    LinguiOptions {
+        jsx_placeholder_defaults: Some(std::collections::HashMap::from([
+            ("a".into(), "link".into()),
+            ("em".into(), "em".into()),
+        ])),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  Here's a <a>link</a> and <em>emphasis</em>.
+</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_deduplication_different_props,
+    LinguiOptions {
+        jsx_placeholder_defaults: Some(std::collections::HashMap::from([
+            ("a".into(), "a".into()),
+        ])),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <a href="/a">link 1</a>, normal, <a href="/b">link 2</a>.</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_deduplication_identical,
+    LinguiOptions {
+        jsx_placeholder_defaults: Some(std::collections::HashMap::from([
+            ("em".into(), "em".into()),
+        ])),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <em>emphasis</em>, normal, <em>more emphasis</em>.</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_deduplication_with_stripped_props,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <a _t="link" href="/a">link 1</a>, normal, <a _t="link" href="/a">link 1 copy</a> and <a _t="link" href="/b">link 2</a>.</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_attribute_ignored_when_not_configured,
+    LinguiOptions {
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  Hello <strong _t="em">world</strong>!
+</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_prop_order,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <a _t="link" href="/a" class="foo">link 1</a>, normal, <a _t="link" class="foo" href="/a">link 1 copy</a>.</Trans>;
+     "#
+);
+
+to!(
+    jsx_named_placeholders_prop_order2,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <a _t="link" href="/a" class="foo">link 1</a>, normal, <a _t="link" href="/b" class="foo">link 1 copy</a>.</Trans>;
+     "#
+);

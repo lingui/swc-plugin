@@ -1,8 +1,9 @@
+use crate::options::LinguiOptions;
 use crate::ast_utils::expand_ts_as_expr;
 use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
 use std::collections::HashSet;
 use swc_core::{
-    common::{SyntaxContext, DUMMY_SP},
+    common::{SyntaxContext, EqIgnoreSpan, DUMMY_SP},
     ecma::ast::*,
 };
 
@@ -36,24 +37,31 @@ pub struct MessageBuilderResult {
     pub components: Option<Box<Expr>>,
 }
 
-pub struct MessageBuilder {
+pub struct MessageBuilder<'a> {
     message: String,
 
-    components_stack: Vec<usize>,
+    components_stack: Vec<String>,
     components: Vec<ValueWithPlaceholder>,
 
     values: Vec<ValueWithPlaceholder>,
     values_indexed: Vec<ValueWithPlaceholder>,
+
+    options: &'a LinguiOptions,
+    elements_tracking: Vec<(String, JSXOpeningElement)>,
+    element_index: usize,
 }
 
-impl MessageBuilder {
-    pub fn parse(tokens: Vec<MsgToken>) -> MessageBuilderResult {
+impl<'a> MessageBuilder<'a> {
+    pub fn parse(tokens: Vec<MsgToken>, options: &'a LinguiOptions) -> MessageBuilderResult {
         let mut builder = MessageBuilder {
             message: String::new(),
             components_stack: Vec::new(),
             components: Vec::new(),
             values: Vec::new(),
             values_indexed: Vec::new(),
+            options,
+            elements_tracking: Vec::new(),
+            element_index: 0,
         };
 
         builder.process_tokens(tokens);
@@ -133,30 +141,85 @@ impl MessageBuilder {
         self.message.push_str(val);
     }
 
-    fn push_tag_opening(&mut self, el: JSXOpeningElement, self_closing: bool) {
-        let current = self.components.len();
-        if self_closing {
-            self.push_msg(&format!("<{current}/>"));
-        } else {
-            self.components_stack.push(current);
-            self.push_msg(&format!("<{current}>"));
+    fn push_tag_opening(&mut self, mut el: JSXOpeningElement, self_closing: bool) {
+        let mut base_name: Option<String> = None;
+
+        if let Some(attr_name) = &self.options.jsx_placeholder_attribute {
+            if let Some(idx) = el.attrs.iter().position(|a| {
+                if let JSXAttrOrSpread::JSXAttr(attr) = a {
+                    if let JSXAttrName::Ident(ident) = &attr.name {
+                        return &ident.sym == attr_name;
+                    }
+                }
+                false
+            }) {
+                let attr = el.attrs.remove(idx);
+                if let JSXAttrOrSpread::JSXAttr(attr) = attr {
+                    if let Some(JSXAttrValue::Str(s)) = attr.value {
+                        base_name = Some(s.value.to_string_lossy().into_owned());
+                    }
+                }
+            }
         }
 
-        // todo: it looks very dirty and bad to cloning this jsx values
-        self.components.push(ValueWithPlaceholder {
-            placeholder: self.components.len().to_string(),
-            value: Box::new(Expr::JSXElement(Box::new(JSXElement {
-                opening: el,
-                closing: None,
-                children: vec![],
-                span: DUMMY_SP,
-            }))),
-        });
+        if base_name.is_none() {
+            if let Some(defaults) = &self.options.jsx_placeholder_defaults {
+                if let JSXElementName::Ident(ident) = &el.name {
+                    if let Some(def) = defaults.get(&ident.sym.to_string()) {
+                        base_name = Some(def.clone());
+                    }
+                }
+            }
+        }
+
+        let name = if let Some(n) = base_name {
+            let mut suffix = 1;
+            let mut test_name = n.clone();
+
+            loop {
+                if let Some((_, orig_el)) = self.elements_tracking.iter().find(|(k, _)| k == &test_name) {
+                    if el.attrs.eq_ignore_span(&orig_el.attrs) {
+                        break;
+                    }
+                    suffix += 1;
+                    test_name = format!("{}{}", n, suffix);
+                } else {
+                    self.elements_tracking.push((test_name.clone(), el.clone()));
+                    break;
+                }
+            }
+            test_name
+        } else {
+            let n = self.element_index.to_string();
+            self.element_index += 1;
+            self.elements_tracking.push((n.clone(), el.clone()));
+            n
+        };
+
+        if self_closing {
+            self.push_msg(&format!("<{name}/>"));
+        } else {
+            self.components_stack.push(name.clone());
+            self.push_msg(&format!("<{name}>"));
+        }
+
+        if !self.components.iter().any(|c| c.placeholder == name) {
+            // todo: it looks very dirty and bad to cloning this jsx values
+            self.components.push(ValueWithPlaceholder {
+                placeholder: name.clone(),
+                value: Box::new(Expr::JSXElement(Box::new(JSXElement {
+                    opening: el,
+                    closing: None,
+                    children: vec![],
+                    span: DUMMY_SP,
+                }))),
+            });
+        }
     }
 
     fn push_tag_closing(&mut self) {
-        if let Some(index) = self.components_stack.pop() {
-            self.push_msg(&format!("</{index}>"));
+        if let Some(name) = self.components_stack.pop() {
+            self.push_msg(&format!("</{name}>"));
         } else {
             // todo JSX tags mismatch. write tests for tags mismatch, swc should not crash in that case
         }

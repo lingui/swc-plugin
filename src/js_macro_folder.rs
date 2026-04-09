@@ -31,7 +31,7 @@ where
     }
 
     fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>, span: Span) -> Expr {
-        let parsed = MessageBuilder::parse(tokens);
+        let parsed = MessageBuilder::parse(tokens, &self.ctx.options);
 
         let mut props: Vec<PropOrSpread> = vec![create_key_value_prop(
             "id",
@@ -115,7 +115,7 @@ where
             if let Some(prop) = message_prop {
                 let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_default();
 
-                let parsed = MessageBuilder::parse(tokens);
+                let parsed = MessageBuilder::parse(tokens, &self.ctx.options);
 
                 if id_prop.is_none() {
                     new_props.push(create_key_value_prop(

@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::collections::HashMap;
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -6,6 +7,10 @@ pub struct LinguiJsOptions {
     runtime_modules: Option<RuntimeModulesConfigMap>,
     #[serde(default)]
     strip_non_essential_fields: Option<bool>,
+    #[serde(default)]
+    jsx_placeholder_attribute: Option<String>,
+    #[serde(default)]
+    jsx_placeholder_defaults: Option<HashMap<String, String>>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -32,6 +37,8 @@ impl LinguiJsOptions {
             strip_non_essential_fields: self
                 .strip_non_essential_fields
                 .unwrap_or(matches!(env_name, "production")),
+            jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
+            jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules
@@ -77,6 +84,8 @@ impl LinguiJsOptions {
 #[derive(Debug, Clone)]
 pub struct LinguiOptions {
     pub strip_non_essential_fields: bool,
+    pub jsx_placeholder_attribute: Option<String>,
+    pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
 }
 
@@ -84,6 +93,8 @@ impl Default for LinguiOptions {
     fn default() -> LinguiOptions {
         LinguiOptions {
             strip_non_essential_fields: false,
+            jsx_placeholder_attribute: None,
+            jsx_placeholder_defaults: None,
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: ("@lingui/core".into(), "i18n".into()),
                 trans: ("@lingui/react".into(), "Trans".into()),
@@ -128,6 +139,8 @@ mod lib_tests {
                     )),
                 }),
                 strip_non_essential_fields: None,
+                jsx_placeholder_attribute: None,
+                jsx_placeholder_defaults: None,
             }
         )
     }
@@ -152,6 +165,8 @@ mod lib_tests {
                     use_lingui: None,
                 }),
                 strip_non_essential_fields: None,
+                jsx_placeholder_attribute: None,
+                jsx_placeholder_defaults: None,
             }
         )
     }
