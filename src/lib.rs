@@ -153,12 +153,10 @@ where
         }
 
         if self.ctx.options.descriptor_fields.should_keep_comment() {
-            let comment_attr =
-                get_jsx_attr(&el.opening, "comment").and_then(|attr| attr.value.as_ref());
+            let comment_attr_val = get_jsx_attr(&el.opening, "comment")
+                .and_then(|attr| get_jsx_attr_value_as_string(attr.value.as_ref()?));
 
-            if let Some(comment_attr) = comment_attr {
-                let comment_attr_val = get_jsx_attr_value_as_string(comment_attr).unwrap();
-
+            if let Some(comment_attr_val) = comment_attr_val {
                 message_descriptor_props
                     .push(create_key_value_prop("comment", comment_attr_val.into()));
             }

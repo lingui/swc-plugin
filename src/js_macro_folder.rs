@@ -104,10 +104,8 @@ where
         if let Expr::Object(obj) = *expr {
             let id_prop = get_object_prop(&obj.props, "id");
 
-            let context_prop = get_object_prop(&obj.props, "context");
-            let context_val = context_prop.and_then(|prop| get_expr_as_string(&prop.value));
-
-            let comment_prop = get_object_prop(&obj.props, "comment");
+            let context_val = get_object_prop(&obj.props, "context")
+                .and_then(|prop| get_expr_as_string(&prop.value));
 
             let message_prop = get_object_prop(&obj.props, "message");
 
@@ -152,10 +150,10 @@ where
             }
 
             if self.ctx.options.descriptor_fields.should_keep_comment() {
-                if let Some(prop) = comment_prop {
-                    if let Some(value) = get_expr_as_string(&prop.value) {
-                        new_props.push(create_key_value_prop("comment", value.into()));
-                    }
+                if let Some(value) = get_object_prop(&obj.props, "comment")
+                    .and_then(|prop| get_expr_as_string(&prop.value))
+                {
+                    new_props.push(create_key_value_prop("comment", value.into()));
                 }
             }
 
