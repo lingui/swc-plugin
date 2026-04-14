@@ -1,4 +1,4 @@
-use lingui_macro_plugin::LinguiOptions;
+use lingui_macro_plugin::{DescriptorFields, LinguiOptions};
 
 #[macro_use]
 mod common;
@@ -283,9 +283,26 @@ to!(
 );
 
 to!(
-    production_only_essential_props_are_kept,
+    id_only_essential_props_are_kept,
     LinguiOptions {
-        strip_non_essential_fields: true,
+        descriptor_fields: DescriptorFields::IdOnly,
+        ..Default::default()
+    },
+    r#"
+        import { Trans } from "@lingui/react/macro";
+        <Trans
+        id="msg.hello"
+        render="render"
+        i18n="i18n"
+        context="My Context"
+        comment="Hello World">Hello <strong>{name}</strong></Trans>
+     "#
+);
+
+to!(
+    message_keeps_message_and_context,
+    LinguiOptions {
+        descriptor_fields: DescriptorFields::Message,
         ..Default::default()
     },
     r#"

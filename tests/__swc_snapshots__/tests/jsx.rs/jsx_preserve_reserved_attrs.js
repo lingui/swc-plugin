@@ -3,5 +3,6 @@ const exp2 = <Trans_ {.../*i18n*/ {
     id: "6J8UtY",
     comment: "Translators Comment",
     message: "Refresh inbox",
-    context: "Message Context"
+    context: "Message Context",
+    comment: "Translators Comment"
 }} i18n="i18n" component={(p)=><div>{p.translation}</div>} render={(v)=>v}/>;

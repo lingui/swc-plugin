@@ -1,11 +1,34 @@
 use serde::Deserialize;
 
+#[derive(Deserialize, Debug, PartialEq, Clone)]
+#[serde(rename_all = "kebab-case")]
+pub enum DescriptorFields {
+    Auto,
+    All,
+    IdOnly,
+    Message,
+}
+
+impl DescriptorFields {
+    pub fn should_keep_message(&self) -> bool {
+        matches!(self, DescriptorFields::All | DescriptorFields::Message)
+    }
+
+    pub fn should_keep_context(&self) -> bool {
+        matches!(self, DescriptorFields::All | DescriptorFields::Message)
+    }
+
+    pub fn should_keep_comment(&self) -> bool {
+        matches!(self, DescriptorFields::All)
+    }
+}
+
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
     runtime_modules: Option<RuntimeModulesConfigMap>,
     #[serde(default)]
-    strip_non_essential_fields: Option<bool>,
+    descriptor_fields: Option<DescriptorFields>,
     #[serde(default)]
     use_lingui_v5_id_generation: Option<bool>,
 }
@@ -30,10 +53,19 @@ pub struct RuntimeModulesConfigMapNormalized {
 
 impl LinguiJsOptions {
     pub fn into_options(self, env_name: &str) -> LinguiOptions {
+        let descriptor_fields = match self.descriptor_fields.unwrap_or(DescriptorFields::Auto) {
+            DescriptorFields::Auto => {
+                if matches!(env_name, "production") {
+                    DescriptorFields::IdOnly
+                } else {
+                    DescriptorFields::All
+                }
+            }
+            other => other,
+        };
+
         LinguiOptions {
-            strip_non_essential_fields: self
-                .strip_non_essential_fields
-                .unwrap_or(matches!(env_name, "production")),
+            descriptor_fields,
             use_lingui_v5_id_generation: self.use_lingui_v5_id_generation.unwrap_or(false),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
@@ -79,7 +111,7 @@ impl LinguiJsOptions {
 
 #[derive(Debug, Clone)]
 pub struct LinguiOptions {
-    pub strip_non_essential_fields: bool,
+    pub descriptor_fields: DescriptorFields,
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
     pub use_lingui_v5_id_generation: bool,
 }
@@ -87,7 +119,7 @@ pub struct LinguiOptions {
 impl Default for LinguiOptions {
     fn default() -> LinguiOptions {
         LinguiOptions {
-            strip_non_essential_fields: false,
+            descriptor_fields: DescriptorFields::All,
             use_lingui_v5_id_generation: false,
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: ("@lingui/core".into(), "i18n".into()),
@@ -132,7 +164,7 @@ mod lib_tests {
                         Some("myUseLingui".into())
                     )),
                 }),
-                strip_non_essential_fields: None,
+                descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
             }
         )
@@ -157,39 +189,56 @@ mod lib_tests {
                     trans: None,
                     use_lingui: None,
                 }),
-                strip_non_essential_fields: None,
+                descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
             }
         )
     }
 
     #[test]
-    fn test_strip_non_essential_fields_config() {
+    fn test_descriptor_fields_config() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "stripNonEssentialFields": true,
+                "descriptorFields": "id-only",
                 "runtimeModules": {}
                }"#,
         )
         .unwrap();
 
         let options = config.into_options("development");
-        assert!(options.strip_non_essential_fields);
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::IdOnly
+        ));
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "stripNonEssentialFields": false,
+                "descriptorFields": "all",
                 "runtimeModules": {}
                }"#,
         )
         .unwrap();
 
         let options = config.into_options("production");
-        assert!(!options.strip_non_essential_fields);
+        assert!(matches!(options.descriptor_fields, DescriptorFields::All));
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "descriptorFields": "message",
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::Message
+        ));
     }
 
     #[test]
-    fn test_strip_non_essential_fields_default() {
+    fn test_descriptor_fields_auto_default() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "runtimeModules": {}
@@ -198,7 +247,7 @@ mod lib_tests {
         .unwrap();
 
         let options = config.into_options("development");
-        assert!(!options.strip_non_essential_fields);
+        assert!(matches!(options.descriptor_fields, DescriptorFields::All));
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
@@ -208,7 +257,38 @@ mod lib_tests {
         .unwrap();
 
         let options = config.into_options("production");
-        assert!(options.strip_non_essential_fields);
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::IdOnly
+        ));
+    }
+
+    #[test]
+    fn test_descriptor_fields_explicit_auto() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "descriptorFields": "auto",
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert!(matches!(options.descriptor_fields, DescriptorFields::All));
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "descriptorFields": "auto",
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::IdOnly
+        ));
     }
 
     #[test]

@@ -43,7 +43,7 @@ where
             .into(),
         )];
 
-        if !self.ctx.options.strip_non_essential_fields {
+        if self.ctx.options.descriptor_fields.should_keep_message() {
             props.push(create_key_value_prop("message", parsed.message));
         }
 
@@ -104,8 +104,10 @@ where
         if let Expr::Object(obj) = *expr {
             let id_prop = get_object_prop(&obj.props, "id");
 
-            let context_val = get_object_prop(&obj.props, "context")
-                .and_then(|prop| get_expr_as_string(&prop.value));
+            let context_prop = get_object_prop(&obj.props, "context");
+            let context_val = context_prop.and_then(|prop| get_expr_as_string(&prop.value));
+
+            let comment_prop = get_object_prop(&obj.props, "comment");
 
             let message_prop = get_object_prop(&obj.props, "message");
 
@@ -134,7 +136,7 @@ where
                     ))
                 }
 
-                if !self.ctx.options.strip_non_essential_fields {
+                if self.ctx.options.descriptor_fields.should_keep_message() {
                     new_props.push(create_key_value_prop("message", parsed.message));
                 }
 
@@ -143,16 +145,17 @@ where
                 }
             }
 
-            if !self.ctx.options.strip_non_essential_fields {
-                if let Some(context) = context_val {
-                    new_props.push(create_key_value_prop("context", context.into()));
+            if self.ctx.options.descriptor_fields.should_keep_context() {
+                if let Some(context_str) = &context_val {
+                    new_props.push(create_key_value_prop("context", context_str.clone().into()));
                 }
+            }
 
-                let comment = get_object_prop(&obj.props, "comment")
-                    .and_then(|prop| get_expr_as_string(&prop.value));
-
-                if let Some(comment) = comment {
-                    new_props.push(create_key_value_prop("comment", comment.into()));
+            if self.ctx.options.descriptor_fields.should_keep_comment() {
+                if let Some(prop) = comment_prop {
+                    if let Some(value) = get_expr_as_string(&prop.value) {
+                        new_props.push(create_key_value_prop("comment", value.into()));
+                    }
                 }
             }
 

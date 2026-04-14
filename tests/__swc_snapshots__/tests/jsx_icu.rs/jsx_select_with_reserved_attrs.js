@@ -9,5 +9,6 @@ import { Trans as Trans_ } from "@lingui/react";
     },
     comment: "Translators Comment",
     message: "{count, select, male {He} female {She} other {<0>Other</0>}}",
-    context: "Message Context"
+    context: "Message Context",
+    comment: "Translators Comment"
 }} render={(v)=>v}/>;
