@@ -159,9 +159,8 @@ where
             if let Some(comment_attr) = comment_attr {
                 let comment_attr_val = get_jsx_attr_value_as_string(comment_attr).unwrap();
 
-                message_descriptor_props.push(create_key_value_prop(
-                    "comment", comment.into(),
-                ));
+                message_descriptor_props
+                    .push(create_key_value_prop("comment", comment_attr_val.into()));
             }
         }
 
@@ -183,8 +182,6 @@ where
                 ));
             }
         }
-
-
 
         let message_descriptor = Expr::Object(ObjectLit {
             span: message_dscrptr_span,
