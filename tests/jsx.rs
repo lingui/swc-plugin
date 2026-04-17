@@ -620,3 +620,39 @@ import { Trans } from '@lingui/react/macro';
 <Trans><a _t="same" href="/" {...spread}>A</a> <a _t="same" {...spread} href="/">B</a></Trans>
      "#
 );
+
+to_panic!(
+    jsx_named_placeholders_throws_on_empty_string,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from '@lingui/react/macro';
+<Trans><a _t="" href="/">click</a></Trans>
+     "#
+);
+
+to_panic!(
+    jsx_named_placeholders_throws_on_jsx_expr,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from '@lingui/react/macro';
+<Trans><a _t={"foo"} href="/">click</a></Trans>
+     "#
+);
+
+to_panic!(
+    jsx_named_placeholders_throws_on_boolean_expr,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from '@lingui/react/macro';
+<Trans><a _t href="/">click</a></Trans>
+     "#
+);
