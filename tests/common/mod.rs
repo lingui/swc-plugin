@@ -47,7 +47,7 @@ macro_rules! to_panic {
         #[test]
         #[should_panic]
         fn $name() {
-             swc_core::ecma::transforms::testing::test_inlined_transform(
+            swc_core::ecma::transforms::testing::test_inlined_transform(
                 stringify!($name),
                 swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsSyntax {
                     tsx: true,
@@ -60,8 +60,8 @@ macro_rules! to_panic {
                         Some(tester.comments.clone()),
                     ))
                 },
-                $input
-             );
+                $input,
+            );
         }
     };
 }

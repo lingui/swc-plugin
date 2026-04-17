@@ -1,9 +1,9 @@
-use crate::options::LinguiOptions;
 use crate::ast_utils::expand_ts_as_expr;
+use crate::options::LinguiOptions;
 use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
 use std::collections::HashSet;
 use swc_core::{
-    common::{SyntaxContext, EqIgnoreSpan, DUMMY_SP},
+    common::{EqIgnoreSpan, SyntaxContext, DUMMY_SP},
     ecma::ast::*,
 };
 
@@ -179,7 +179,7 @@ impl<'a> MessageBuilder<'a> {
                             is_valid = true;
                         }
                     }
-                    
+
                     if !is_valid {
                         swc_core::plugin::errors::HANDLER.with(|h| {
                             h.struct_span_err(
@@ -220,12 +220,22 @@ impl<'a> MessageBuilder<'a> {
             }
 
             if let Some((_, orig_el)) = self.elements_tracking.iter().find(|(k, _)| k == &n) {
-                let has_spreads = orig_el.attrs.iter().any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
+                let has_spreads = orig_el
+                    .attrs
+                    .iter()
+                    .any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
                 let attrs_equal = if orig_el.attrs.len() == el.attrs.len() {
                     if has_spreads {
-                        orig_el.attrs.iter().zip(el.attrs.iter()).all(|(a, b)| a.eq_ignore_span(b))
+                        orig_el
+                            .attrs
+                            .iter()
+                            .zip(el.attrs.iter())
+                            .all(|(a, b)| a.eq_ignore_span(b))
                     } else {
-                        orig_el.attrs.iter().all(|a| el.attrs.iter().any(|b| a.eq_ignore_span(b)))
+                        orig_el
+                            .attrs
+                            .iter()
+                            .all(|a| el.attrs.iter().any(|b| a.eq_ignore_span(b)))
                     }
                 } else {
                     false

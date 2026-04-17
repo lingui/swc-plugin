@@ -398,9 +398,10 @@ to!(
     jsx_named_placeholders_mixed_explicit_and_defaults,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
-        jsx_placeholder_defaults: Some(std::collections::HashMap::from([
-            ("a".into(), "link".into()),
-        ])),
+        jsx_placeholder_defaults: Some(std::collections::HashMap::from([(
+            "a".into(),
+            "link".into()
+        ),])),
         ..Default::default()
     },
     r#"
@@ -412,9 +413,9 @@ import { Trans } from "@lingui/react/macro";
 to_panic!(
     jsx_named_placeholders_deduplication_different_props,
     LinguiOptions {
-        jsx_placeholder_defaults: Some(std::collections::HashMap::from([
-            ("a".into(), "a".into()),
-        ])),
+        jsx_placeholder_defaults: Some(std::collections::HashMap::from(
+            [("a".into(), "a".into()),]
+        )),
         ..Default::default()
     },
     r#"
@@ -426,9 +427,10 @@ import { Trans } from "@lingui/react/macro";
 to!(
     jsx_named_placeholders_deduplication_identical,
     LinguiOptions {
-        jsx_placeholder_defaults: Some(std::collections::HashMap::from([
-            ("em".into(), "em".into()),
-        ])),
+        jsx_placeholder_defaults: Some(std::collections::HashMap::from([(
+            "em".into(),
+            "em".into()
+        ),])),
         ..Default::default()
     },
     r#"
@@ -618,4 +620,3 @@ import { Trans } from '@lingui/react/macro';
 <Trans><a _t="same" href="/" {...spread}>A</a> <a _t="same" {...spread} href="/">B</a></Trans>
      "#
 );
-
