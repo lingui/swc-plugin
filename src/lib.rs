@@ -167,9 +167,7 @@ where
         }
 
         if self.ctx.options.descriptor_fields.should_keep_context() {
-            if let Some(context_attr_val) =
-                context_attr.and_then(get_jsx_attr_value_as_string)
-            {
+            if let Some(context_attr_val) = context_attr.and_then(get_jsx_attr_value_as_string) {
                 message_descriptor_props.push(create_key_value_prop(
                     "context",
                     Box::new(Expr::Lit(Lit::Str(Str {
