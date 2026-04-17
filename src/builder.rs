@@ -7,6 +7,11 @@ use swc_core::{
     ecma::ast::*,
 };
 
+static NUMERIC_REGEX: once_cell::sync::Lazy<regex::Regex> =
+    once_cell::sync::Lazy::new(|| regex::Regex::new(r"^\d+$").unwrap());
+static VALID_NAME_REGEX: once_cell::sync::Lazy<regex::Regex> =
+    once_cell::sync::Lazy::new(|| regex::Regex::new(r"^[a-zA-Z_]([\w.-]*\w)?$").unwrap());
+
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
     let mut uniques = HashSet::new();
     v.retain(|e| uniques.insert(e.placeholder.clone()));
@@ -198,14 +203,14 @@ impl<'a> MessageBuilder<'a> {
         }
 
         let name = if let Some(n) = base_name {
-            if ::regex::Regex::new(r"^\d+$").unwrap().is_match(&n) {
+            if NUMERIC_REGEX.is_match(&n) {
                 swc_core::plugin::errors::HANDLER.with(|h| {
                     h.struct_span_err(
                         el.span,
                         &format!("Placeholder name `{n}` is not allowed because it conflicts with auto-generated numeric placeholders. Use a non-numeric name instead."),
                     ).emit();
                 });
-            } else if !::regex::Regex::new(r"^[a-zA-Z_]([\w.-]*\w)?$").unwrap().is_match(&n) {
+            } else if !VALID_NAME_REGEX.is_match(&n) {
                 swc_core::plugin::errors::HANDLER.with(|h| {
                     h.struct_span_err(
                         el.span,
