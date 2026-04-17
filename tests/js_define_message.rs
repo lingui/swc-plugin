@@ -1,4 +1,4 @@
-use lingui_macro_plugin::LinguiOptions;
+use lingui_macro_plugin::{DescriptorFields, LinguiOptions};
 
 #[macro_use]
 mod common;
@@ -61,9 +61,27 @@ to!(
 );
 
 to!(
-    should_kept_only_essential_props,
+    id_only_should_keep_only_id,
     LinguiOptions {
-        strip_non_essential_fields: true,
+        descriptor_fields: DescriptorFields::IdOnly,
+        ..Default::default()
+    },
+    r#"
+        import { defineMessage } from '@lingui/macro'
+        const message1 = defineMessage`Message`;
+        const message2 = defineMessage({
+            message: `Hello ${name}`,
+            id: 'msgId',
+            comment: 'description for translators',
+            context: 'My Context',
+        })
+    "#
+);
+
+to!(
+    message_should_keep_message_and_context,
+    LinguiOptions {
+        descriptor_fields: DescriptorFields::Message,
         ..Default::default()
     },
     r#"

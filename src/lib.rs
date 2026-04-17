@@ -152,20 +152,22 @@ where
             message_descriptor_props.push(create_key_value_prop("components", exp));
         }
 
-        if !self.ctx.options.strip_non_essential_fields {
-            let comment_attr = get_jsx_attr(&el.opening, "comment")
-                .and_then(|attr| attr.value.as_ref())
-                .and_then(get_jsx_attr_value_as_string);
+        if self.ctx.options.descriptor_fields.should_keep_comment() {
+            let comment_attr_val = get_jsx_attr(&el.opening, "comment")
+                .and_then(|attr| get_jsx_attr_value_as_string(attr.value.as_ref()?));
 
-            if let Some(comment) = comment_attr {
-                message_descriptor_props.push(create_key_value_prop("comment", comment.into()));
+            if let Some(comment_attr_val) = comment_attr_val {
+                message_descriptor_props
+                    .push(create_key_value_prop("comment", comment_attr_val.into()));
             }
+        }
 
+        if self.ctx.options.descriptor_fields.should_keep_message() {
             message_descriptor_props.push(create_key_value_prop("message", parsed.message));
+        }
 
-            if let Some(context_attr) = context_attr {
-                let context_attr_val = get_jsx_attr_value_as_string(context_attr).unwrap();
-
+        if self.ctx.options.descriptor_fields.should_keep_context() {
+            if let Some(context_attr_val) = context_attr.and_then(get_jsx_attr_value_as_string) {
                 message_descriptor_props.push(create_key_value_prop(
                     "context",
                     Box::new(Expr::Lit(Lit::Str(Str {
@@ -515,7 +517,7 @@ where
     }
 }
 
-pub use self::options::{LinguiOptions, RuntimeModulesConfigMapNormalized};
+pub use self::options::{DescriptorFields, LinguiOptions, RuntimeModulesConfigMapNormalized};
 
 #[plugin_transform]
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {

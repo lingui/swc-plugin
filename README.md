@@ -50,10 +50,9 @@ https://swc.rs/docs/configuration/swcrc
             //   "i18n": ["@lingui/core", "i18n"],
             //   "trans": ["@lingui/react", "Trans"]
             // }
-            // Lingui strips non-essential fields in production builds for performance.
-            // Docs https://lingui.dev/guides/optimizing-bundle-size
-            // You can override the default behavior with:
-            // "stripNonEssentialFields": false/true
+            //
+            // Optional. Controls which descriptor fields are preserved in output.
+            // "descriptorFields": "auto" (default) | "all" | "id-only" | "message"
 
             // Compatibility option allows to use v6.* SWC Plugin release channel with @lingui/cli@5.*
             // Controls the BASE64 alphabet used for generating message IDs.
@@ -69,6 +68,17 @@ https://swc.rs/docs/configuration/swcrc
   },
 }
 ```
+
+### `descriptorFields`
+
+Controls which fields are preserved in the transformed message descriptors. Accepts one of:
+
+- **`"auto"`** (default) — In production (`NODE_ENV=production`), behaves like `"id-only"`. Otherwise, behaves like `"all"`.
+- **`"all"`** — Keeps `id`, `message`, `context`, and `comment`. Use this for extraction (replaces the old `extract: true` from the Babel plugin).
+- **`"id-only"`** — Keeps only the `id`. Most optimized for production bundles.
+- **`"message"`** — Keeps `id`, `message`, and `context` (but not `comment`). Useful when you need message content at runtime.
+
+Check [this article](https://lingui.dev/guides/optimizing-bundle-size) for more info about this configuration.
 
 Or Next JS Usage:
 
