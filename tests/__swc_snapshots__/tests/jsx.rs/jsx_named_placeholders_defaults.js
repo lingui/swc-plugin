@@ -1,6 +1,6 @@
 import { Trans as Trans_ } from "@lingui/react";
 <Trans_ {.../*i18n*/ {
-    id: "Jg/WOt",
+    id: "Jg_WOt",
     components: {
         link: <a/>,
         em: <em/>
