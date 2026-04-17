@@ -252,7 +252,7 @@ impl<'a> MessageBuilder<'a> {
                             if self.options.jsx_placeholder_attribute.is_some() {
                                 format!("adding/modifying the `{attr_name}` attribute")
                             } else {
-                                format!("setting `macro.jsxPlaceholderAttribute` in the lingui config and then adding the attribute to your JSX elements")
+                                "setting `macro.jsxPlaceholderAttribute` in the lingui config and then adding the attribute to your JSX elements".to_string()
                             }
                         );
                         h.struct_span_err(el.span, &msg).emit();
