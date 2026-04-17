@@ -197,6 +197,27 @@ mod lib_tests {
     }
 
     #[test]
+    fn test_jsx_placeholder_config() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "jsxPlaceholderAttribute": "_t",
+                "jsxPlaceholderDefaults": {
+                    "a": "link",
+                    "em": "emphasis"
+                }
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert_eq!(options.jsx_placeholder_attribute.unwrap(), "_t");
+
+        let defaults = options.jsx_placeholder_defaults.unwrap();
+        assert_eq!(defaults.get("a").unwrap(), "link");
+        assert_eq!(defaults.get("em").unwrap(), "emphasis");
+    }
+
+    #[test]
     fn test_strip_non_essential_fields_default() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
