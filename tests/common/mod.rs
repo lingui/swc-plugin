@@ -40,3 +40,28 @@ macro_rules! to {
         );
     };
 }
+
+#[macro_export]
+macro_rules! to_panic {
+    ($name:ident, $options:expr, $input:expr) => {
+        #[test]
+        #[should_panic]
+        fn $name() {
+             swc_core::ecma::transforms::testing::test_inlined_transform(
+                stringify!($name),
+                swc_core::ecma::parser::Syntax::Typescript(swc_core::ecma::parser::TsSyntax {
+                    tsx: true,
+                    ..Default::default()
+                }),
+                None,
+                |tester| {
+                    swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
+                        $options,
+                        Some(tester.comments.clone()),
+                    ))
+                },
+                $input
+             );
+        }
+    };
+}

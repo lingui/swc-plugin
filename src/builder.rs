@@ -21,10 +21,21 @@ pub struct ValueWithPlaceholder {
 
 impl ValueWithPlaceholder {
     pub fn into_prop(self) -> PropOrSpread {
-        let ident = IdentName::new(self.placeholder.into(), DUMMY_SP);
+        let key = if self.placeholder.contains('-') || self.placeholder.contains('.') {
+            PropName::Computed(ComputedPropName {
+                span: DUMMY_SP,
+                expr: Box::new(Expr::Lit(Lit::Str(Str {
+                    span: DUMMY_SP,
+                    value: self.placeholder.clone().into(),
+                    raw: None,
+                }))),
+            })
+        } else {
+            PropName::Ident(IdentName::new(self.placeholder.into(), DUMMY_SP))
+        };
 
         PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
-            key: PropName::Ident(ident),
+            key,
             value: self.value,
         })))
     }
@@ -155,8 +166,22 @@ impl<'a> MessageBuilder<'a> {
             }) {
                 let attr = el.attrs.remove(idx);
                 if let JSXAttrOrSpread::JSXAttr(attr) = attr {
+                    let mut is_valid = false;
                     if let Some(JSXAttrValue::Str(s)) = attr.value {
-                        base_name = Some(s.value.to_string_lossy().into_owned());
+                        let val = s.value.to_string_lossy().into_owned();
+                        if !val.is_empty() {
+                            base_name = Some(val);
+                            is_valid = true;
+                        }
+                    }
+                    
+                    if !is_valid {
+                        swc_core::plugin::errors::HANDLER.with(|h| {
+                            h.struct_span_err(
+                                el.span,
+                                &format!("The `{attr_name}` attribute must be a non-empty string literal."),
+                            ).emit();
+                        });
                     }
                 }
             }
@@ -173,22 +198,56 @@ impl<'a> MessageBuilder<'a> {
         }
 
         let name = if let Some(n) = base_name {
-            let mut suffix = 1;
-            let mut test_name = n.clone();
-
-            loop {
-                if let Some((_, orig_el)) = self.elements_tracking.iter().find(|(k, _)| k == &test_name) {
-                    if el.attrs.eq_ignore_span(&orig_el.attrs) {
-                        break;
-                    }
-                    suffix += 1;
-                    test_name = format!("{}{}", n, suffix);
-                } else {
-                    self.elements_tracking.push((test_name.clone(), el.clone()));
-                    break;
-                }
+            if ::regex::Regex::new(r"^\d+$").unwrap().is_match(&n) {
+                swc_core::plugin::errors::HANDLER.with(|h| {
+                    h.struct_span_err(
+                        el.span,
+                        &format!("Placeholder name `{n}` is not allowed because it conflicts with auto-generated numeric placeholders. Use a non-numeric name instead."),
+                    ).emit();
+                });
+            } else if !::regex::Regex::new(r"^[a-zA-Z_]([\w.-]*\w)?$").unwrap().is_match(&n) {
+                swc_core::plugin::errors::HANDLER.with(|h| {
+                    h.struct_span_err(
+                        el.span,
+                        &format!("Placeholder name `{n}` is not valid. Names must start and end with a letter/digit/underscore, but may contain `.-` in between."),
+                    ).emit();
+                });
             }
-            test_name
+
+            if let Some((_, orig_el)) = self.elements_tracking.iter().find(|(k, _)| k == &n) {
+                let has_spreads = orig_el.attrs.iter().any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
+                let attrs_equal = if orig_el.attrs.len() == el.attrs.len() {
+                    if has_spreads {
+                        orig_el.attrs.iter().zip(el.attrs.iter()).all(|(a, b)| a.eq_ignore_span(b))
+                    } else {
+                        orig_el.attrs.iter().all(|a| el.attrs.iter().any(|b| a.eq_ignore_span(b)))
+                    }
+                } else {
+                    false
+                };
+
+                let tags_equal = el.name.eq_ignore_span(&orig_el.name);
+
+                if !tags_equal || !attrs_equal {
+                    swc_core::plugin::errors::HANDLER.with(|h| {
+                        let attr_name = self.options.jsx_placeholder_attribute.as_deref().unwrap_or("_t");
+                        let eg = format!("(e.g. `<element {attr_name}=\"newName\" />`)");
+                        let msg = format!(
+                            "Multiple distinct JSX elements with the same placeholder name (`{n}`). Differentiate them by {} {eg}.",
+                            if self.options.jsx_placeholder_attribute.is_some() {
+                                format!("adding/modifying the `{attr_name}` attribute")
+                            } else {
+                                format!("setting `macro.jsxPlaceholderAttribute` in the lingui config and then adding the attribute to your JSX elements")
+                            }
+                        );
+                        h.struct_span_err(el.span, &msg).emit();
+                    });
+                }
+            } else {
+                self.elements_tracking.push((n.clone(), el.clone()));
+            }
+
+            n
         } else {
             let n = self.element_index.to_string();
             self.element_index += 1;

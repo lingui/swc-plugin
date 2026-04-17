@@ -1,9 +1,8 @@
 import { Trans as Trans_ } from "@lingui/react";
 <Trans_ {.../*i18n*/ {
-    id: "jTjLWk",
+    id: "9en3MH",
     components: {
-        link: <a href="/a" class="foo"/>,
-        link2: <a class="foo" href="/a"/>
+        link: <a href="/a" class="foo"/>
     },
-    message: "Hello <link>link 1</link>, normal, <link2>link 1 copy</link2>."
+    message: "Hello <link>link 1</link>, normal, <link>link 1 copy</link>."
 }}/>;
