@@ -61,6 +61,15 @@ https://swc.rs/docs/configuration/swcrc
             //
             // IMPORTANT: This option is temporal and will be removed in the next major release.
             // "useLinguiV5IdGeneration": true
+            // Lingui strips non-essential fields in production builds for performance.
+            // You can override the default behavior with:
+            // "stripNonEssentialFields": false/true
+            // To configure custom JSX placeholder attribute and its defaults:
+            // "jsxPlaceholderAttribute": "_t",
+            // "jsxPlaceholderDefaults": {
+            //   "a": "link",
+            //   "em": "em"
+            // }
           },
         ],
       ],

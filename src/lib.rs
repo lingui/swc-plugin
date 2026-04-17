@@ -115,7 +115,7 @@ where
             el.visit_children_with(&mut trans_visitor);
         }
 
-        let parsed = MessageBuilder::parse(trans_visitor.tokens);
+        let parsed = MessageBuilder::parse(trans_visitor.tokens, &self.ctx.options);
         let id_attr = get_jsx_attr(&el.opening, "id").and_then(|attr| attr.value.as_ref());
 
         let context_attr =
@@ -345,11 +345,11 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
         };
 
         // use lingui matched above
-        if ident_replacer.is_some() {
+        if let Some(mut replacer) = ident_replacer {
             block = block
                 .fold_children_with(&mut JsMacroFolder::new(&mut ctx, &self.comments))
                 // replace other
-                .fold_children_with(&mut ident_replacer.unwrap());
+                .fold_children_with(&mut replacer);
         }
 
         block.fold_children_with(self)
