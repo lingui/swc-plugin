@@ -101,6 +101,23 @@ pub fn pick_jsx_attrs(
     attrs
 }
 
+pub fn omit_jsx_attrs(
+    mut attrs: Vec<JSXAttrOrSpread>,
+    names: HashSet<&str>,
+) -> Vec<JSXAttrOrSpread> {
+    attrs.retain(|attr| {
+        if let JSXAttrOrSpread::JSXAttr(attr) = attr {
+            if let JSXAttrName::Ident(ident) = &attr.name {
+                let name: &str = &ident.sym;
+                return !names.contains(name);
+            }
+        }
+        false
+    });
+
+    attrs
+}
+
 pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
     if let Callee::Expr(expr) = &call.callee {
         if let Expr::Ident(ident) = expr.as_ref() {

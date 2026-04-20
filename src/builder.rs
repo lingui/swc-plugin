@@ -1,9 +1,12 @@
-use crate::ast_utils::expand_ts_as_expr;
+use crate::ast_utils::{
+    expand_ts_as_expr, get_jsx_attr, get_jsx_attr_value_as_string, omit_jsx_attrs,
+};
 use crate::options::LinguiOptions;
 use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
 use std::collections::HashSet;
+use swc_core::common::EqIgnoreSpan;
 use swc_core::{
-    common::{EqIgnoreSpan, SyntaxContext, DUMMY_SP},
+    common::{SyntaxContext, DUMMY_SP},
     ecma::ast::*,
 };
 
@@ -161,42 +164,31 @@ impl<'a> MessageBuilder<'a> {
         let mut base_name: Option<String> = None;
 
         if let Some(attr_name) = &self.options.jsx_placeholder_attribute {
-            if let Some(idx) = el.attrs.iter().position(|a| {
-                if let JSXAttrOrSpread::JSXAttr(attr) = a {
-                    if let JSXAttrName::Ident(ident) = &attr.name {
-                        return &ident.sym == attr_name;
-                    }
-                }
-                false
-            }) {
-                let attr = el.attrs.remove(idx);
-                if let JSXAttrOrSpread::JSXAttr(attr) = attr {
-                    let mut is_valid = false;
-                    if let Some(JSXAttrValue::Str(s)) = attr.value {
-                        let val = s.value.to_string_lossy().into_owned();
-                        if !val.is_empty() {
-                            base_name = Some(val);
-                            is_valid = true;
-                        }
-                    }
+            let attr = get_jsx_attr(&el, attr_name);
 
-                    if !is_valid {
-                        swc_core::plugin::errors::HANDLER.with(|h| {
-                            h.struct_span_err(
-                                el.span,
-                                &format!("The `{attr_name}` attribute must be a non-empty string literal."),
-                            ).emit();
-                        });
-                    }
-                }
+            let attr_value =
+                attr.and_then(|attr| get_jsx_attr_value_as_string(attr.value.as_ref()?));
+
+            if attr.is_some() && attr_value.is_none() {
+                swc_core::plugin::errors::HANDLER.with(|h| {
+                    h.struct_span_err(
+                        el.span,
+                        &format!("The `{attr_name}` attribute must be a non-empty string literal."),
+                    )
+                    .emit();
+                });
             }
+
+            base_name = attr_value;
+
+            el.attrs = omit_jsx_attrs(el.attrs, HashSet::from([attr_name.as_str()]))
         }
 
         if base_name.is_none() {
             if let Some(defaults) = &self.options.jsx_placeholder_defaults {
                 if let JSXElementName::Ident(ident) = &el.name {
                     if let Some(def) = defaults.get(&ident.sym.to_string()) {
-                        base_name = Some(def.clone());
+                        base_name = Some(def.into());
                     }
                 }
             }
@@ -220,30 +212,7 @@ impl<'a> MessageBuilder<'a> {
             }
 
             if let Some((_, orig_el)) = self.elements_tracking.iter().find(|(k, _)| k == &n) {
-                let has_spreads = orig_el
-                    .attrs
-                    .iter()
-                    .any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
-                let attrs_equal = if orig_el.attrs.len() == el.attrs.len() {
-                    if has_spreads {
-                        orig_el
-                            .attrs
-                            .iter()
-                            .zip(el.attrs.iter())
-                            .all(|(a, b)| a.eq_ignore_span(b))
-                    } else {
-                        orig_el
-                            .attrs
-                            .iter()
-                            .all(|a| el.attrs.iter().any(|b| a.eq_ignore_span(b)))
-                    }
-                } else {
-                    false
-                };
-
-                let tags_equal = el.name.eq_ignore_span(&orig_el.name);
-
-                if !tags_equal || !attrs_equal {
+                if el.eq_ignore_span(orig_el) {
                     swc_core::plugin::errors::HANDLER.with(|h| {
                         let attr_name = self.options.jsx_placeholder_attribute.as_deref().unwrap_or("_t");
                         let eg = format!("(e.g. `<element {attr_name}=\"newName\" />`)");
