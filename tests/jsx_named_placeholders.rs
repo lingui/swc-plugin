@@ -239,6 +239,18 @@ import { Trans } from '@lingui/react/macro';
      "#
 );
 
+to_panic!(
+    same_element_diffrent_attributes_count_throw,
+    LinguiOptions {
+        jsx_placeholder_attribute: Some("_t".into()),
+        ..Default::default()
+    },
+    r#"
+import { Trans } from '@lingui/react/macro';
+<Trans><em _t="same" class="hello">A</em> and <em _t="same" class="hello" data-testId="bla">B</strong></Trans>
+     "#
+);
+
 to!(
     identical_spreads_reused,
     LinguiOptions {
