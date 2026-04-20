@@ -119,30 +119,29 @@ pub fn omit_jsx_attrs(
 }
 
 pub fn is_jsx_elements_equal(a: &JSXOpeningElement, b: &JSXOpeningElement) -> bool {
-    let attrs_equal = if a.attrs.len() == b.attrs.len() {
-        let has_spreads = a
-            .attrs
+    if !a.name.eq_ignore_span(&b.name) {
+        return false;
+    }
+
+    if a.attrs.len() != b.attrs.len() {
+        return false;
+    }
+
+    let has_spreads = a
+        .attrs
+        .iter()
+        .any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
+
+    if has_spreads {
+        a.attrs
             .iter()
-            .any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
-
-        if has_spreads {
-            a.attrs
-                .iter()
-                .zip(b.attrs.iter())
-                .all(|(a, b)| a.eq_ignore_span(b))
-        } else {
-            a.attrs
-                .iter()
-                .all(|a| b.attrs.iter().any(|b| a.eq_ignore_span(b)))
-        }
+            .zip(b.attrs.iter())
+            .all(|(a, b)| a.eq_ignore_span(b))
     } else {
-        false
-    };
-
-    let tags_equal = a.name.eq_ignore_span(&b.name);
-
-    print!("{tags_equal} {attrs_equal}");
-    tags_equal && attrs_equal
+        a.attrs
+            .iter()
+            .all(|a| b.attrs.iter().any(|b| a.eq_ignore_span(b)))
+    }
 }
 
 pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
