@@ -1,10 +1,10 @@
 use crate::ast_utils::{
-    expand_ts_as_expr, get_jsx_attr, get_jsx_attr_value_as_string, omit_jsx_attrs,
+    expand_ts_as_expr, get_jsx_attr, get_jsx_attr_value_as_string, is_jsx_elements_equal,
+    omit_jsx_attrs,
 };
 use crate::options::LinguiOptions;
 use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
 use std::collections::HashSet;
-use swc_core::common::EqIgnoreSpan;
 use swc_core::{
     common::{SyntaxContext, DUMMY_SP},
     ecma::ast::*,
@@ -212,7 +212,7 @@ impl<'a> MessageBuilder<'a> {
             }
 
             if let Some((_, orig_el)) = self.elements_tracking.iter().find(|(k, _)| k == &n) {
-                if el.eq_ignore_span(orig_el) {
+                if !is_jsx_elements_equal(&el, orig_el) {
                     swc_core::plugin::errors::HANDLER.with(|h| {
                         let attr_name = self.options.jsx_placeholder_attribute.as_deref().unwrap_or("_t");
                         let eg = format!("(e.g. `<element {attr_name}=\"newName\" />`)");

@@ -4,7 +4,7 @@ use lingui_macro_plugin::LinguiOptions;
 mod common;
 
 to!(
-    jsx_named_placeholders_basic,
+    basic,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -18,7 +18,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to!(
-    jsx_named_placeholders_stripped_ast,
+    stripped_ast,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -32,7 +32,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to!(
-    jsx_named_placeholders_defaults,
+    defaults,
     LinguiOptions {
         jsx_placeholder_defaults: Some(std::collections::HashMap::from([
             ("a".into(), "link".into()),
@@ -49,7 +49,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to!(
-    jsx_named_placeholders_mixed_explicit_and_defaults,
+    mixed_explicit_and_defaults,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         jsx_placeholder_defaults: Some(std::collections::HashMap::from([(
@@ -65,7 +65,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to_panic!(
-    jsx_named_placeholders_deduplication_different_props,
+    deduplication_different_props,
     LinguiOptions {
         jsx_placeholder_defaults: Some(std::collections::HashMap::from(
             [("a".into(), "a".into()),]
@@ -79,7 +79,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to!(
-    jsx_named_placeholders_deduplication_identical,
+    deduplication_identical,
     LinguiOptions {
         jsx_placeholder_defaults: Some(std::collections::HashMap::from([(
             "em".into(),
@@ -94,7 +94,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to_panic!(
-    jsx_named_placeholders_deduplication_with_stripped_props,
+    deduplication_with_stripped_props,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -106,7 +106,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to!(
-    jsx_named_placeholders_attribute_ignored_when_not_configured,
+    attribute_ignored_when_not_configured,
     LinguiOptions {
         ..Default::default()
     },
@@ -119,7 +119,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to!(
-    jsx_named_placeholders_prop_order,
+    prop_order,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -131,7 +131,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to_panic!(
-    jsx_named_placeholders_prop_order2,
+    prop_order2,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -143,7 +143,7 @@ import { Trans } from "@lingui/react/macro";
 );
 
 to_panic!(
-    jsx_named_placeholders_throws_on_non_string_attribute_value,
+    throws_on_non_string_attribute_value,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -156,7 +156,7 @@ const name = "link";
 );
 
 to_panic!(
-    jsx_named_placeholders_throws_on_empty_attribute_value,
+    throws_on_empty_attribute_value,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -168,7 +168,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_throws_on_numeric_name,
+    throws_on_numeric_name,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -180,7 +180,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to!(
-    jsx_named_placeholders_allows_hyphenated,
+    allows_hyphenated,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -192,7 +192,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to!(
-    jsx_named_placeholders_allows_dotted,
+    allows_dotted,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -204,7 +204,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_throws_starting_with_hyphen,
+    throws_starting_with_hyphen,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -216,7 +216,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_throws_ending_with_dot,
+    throws_ending_with_dot,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -228,7 +228,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_same_name_different_element_throws,
+    same_name_different_element_throws,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -240,7 +240,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to!(
-    jsx_named_placeholders_identical_spreads_reused,
+    identical_spreads_reused,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -252,7 +252,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_different_spreads_throw,
+    different_spreads_throw,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -264,7 +264,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_same_spread_different_order_throws,
+    same_spread_different_order_throws,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -276,7 +276,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_throws_on_empty_string,
+    throws_on_empty_string,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -287,8 +287,8 @@ import { Trans } from '@lingui/react/macro';
      "#
 );
 
-to_panic!(
-    jsx_named_placeholders_throws_on_jsx_expr,
+to!(
+    supports_string_in_jsx_expression,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
@@ -300,7 +300,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    jsx_named_placeholders_throws_on_boolean_expr,
+    throws_on_boolean_expr,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()

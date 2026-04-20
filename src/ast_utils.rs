@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use swc_core::atoms::atom;
 use swc_core::common::comments::{Comment, CommentKind, Comments};
-use swc_core::common::{Span, DUMMY_SP};
+use swc_core::common::{EqIgnoreSpan, Span, DUMMY_SP};
 use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::quote_ident;
@@ -112,10 +112,37 @@ pub fn omit_jsx_attrs(
                 return !names.contains(name);
             }
         }
-        false
+        true
     });
 
     attrs
+}
+
+pub fn is_jsx_elements_equal(a: &JSXOpeningElement, b: &JSXOpeningElement) -> bool {
+    let attrs_equal = if a.attrs.len() == b.attrs.len() {
+        let has_spreads = a
+            .attrs
+            .iter()
+            .any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
+
+        if has_spreads {
+            a.attrs
+                .iter()
+                .zip(b.attrs.iter())
+                .all(|(a, b)| a.eq_ignore_span(b))
+        } else {
+            a.attrs
+                .iter()
+                .all(|a| b.attrs.iter().any(|b| a.eq_ignore_span(b)))
+        }
+    } else {
+        false
+    };
+
+    let tags_equal = a.name.eq_ignore_span(&b.name);
+
+    print!("{tags_equal} {attrs_equal}");
+    tags_equal && attrs_equal
 }
 
 pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {
