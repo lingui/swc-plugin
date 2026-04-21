@@ -181,7 +181,7 @@ impl<'a> MessageBuilder<'a> {
 
             base_name = attr_value;
 
-            el.attrs = omit_jsx_attrs(el.attrs, HashSet::from([attr_name.as_str()]))
+            el.attrs = omit_jsx_attrs(el.attrs, HashSet::from([attr_name.as_str()]));
         }
 
         if base_name.is_none() {

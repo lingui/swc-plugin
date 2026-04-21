@@ -240,7 +240,7 @@ import { Trans } from '@lingui/react/macro';
 );
 
 to_panic!(
-    same_element_diffrent_attributes_count_throw,
+    same_element_different_attributes_count_throws,
     LinguiOptions {
         jsx_placeholder_attribute: Some("_t".into()),
         ..Default::default()
