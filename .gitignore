@@ -6,3 +6,4 @@ lcov.info
 node_modules
 .yarn
 .swc
+.new
