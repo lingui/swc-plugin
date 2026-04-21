@@ -1,0 +1,24 @@
+---
+source: tests/jsx_icu.rs
+---
+ import { Plural, Trans } from "@lingui/react/macro";
+
+ <Trans>
+     You have{" "}
+        <Plural
+         value={count}
+         one="Message"
+         other="Messages"
+        />
+</Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "dzhU0t",
+    values: {
+        count: count
+    },
+    message: "You have {count, plural, one {Message} other {Messages}}"
+}}/>;

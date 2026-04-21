@@ -1,0 +1,17 @@
+---
+source: tests/imports.rs
+---
+"use client";
+ import { t } from "@lingui/core/macro"
+ import foo from "bar"
+ t`Text`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+"use client";
+import { i18n as $_i18n } from "@lingui/core";
+import foo from "bar";
+$_i18n._(/*i18n*/ {
+    id: "xeiujy",
+    message: "Text"
+});

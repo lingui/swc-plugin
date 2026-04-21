@@ -1,0 +1,12 @@
+---
+source: tests/js_t.rs
+---
+import { t } from "@lingui/core/macro";
+
+b`Refresh inbox`;
+b(i18n)`Refresh inbox`;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+b`Refresh inbox`;
+b(i18n)`Refresh inbox`;

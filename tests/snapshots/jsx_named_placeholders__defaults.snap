@@ -1,0 +1,23 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_defaults:
+    a: link
+    em: em
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  Here's a <a>link</a> and <em>emphasis</em>.
+</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "Jg_WOt",
+    components: {
+        link: <a/>,
+        em: <em/>
+    },
+    message: "Here's a <link>link</link> and <em>emphasis</em>."
+}}/>;

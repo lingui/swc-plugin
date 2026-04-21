@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use swc_core::atoms::atom;
 use swc_core::common::comments::{Comment, CommentKind, Comments};
-use swc_core::common::{Span, DUMMY_SP};
+use swc_core::common::{EqIgnoreSpan, Span, DUMMY_SP};
 use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
 use swc_core::ecma::utils::quote_ident;
@@ -99,6 +99,49 @@ pub fn pick_jsx_attrs(
     });
 
     attrs
+}
+
+pub fn omit_jsx_attrs(
+    mut attrs: Vec<JSXAttrOrSpread>,
+    names: HashSet<&str>,
+) -> Vec<JSXAttrOrSpread> {
+    attrs.retain(|attr| {
+        if let JSXAttrOrSpread::JSXAttr(attr) = attr {
+            if let JSXAttrName::Ident(ident) = &attr.name {
+                let name: &str = &ident.sym;
+                return !names.contains(name);
+            }
+        }
+        true
+    });
+
+    attrs
+}
+
+pub fn is_jsx_elements_equal(a: &JSXOpeningElement, b: &JSXOpeningElement) -> bool {
+    if !a.name.eq_ignore_span(&b.name) {
+        return false;
+    }
+
+    if a.attrs.len() != b.attrs.len() {
+        return false;
+    }
+
+    let has_spreads = a
+        .attrs
+        .iter()
+        .any(|a| matches!(a, JSXAttrOrSpread::SpreadElement(_)));
+
+    if has_spreads {
+        a.attrs
+            .iter()
+            .zip(b.attrs.iter())
+            .all(|(a, b)| a.eq_ignore_span(b))
+    } else {
+        a.attrs
+            .iter()
+            .all(|a| b.attrs.iter().any(|b| a.eq_ignore_span(b)))
+    }
 }
 
 pub fn match_callee_name<F: Fn(&Ident) -> bool>(call: &CallExpr, predicate: F) -> Option<&Ident> {

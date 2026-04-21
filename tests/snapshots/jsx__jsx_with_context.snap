@@ -1,0 +1,19 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+const exp1 = <Trans>Refresh inbox</Trans>;
+const exp2 = <Trans context="My Context">Refresh inbox</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+const exp1 = <Trans_ {.../*i18n*/ {
+    id: "EsCV2T",
+    message: "Refresh inbox"
+}}/>;
+const exp2 = <Trans_ {.../*i18n*/ {
+    id: "BAyVRj",
+    message: "Refresh inbox",
+    context: "My Context"
+}}/>;

@@ -1,0 +1,32 @@
+---
+source: tests/runtime_config.rs
+info:
+  runtime_modules:
+    i18n:
+      - "./custom-core"
+      - customI18n
+    trans:
+      - "./custom-react"
+      - CustomTrans
+    use_lingui:
+      - "./custom-react"
+      - useLingui2
+---
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+
+t`Refresh inbox`;
+const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { CustomTrans as Trans_ } from "./custom-react";
+import { customI18n as $_i18n } from "./custom-core";
+$_i18n._(/*i18n*/ {
+    id: "EsCV2T",
+    message: "Refresh inbox"
+});
+const exp2 = <Trans_ {.../*i18n*/ {
+    id: "custom.id",
+    message: "Refresh inbox"
+}}/>;

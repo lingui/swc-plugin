@@ -1,0 +1,29 @@
+---
+source: tests/js_t.rs
+info:
+  descriptor_fields: message
+---
+import { t } from '@lingui/core/macro'
+const msg1 = t`Message`
+const msg2 = t({
+    message: `Hello ${name}`,
+    id: 'msgId',
+    comment: 'description for translators',
+    context: 'My Context',
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+const msg1 = $_i18n._(/*i18n*/ {
+    id: "xDAtGP",
+    message: "Message"
+});
+const msg2 = $_i18n._(/*i18n*/ {
+    id: "msgId",
+    message: "Hello {name}",
+    values: {
+        name: name
+    },
+    context: "My Context"
+});

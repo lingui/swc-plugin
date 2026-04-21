@@ -1,0 +1,31 @@
+---
+source: tests/jsx.rs
+---
+import { Trans, ph } from "@lingui/react/macro";
+
+<Trans>Refresh <span>{{foo}}</span> inbox</Trans>;
+<Trans>Refresh <span>{ph({foo})}</span> inbox</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "USNn2Q",
+    values: {
+        foo: foo
+    },
+    components: {
+        0: <span/>
+    },
+    message: "Refresh <0>{foo}</0> inbox"
+}}/>;
+<Trans_ {.../*i18n*/ {
+    id: "USNn2Q",
+    values: {
+        foo: foo
+    },
+    components: {
+        0: <span/>
+    },
+    message: "Refresh <0>{foo}</0> inbox"
+}}/>;
