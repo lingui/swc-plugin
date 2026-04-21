@@ -8,7 +8,13 @@ You can follow instructions at ['Install Rust' page from the official rust websi
 rustup target add wasm32-wasip1
 ```
 
-## Running tests
+## Testing
+
+Tests use [insta](https://insta.rs) snapshot testing. Test macros are defined in `tests/common/mod.rs`:
+- `to!(test_name, "input code")` — transform with default options
+- `to!(test_name, options, "input code")` — transform with custom options
+- `to_panic!(test_name, options, "input code")` — expect compilation error (error message captured in snapshot)
+
 ```bash
 # run all test suite
 cargo test
@@ -19,8 +25,14 @@ cargo test js_choices_may_contain_expressions
 # you may specify only prefix of test name to target more cases
 cargo test jsx_
 
-# update snapshots
-UPDATE=1 cargo test
+# run the whole file from the /tests folder (omit .rs extension)
+cargo test --test js_icu
+
+# Update snapshots interactively (requires: cargo install cargo-insta)
+cargo insta test --review
+
+# Bulk-accept all snapshot changes
+INSTA_UPDATE=always cargo test
 ```
 
 ## Code Quality Checks

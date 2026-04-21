@@ -1,7 +1,11 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Deserialize, Debug, PartialEq, Clone)]
+fn is_default<T: Default + PartialEq>(t: &T) -> bool {
+    t == &T::default()
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub enum DescriptorFields {
     Auto,
@@ -24,6 +28,12 @@ impl DescriptorFields {
     }
 }
 
+impl Default for DescriptorFields {
+    fn default() -> Self {
+        DescriptorFields::All
+    }
+}
+
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
@@ -32,7 +42,6 @@ pub struct LinguiJsOptions {
     descriptor_fields: Option<DescriptorFields>,
     #[serde(default)]
     use_lingui_v5_id_generation: Option<bool>,
-    strip_non_essential_fields: Option<bool>,
     #[serde(default)]
     jsx_placeholder_attribute: Option<String>,
     #[serde(default)]
@@ -50,11 +59,21 @@ pub struct RuntimeModulesConfigMap {
     use_lingui: Option<RuntimeModulesConfig>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct RuntimeModulesConfigMapNormalized {
     pub i18n: (String, String),
     pub trans: (String, String),
     pub use_lingui: (String, String),
+}
+
+impl Default for RuntimeModulesConfigMapNormalized {
+    fn default() -> Self {
+        Self {
+            i18n: ("@lingui/core".into(), "i18n".into()),
+            trans: ("@lingui/react".into(), "Trans".into()),
+            use_lingui: ("@lingui/react".into(), "useLingui".into()),
+        }
+    }
 }
 
 impl LinguiJsOptions {
@@ -73,9 +92,6 @@ impl LinguiJsOptions {
         LinguiOptions {
             descriptor_fields,
             use_lingui_v5_id_generation: self.use_lingui_v5_id_generation.unwrap_or(false),
-            strip_non_essential_fields: self
-                .strip_non_essential_fields
-                .unwrap_or(matches!(env_name, "production")),
             jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
             jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
             runtime_modules: RuntimeModulesConfigMapNormalized {
@@ -120,13 +136,17 @@ impl LinguiJsOptions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct LinguiOptions {
+    #[serde(skip_serializing_if = "is_default")]
     pub descriptor_fields: DescriptorFields,
-    pub strip_non_essential_fields: bool,
+    #[serde(skip_serializing_if = "is_default")]
     pub jsx_placeholder_attribute: Option<String>,
+    #[serde(skip_serializing_if = "is_default")]
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "is_default")]
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
+    #[serde(skip_serializing_if = "is_default")]
     pub use_lingui_v5_id_generation: bool,
 }
 
@@ -135,14 +155,9 @@ impl Default for LinguiOptions {
         LinguiOptions {
             descriptor_fields: DescriptorFields::All,
             use_lingui_v5_id_generation: false,
-            strip_non_essential_fields: false,
             jsx_placeholder_attribute: None,
             jsx_placeholder_defaults: None,
-            runtime_modules: RuntimeModulesConfigMapNormalized {
-                i18n: ("@lingui/core".into(), "i18n".into()),
-                trans: ("@lingui/react".into(), "Trans".into()),
-                use_lingui: ("@lingui/react".into(), "useLingui".into()),
-            },
+            runtime_modules: Default::default(),
         }
     }
 }
@@ -183,7 +198,6 @@ mod lib_tests {
                 }),
                 descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
-                strip_non_essential_fields: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
             }
@@ -211,7 +225,6 @@ mod lib_tests {
                 }),
                 descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
-                strip_non_essential_fields: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
             }
@@ -305,29 +318,6 @@ mod lib_tests {
         let defaults = options.jsx_placeholder_defaults.unwrap();
         assert_eq!(defaults.get("a").unwrap(), "link");
         assert_eq!(defaults.get("em").unwrap(), "emphasis");
-    }
-
-    #[test]
-    fn test_strip_non_essential_fields_default() {
-        let config = serde_json::from_str::<LinguiJsOptions>(
-            r#"{
-                "runtimeModules": {}
-               }"#,
-        )
-        .unwrap();
-
-        let options = config.into_options("development");
-        assert!(!options.strip_non_essential_fields);
-
-        let config = serde_json::from_str::<LinguiJsOptions>(
-            r#"{
-                "runtimeModules": {}
-               }"#,
-        )
-        .unwrap();
-
-        let options = config.into_options("production");
-        assert!(options.strip_non_essential_fields);
     }
 
     #[test]

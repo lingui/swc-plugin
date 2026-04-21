@@ -21,8 +21,11 @@ cargo test js_choices_may_contain_expressions
 # Run tests matching a prefix
 cargo test jsx_
 
-# Update snapshots after intentional changes
-UPDATE=1 cargo test
+# Update snapshots interactively (requires: cargo install cargo-insta)
+cargo insta test --review
+
+# Bulk-accept all snapshot changes
+INSTA_UPDATE=always cargo test
 
 # Format / lint
 cargo fmt --check
@@ -49,12 +52,14 @@ The plugin follows SWC's AST visitor pattern using the `Fold` trait for recursiv
 
 ## Testing
 
-Tests use SWC's snapshot testing infrastructure. Test macros are defined in `tests/common/mod.rs`:
+Tests use [insta](https://insta.rs) snapshot testing. Test macros are defined in `tests/common/mod.rs`:
 - `to!(test_name, "input code")` — transform with default options
 - `to!(test_name, options, "input code")` — transform with custom options
-- `to_panic!(test_name, "input code")` — expect compilation error
+- `to_panic!(test_name, options, "input code")` — expect compilation error (error message captured in snapshot)
 
-Snapshots live in `tests/__swc_snapshots__/` with subdirectories per test file. Update with `UPDATE=1 cargo test`.
+Snapshots live in `tests/snapshots/` and contain input + `↓ ↓ ↓ ↓ ↓ ↓` separator + output (or error text for `to_panic!` tests).
+
+To update snapshots use `INSTA_UPDATE=always cargo test` command or `cargo insta test --review` to review them interactively
 
 ## Toolchain
 

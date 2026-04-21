@@ -1,0 +1,18 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Speak "friend"!</Trans>;
+<Trans id="custom-id">Speak "friend"!</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "NWmRwM",
+    message: 'Speak "friend"!'
+}}/>;
+<Trans_ {.../*i18n*/ {
+    id: "custom-id",
+    message: 'Speak "friend"!'
+}}/>;

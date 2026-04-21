@@ -1,0 +1,24 @@
+---
+source: tests/jsx_icu.rs
+---
+import { Select } from '@lingui/macro';
+<Select
+  value={count}
+  _male="He"
+  _female={`She`}
+  other={<strong>Other</strong>}
+/>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "Imwef9",
+    values: {
+        count: count
+    },
+    components: {
+        0: <strong/>
+    },
+    message: "{count, select, male {He} female {She} other {<0>Other</0>}}"
+}}/>;

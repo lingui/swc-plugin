@@ -1,0 +1,25 @@
+---
+source: tests/js_t.rs
+---
+import { t } from '@lingui/core/macro'
+t({ message: 'Ola' })
+t({ message: 'Ola', context: "My Context"})
+t({ message: 'Ola', context: `My Context`})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+$_i18n._(/*i18n*/ {
+    id: "l1LkPs",
+    message: "Ola"
+});
+$_i18n._(/*i18n*/ {
+    id: "7hFP9A",
+    message: "Ola",
+    context: "My Context"
+});
+$_i18n._(/*i18n*/ {
+    id: "7hFP9A",
+    message: "Ola",
+    context: "My Context"
+});

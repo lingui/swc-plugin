@@ -1,0 +1,27 @@
+---
+source: tests/use_lingui.rs
+---
+import { useLingui as useLinguiMacro } from '@lingui/react/macro';
+import { useLingui } from '@lingui/react';
+
+function MyComponent() {
+  const { _ } = useLingui();
+
+  console.log(_);
+  const { t } = useLinguiMacro();
+  const a = t`Text`;
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+import { useLingui } from '@lingui/react';
+function MyComponent() {
+    const { _ } = useLingui();
+    console.log(_);
+    const { i18n: $__i18n, _: $__ } = $_useLingui();
+    const a = $__i18n._(/*i18n*/ {
+        id: "xeiujy",
+        message: "Text"
+    });
+}

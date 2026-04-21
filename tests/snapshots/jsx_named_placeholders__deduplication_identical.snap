@@ -1,0 +1,19 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_defaults:
+    em: em
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <em>emphasis</em>, normal, <em>more emphasis</em>.</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "idxihm",
+    components: {
+        em: <em/>
+    },
+    message: "Hello <em>emphasis</em>, normal, <em>more emphasis</em>."
+}}/>;

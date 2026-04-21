@@ -28,9 +28,12 @@ swc_core = { version = "50.2.3", features = [
   "ecma_visit",
   "ecma_ast",
   "ecma_parser",
+  "ecma_codegen",
   "common",
-  "testing_transform",
 ] }
 # .cargo/config defines few alias to build plugin.
 # cargo build-wasi generates wasm-wasi32 binary
 # cargo build-wasm32 generates wasm32-unknown-unknown binary.
+
+[dev-dependencies]
+insta = { version = "1", features = ["serde"] }

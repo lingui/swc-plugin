@@ -1,0 +1,13 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>&amp;</Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "EwTON7",
+    message: "&"
+}}/>;

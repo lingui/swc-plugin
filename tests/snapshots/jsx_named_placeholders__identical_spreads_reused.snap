@@ -1,0 +1,18 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_attribute: _t
+---
+import { Trans } from '@lingui/react/macro';
+<Trans><a _t="same" {...spread}>A</a> <a _t="same" {...spread}>B</a></Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "ctHZge",
+    components: {
+        same: <a {...spread}/>
+    },
+    message: "<same>A</same> <same>B</same>"
+}}/>;
