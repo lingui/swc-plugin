@@ -19,7 +19,7 @@
     "icu",
     "message-format",
     "i18n",
-    "internalization"
+    "internationalization"
   ],
   "main": "target/wasm32-wasip1/release/lingui_macro_plugin.wasm",
   "exports": {
