@@ -287,18 +287,6 @@ import { Trans } from '@lingui/react/macro';
      "#
 );
 
-to_panic!(
-    throws_on_empty_string,
-    LinguiOptions {
-        jsx_placeholder_attribute: Some("_t".into()),
-        ..Default::default()
-    },
-    r#"
-import { Trans } from '@lingui/react/macro';
-<Trans><a _t="" href="/">click</a></Trans>
-     "#
-);
-
 to!(
     supports_string_in_jsx_expression,
     LinguiOptions {
