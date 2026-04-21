@@ -61,6 +61,10 @@ Snapshots live in `tests/snapshots/` and contain input + `↓ ↓ ↓ ↓ ↓ �
 
 To update snapshots use `INSTA_UPDATE=always cargo test` command or `cargo insta test --review` to review them interactively
 
+## Reference
+
+- [SWC Transform Testing](.agents/SWC_TRANSFORM_TESTING.md) — how to parse, transform, and emit code using SWC's Rust API outside the plugin host (thread-locals, error handling, pass ordering, codegen).
+
 ## Toolchain
 
 - Rust 1.85 pinned in `rust-toolchain.toml`
