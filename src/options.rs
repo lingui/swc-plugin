@@ -5,10 +5,11 @@ fn is_default<T: Default + PartialEq>(t: &T) -> bool {
     t == &T::default()
 }
 
-#[derive(Deserialize, Serialize, Debug, PartialEq, Clone)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "kebab-case")]
 pub enum DescriptorFields {
     Auto,
+    #[default]
     All,
     IdOnly,
     Message,
@@ -25,12 +26,6 @@ impl DescriptorFields {
 
     pub fn should_keep_comment(&self) -> bool {
         matches!(self, DescriptorFields::All)
-    }
-}
-
-impl Default for DescriptorFields {
-    fn default() -> Self {
-        DescriptorFields::All
     }
 }
 
