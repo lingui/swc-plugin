@@ -247,7 +247,7 @@ to_panic!(
     },
     r#"
 import { Trans } from '@lingui/react/macro';
-<Trans><em _t="same" class="hello">A</em> and <em _t="same" class="hello" data-testId="bla">B</strong></Trans>
+<Trans><em _t="same" class="hello">A</em> and <em _t="same" class="hello" data-testId="bla">B</em></Trans>
      "#
 );
 
