@@ -1,0 +1,15 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_attribute: _t
+---
+import { Trans } from '@lingui/react/macro';
+<Trans><a _t="0" href="/">click</a></Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Placeholder name `0` is not allowed because it conflicts with auto-generated numeric placeholders. Use a non-numeric name instead.
+ --> input.tsx:2:8
+  |
+2 | <Trans><a _t="0" href="/">click</a></Trans>
+  |        ^^^^^^^^^^^^^^^^^^^

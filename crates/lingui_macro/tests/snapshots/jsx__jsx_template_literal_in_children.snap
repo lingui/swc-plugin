@@ -1,0 +1,17 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>{`Hello ${foo} and ${bar}`}</Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "pB1yir",
+    values: {
+        foo: foo,
+        bar: bar
+    },
+    message: "Hello {foo} and {bar}"
+}}/>;

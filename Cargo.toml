@@ -20,3 +20,6 @@ opt-level = "s"
 
 [workspace.dependencies]
 swc_core = { version = "56.0.0", default-features = false }
+
+[workspace.dev-dependencies]
+insta = { version = "1", features = ["serde"] }

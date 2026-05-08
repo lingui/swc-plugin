@@ -1,0 +1,15 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_attribute: _t
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <a _t="link" href="/a" class="foo">link 1</a>, normal, <a _t="link" href="/b" class="foo">link 1 copy</a>.</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Multiple distinct JSX elements with the same placeholder name (`link`). Differentiate them by adding/modifying the `_t` attribute (e.g. `<element _t="newName" />`).
+ --> input.tsx:2:69
+  |
+2 | <Trans>Hello <a _t="link" href="/a" class="foo">link 1</a>, normal, <a _t="link" href="/b" class="foo">link 1 copy</a>.</Trans>;
+  |                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,17 @@
+---
+source: tests/js_t.rs
+---
+import { t } from '@lingui/core/macro'
+import { i18n_custom } from './lingui'
+const msg = t(i18n_custom)({ message: `Hello ${name}` })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n_custom } from './lingui';
+const msg = i18n_custom._(/*i18n*/ {
+    id: "OVaF9k",
+    message: "Hello {name}",
+    values: {
+        name: name
+    }
+});

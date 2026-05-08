@@ -1,0 +1,27 @@
+---
+source: tests/imports.rs
+---
+import { Plural } from "@lingui/react/macro";
+import { Select } from "./my-select-cmp";
+
+;<Plural
+ value={count}
+ one="Message"
+ other="Messages"
+/>
+
+;<Select prop="propValue">Should be untouched</Select>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+import { Select } from "./my-select-cmp";
+;
+<Trans_ {.../*i18n*/ {
+    id: "V4EO9s",
+    values: {
+        count: count
+    },
+    message: "{count, plural, one {Message} other {Messages}}"
+}}/>;
+<Select prop="propValue">Should be untouched</Select>;

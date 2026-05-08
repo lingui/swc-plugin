@@ -1,0 +1,17 @@
+---
+source: tests/js_define_message.rs
+---
+import { defineMessage, plural, arg } from '@lingui/macro';
+const message = defineMessage({
+  comment: "Description",
+  id: "custom.id",
+  message: "Message",
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+const message = /*i18n*/ {
+    id: "custom.id",
+    message: "Message",
+    comment: "Description"
+};

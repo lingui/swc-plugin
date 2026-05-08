@@ -1,0 +1,15 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_attribute: _t
+---
+import { Trans } from '@lingui/react/macro';
+<Trans><em _t="same" class="hello">A</em> and <em _t="same" class="hello" data-testId="bla">B</em></Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Multiple distinct JSX elements with the same placeholder name (`same`). Differentiate them by adding/modifying the `_t` attribute (e.g. `<element _t="newName" />`).
+ --> input.tsx:2:47
+  |
+2 | <Trans><em _t="same" class="hello">A</em> and <em _t="same" class="hello" data-testId="bla">B</em></Trans>
+  |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

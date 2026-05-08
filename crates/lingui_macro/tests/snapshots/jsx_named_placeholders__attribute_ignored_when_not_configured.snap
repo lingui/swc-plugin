@@ -1,0 +1,19 @@
+---
+source: tests/jsx_named_placeholders.rs
+info: {}
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  Hello <strong _t="em">world</strong>!
+</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "MykGLZ",
+    components: {
+        0: <strong _t="em"/>
+    },
+    message: "Hello <0>world</0>!"
+}}/>;

@@ -1,0 +1,16 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_defaults:
+    a: a
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <a href="/a">link 1</a>, normal, <a href="/b">link 2</a>.</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Multiple distinct JSX elements with the same placeholder name (`a`). Differentiate them by setting `macro.jsxPlaceholderAttribute` in the lingui config and then adding the attribute to your JSX elements (e.g. `<element _t="newName" />`).
+ --> input.tsx:2:47
+  |
+2 | <Trans>Hello <a href="/a">link 1</a>, normal, <a href="/b">link 2</a>.</Trans>;
+  |                                               ^^^^^^^^^^^^^

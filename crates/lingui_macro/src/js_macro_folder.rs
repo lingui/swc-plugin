@@ -31,14 +31,19 @@ where
     }
 
     fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>, span: Span) -> Expr {
-        let parsed = MessageBuilder::parse(tokens);
+        let parsed = MessageBuilder::parse(tokens, &self.ctx.options);
 
         let mut props: Vec<PropOrSpread> = vec![create_key_value_prop(
             "id",
-            generate_message_id(&parsed.message_str, "").into(),
+            generate_message_id(
+                &parsed.message_str,
+                "",
+                self.ctx.options.use_lingui_v5_id_generation,
+            )
+            .into(),
         )];
 
-        if !self.ctx.options.strip_non_essential_fields {
+        if self.ctx.options.descriptor_fields.should_keep_message() {
             props.push(create_key_value_prop("message", parsed.message));
         }
 
@@ -106,16 +111,14 @@ where
 
             let mut new_props: Vec<PropOrSpread> = vec![];
 
-            if let Some(prop) = id_prop {
-                if let Some(value) = get_expr_as_string(&prop.value) {
-                    new_props.push(create_key_value_prop("id", value.into()));
-                }
+            if let Some(value) = id_prop.and_then(|prop| get_expr_as_string(&prop.value)) {
+                new_props.push(create_key_value_prop("id", value.into()));
             }
 
             if let Some(prop) = message_prop {
                 let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_default();
 
-                let parsed = MessageBuilder::parse(tokens);
+                let parsed = MessageBuilder::parse(tokens, &self.ctx.options);
 
                 if id_prop.is_none() {
                     new_props.push(create_key_value_prop(
@@ -123,12 +126,13 @@ where
                         generate_message_id(
                             &parsed.message_str,
                             context_val.as_deref().unwrap_or_default(),
+                            self.ctx.options.use_lingui_v5_id_generation,
                         )
                         .into(),
                     ))
                 }
 
-                if !self.ctx.options.strip_non_essential_fields {
+                if self.ctx.options.descriptor_fields.should_keep_message() {
                     new_props.push(create_key_value_prop("message", parsed.message));
                 }
 
@@ -137,16 +141,17 @@ where
                 }
             }
 
-            if !self.ctx.options.strip_non_essential_fields {
+            if self.ctx.options.descriptor_fields.should_keep_context() {
                 if let Some(context) = context_val {
                     new_props.push(create_key_value_prop("context", context.into()));
                 }
+            }
 
-                let comment = get_object_prop(&obj.props, "comment")
-                    .and_then(|prop| get_expr_as_string(&prop.value));
-
-                if let Some(comment) = comment {
-                    new_props.push(create_key_value_prop("comment", comment.into()));
+            if self.ctx.options.descriptor_fields.should_keep_comment() {
+                if let Some(value) = get_object_prop(&obj.props, "comment")
+                    .and_then(|prop| get_expr_as_string(&prop.value))
+                {
+                    new_props.push(create_key_value_prop("comment", value.into()));
                 }
             }
 

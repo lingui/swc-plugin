@@ -1,0 +1,15 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_attribute: _t
+---
+import { Trans } from '@lingui/react/macro';
+<Trans><a _t="foo." href="/">click</a></Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Placeholder name `foo.` is not valid. Names must start and end with a letter/digit/underscore, but may contain `.-` in between.
+ --> input.tsx:2:8
+  |
+2 | <Trans><a _t="foo." href="/">click</a></Trans>
+  |        ^^^^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,15 @@
+---
+source: tests/js_icu.rs
+---
+import { plural } from "@lingui/core/macro";
+const messagePlural = customName(count, {
+   one: '# Book',
+   other: '# Books'
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+const messagePlural = customName(count, {
+    one: '# Book',
+    other: '# Books'
+});

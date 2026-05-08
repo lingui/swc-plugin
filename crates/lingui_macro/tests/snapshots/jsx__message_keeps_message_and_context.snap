@@ -1,0 +1,27 @@
+---
+source: tests/jsx.rs
+info:
+  descriptor_fields: message
+---
+import { Trans } from "@lingui/react/macro";
+<Trans
+id="msg.hello"
+render="render"
+i18n="i18n"
+context="My Context"
+comment="Hello World">Hello <strong>{name}</strong></Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "msg.hello",
+    values: {
+        name: name
+    },
+    components: {
+        0: <strong/>
+    },
+    message: "Hello <0>{name}</0>",
+    context: "My Context"
+}} render="render" i18n="i18n"/>;

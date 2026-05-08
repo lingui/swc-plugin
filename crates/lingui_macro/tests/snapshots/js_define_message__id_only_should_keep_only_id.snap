@@ -1,0 +1,25 @@
+---
+source: tests/js_define_message.rs
+info:
+  descriptor_fields: id-only
+---
+import { defineMessage } from '@lingui/macro'
+const message1 = defineMessage`Message`;
+const message2 = defineMessage({
+    message: `Hello ${name}`,
+    id: 'msgId',
+    comment: 'description for translators',
+    context: 'My Context',
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+const message1 = /*i18n*/ {
+    id: "xDAtGP"
+};
+const message2 = /*i18n*/ {
+    id: "msgId",
+    values: {
+        name: name
+    }
+};

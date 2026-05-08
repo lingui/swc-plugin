@@ -1,0 +1,29 @@
+---
+source: tests/use_lingui.rs
+---
+import { useLingui } from '@lingui/react/macro';
+import { plural } from '@lingui/core/macro';
+
+function MyComponent() {
+  const { t } = useLingui();
+  const a = t`Text ${plural(users.length, {
+          offset: 1,
+          0: "No books",
+          1: "1 book",
+          other: "\# books"
+        })}`;
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+function MyComponent() {
+    const { i18n: $__i18n, _: $__ } = $_useLingui();
+    const a = $__i18n._(/*i18n*/ {
+        id: "hJRCh6",
+        message: "Text {0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}",
+        values: {
+            0: users.length
+        }
+    });
+}

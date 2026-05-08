@@ -1,0 +1,25 @@
+---
+source: tests/js_define_message.rs
+---
+import { defineMessage, msg } from '@lingui/macro';
+const message1 = defineMessage({
+  comment: "Description",
+  message: "Message"
+})
+const message2 = msg({
+  comment: "Description",
+  message: "Message"
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+const message1 = /*i18n*/ {
+    id: "xDAtGP",
+    message: "Message",
+    comment: "Description"
+};
+const message2 = /*i18n*/ {
+    id: "xDAtGP",
+    message: "Message",
+    comment: "Description"
+};

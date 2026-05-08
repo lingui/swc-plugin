@@ -1,0 +1,16 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_attribute: _t
+---
+import { Trans } from '@lingui/react/macro';
+const name = "link";
+<Trans><a _t={name} href="/">click</a></Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: The `_t` attribute must be a non-empty string literal.
+ --> input.tsx:3:8
+  |
+3 | <Trans><a _t={name} href="/">click</a></Trans>
+  |        ^^^^^^^^^^^^^^^^^^^^^^

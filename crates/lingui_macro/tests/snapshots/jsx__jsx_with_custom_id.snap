@@ -1,0 +1,13 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+const exp2 = <Trans id="custom.id">Refresh inbox</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+const exp2 = <Trans_ {.../*i18n*/ {
+    id: "custom.id",
+    message: "Refresh inbox"
+}}/>;

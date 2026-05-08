@@ -1,0 +1,49 @@
+---
+source: tests/js_t.rs
+---
+import { t } from "@lingui/core/macro";
+import { custom_i18n } from "./i18n";
+
+t(custom_i18n)`Refresh inbox`
+t(custom_i18n)`Refresh ${foo} inbox ${bar}`
+t(custom_i18n)`Refresh ${foo.bar} inbox ${bar}`
+t(custom_i18n)`Refresh ${expr()}`
+t(custom.i18n)`Refresh ${expr()}`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { custom_i18n } from "./i18n";
+custom_i18n._(/*i18n*/ {
+    id: "EsCV2T",
+    message: "Refresh inbox"
+});
+custom_i18n._(/*i18n*/ {
+    id: "JPS-Xq",
+    message: "Refresh {foo} inbox {bar}",
+    values: {
+        foo: foo,
+        bar: bar
+    }
+});
+custom_i18n._(/*i18n*/ {
+    id: "xplbye",
+    message: "Refresh {0} inbox {bar}",
+    values: {
+        bar: bar,
+        0: foo.bar
+    }
+});
+custom_i18n._(/*i18n*/ {
+    id: "-NCjg_",
+    message: "Refresh {0}",
+    values: {
+        0: expr()
+    }
+});
+custom.i18n._(/*i18n*/ {
+    id: "-NCjg_",
+    message: "Refresh {0}",
+    values: {
+        0: expr()
+    }
+});

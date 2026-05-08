@@ -1,0 +1,14 @@
+---
+source: tests/js_t.rs
+---
+import { t } from '@lingui/core/macro';
+  t`Multiline
+    string`;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+$_i18n._(/*i18n*/ {
+    id: "esSxMt",
+    message: "Multiline\n    string"
+});

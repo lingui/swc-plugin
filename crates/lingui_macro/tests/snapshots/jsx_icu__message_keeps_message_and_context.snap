@@ -1,0 +1,33 @@
+---
+source: tests/jsx_icu.rs
+info:
+  descriptor_fields: message
+---
+import { Plural } from '@lingui/macro';
+
+<Plural
+  id="custom.id"
+  context="My Context"
+  comment="This is for translators"
+  render="render"
+  i18n="i18n"
+  value={count}
+  offset="1"
+  _0="Zero items"
+  other={<a href="/more">A lot of them</a>}
+  />
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "custom.id",
+    values: {
+        count: count
+    },
+    components: {
+        0: <a href="/more"/>
+    },
+    message: "{count, plural, offset:1 =0 {Zero items} other {<0>A lot of them</0>}}",
+    context: "My Context"
+}} render="render" i18n="i18n"/>;

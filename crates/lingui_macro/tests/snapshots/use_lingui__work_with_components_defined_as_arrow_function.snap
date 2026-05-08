@@ -1,0 +1,20 @@
+---
+source: tests/use_lingui.rs
+---
+import { useLingui } from '@lingui/react/macro';
+
+const MyComponent = () => {
+  const { t } = useLingui();
+  const a = t`Text`;
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+const MyComponent = ()=>{
+    const { i18n: $__i18n, _: $__ } = $_useLingui();
+    const a = $__i18n._(/*i18n*/ {
+        id: "xeiujy",
+        message: "Text"
+    });
+};

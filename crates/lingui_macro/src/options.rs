@@ -1,11 +1,46 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+fn is_default<T: Default + PartialEq>(t: &T) -> bool {
+    t == &T::default()
+}
+
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum DescriptorFields {
+    Auto,
+    #[default]
+    All,
+    IdOnly,
+    Message,
+}
+
+impl DescriptorFields {
+    pub fn should_keep_message(&self) -> bool {
+        matches!(self, DescriptorFields::All | DescriptorFields::Message)
+    }
+
+    pub fn should_keep_context(&self) -> bool {
+        matches!(self, DescriptorFields::All | DescriptorFields::Message)
+    }
+
+    pub fn should_keep_comment(&self) -> bool {
+        matches!(self, DescriptorFields::All)
+    }
+}
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
     runtime_modules: Option<RuntimeModulesConfigMap>,
     #[serde(default)]
-    strip_non_essential_fields: Option<bool>,
+    descriptor_fields: Option<DescriptorFields>,
+    #[serde(default)]
+    use_lingui_v5_id_generation: Option<bool>,
+    #[serde(default)]
+    jsx_placeholder_attribute: Option<String>,
+    #[serde(default)]
+    jsx_placeholder_defaults: Option<HashMap<String, String>>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -19,19 +54,41 @@ pub struct RuntimeModulesConfigMap {
     use_lingui: Option<RuntimeModulesConfig>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct RuntimeModulesConfigMapNormalized {
     pub i18n: (String, String),
     pub trans: (String, String),
     pub use_lingui: (String, String),
 }
 
+impl Default for RuntimeModulesConfigMapNormalized {
+    fn default() -> Self {
+        Self {
+            i18n: ("@lingui/core".into(), "i18n".into()),
+            trans: ("@lingui/react".into(), "Trans".into()),
+            use_lingui: ("@lingui/react".into(), "useLingui".into()),
+        }
+    }
+}
+
 impl LinguiJsOptions {
     pub fn into_options(self, env_name: &str) -> LinguiOptions {
+        let descriptor_fields = match self.descriptor_fields.unwrap_or(DescriptorFields::Auto) {
+            DescriptorFields::Auto => {
+                if matches!(env_name, "production") {
+                    DescriptorFields::IdOnly
+                } else {
+                    DescriptorFields::All
+                }
+            }
+            other => other,
+        };
+
         LinguiOptions {
-            strip_non_essential_fields: self
-                .strip_non_essential_fields
-                .unwrap_or(matches!(env_name, "production")),
+            descriptor_fields,
+            use_lingui_v5_id_generation: self.use_lingui_v5_id_generation.unwrap_or(false),
+            jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
+            jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules
@@ -74,21 +131,28 @@ impl LinguiJsOptions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct LinguiOptions {
-    pub strip_non_essential_fields: bool,
+    #[serde(skip_serializing_if = "is_default")]
+    pub descriptor_fields: DescriptorFields,
+    #[serde(skip_serializing_if = "is_default")]
+    pub jsx_placeholder_attribute: Option<String>,
+    #[serde(skip_serializing_if = "is_default")]
+    pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
+    #[serde(skip_serializing_if = "is_default")]
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
+    #[serde(skip_serializing_if = "is_default")]
+    pub use_lingui_v5_id_generation: bool,
 }
 
 impl Default for LinguiOptions {
     fn default() -> LinguiOptions {
         LinguiOptions {
-            strip_non_essential_fields: false,
-            runtime_modules: RuntimeModulesConfigMapNormalized {
-                i18n: ("@lingui/core".into(), "i18n".into()),
-                trans: ("@lingui/react".into(), "Trans".into()),
-                use_lingui: ("@lingui/react".into(), "useLingui".into()),
-            },
+            descriptor_fields: DescriptorFields::All,
+            use_lingui_v5_id_generation: false,
+            jsx_placeholder_attribute: None,
+            jsx_placeholder_defaults: None,
+            runtime_modules: Default::default(),
         }
     }
 }
@@ -127,7 +191,10 @@ mod lib_tests {
                         Some("myUseLingui".into())
                     )),
                 }),
-                strip_non_essential_fields: None,
+                descriptor_fields: None,
+                use_lingui_v5_id_generation: None,
+                jsx_placeholder_attribute: None,
+                jsx_placeholder_defaults: None,
             }
         )
     }
@@ -151,38 +218,58 @@ mod lib_tests {
                     trans: None,
                     use_lingui: None,
                 }),
-                strip_non_essential_fields: None,
+                descriptor_fields: None,
+                use_lingui_v5_id_generation: None,
+                jsx_placeholder_attribute: None,
+                jsx_placeholder_defaults: None,
             }
         )
     }
 
     #[test]
-    fn test_strip_non_essential_fields_config() {
+    fn test_descriptor_fields_config() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "stripNonEssentialFields": true,
+                "descriptorFields": "id-only",
                 "runtimeModules": {}
                }"#,
         )
         .unwrap();
 
         let options = config.into_options("development");
-        assert!(options.strip_non_essential_fields);
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::IdOnly
+        ));
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "stripNonEssentialFields": false,
+                "descriptorFields": "all",
                 "runtimeModules": {}
                }"#,
         )
         .unwrap();
 
         let options = config.into_options("production");
-        assert!(!options.strip_non_essential_fields);
+        assert!(matches!(options.descriptor_fields, DescriptorFields::All));
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "descriptorFields": "message",
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::Message
+        ));
     }
 
     #[test]
-    fn test_strip_non_essential_fields_default() {
+    fn test_descriptor_fields_auto_default() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "runtimeModules": {}
@@ -191,7 +278,7 @@ mod lib_tests {
         .unwrap();
 
         let options = config.into_options("development");
-        assert!(!options.strip_non_essential_fields);
+        assert!(matches!(options.descriptor_fields, DescriptorFields::All));
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
@@ -201,6 +288,106 @@ mod lib_tests {
         .unwrap();
 
         let options = config.into_options("production");
-        assert!(options.strip_non_essential_fields);
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::IdOnly
+        ));
+    }
+
+    #[test]
+    fn test_jsx_placeholder_config() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "jsxPlaceholderAttribute": "_t",
+                "jsxPlaceholderDefaults": {
+                    "a": "link",
+                    "em": "emphasis"
+                }
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert_eq!(options.jsx_placeholder_attribute.unwrap(), "_t");
+
+        let defaults = options.jsx_placeholder_defaults.unwrap();
+        assert_eq!(defaults.get("a").unwrap(), "link");
+        assert_eq!(defaults.get("em").unwrap(), "emphasis");
+    }
+
+    #[test]
+    fn test_descriptor_fields_explicit_auto() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "descriptorFields": "auto",
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert!(matches!(options.descriptor_fields, DescriptorFields::All));
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "descriptorFields": "auto",
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(matches!(
+            options.descriptor_fields,
+            DescriptorFields::IdOnly
+        ));
+    }
+
+    #[test]
+    fn test_use_lingui_v5_id_generation_config() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "useLinguiV5IdGeneration": true,
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert!(options.use_lingui_v5_id_generation);
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "useLinguiV5IdGeneration": false,
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(!options.use_lingui_v5_id_generation);
+    }
+
+    #[test]
+    fn test_use_lingui_v5_id_generation_default() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert!(!options.use_lingui_v5_id_generation);
+
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("production");
+        assert!(!options.use_lingui_v5_id_generation);
     }
 }

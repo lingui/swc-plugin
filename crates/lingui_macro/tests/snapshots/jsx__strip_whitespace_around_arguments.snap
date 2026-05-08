@@ -1,0 +1,20 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  Strip whitespace around arguments: '
+  {name}
+  '
+</Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "tRMgLt",
+    values: {
+        name: name
+    },
+    message: "Strip whitespace around arguments: '{name}'"
+}}/>;

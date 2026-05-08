@@ -1,0 +1,30 @@
+---
+source: tests/jsx_icu.rs
+---
+import { Select } from '@lingui/macro';
+<Select
+  comment="Translators Comment"
+  context="Message Context"
+  render={(v) => v}
+
+  value={count}
+  _male="He"
+  _female={`She`}
+  other={<strong>Other</strong>}
+/>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "4jX4Bx",
+    values: {
+        count: count
+    },
+    components: {
+        0: <strong/>
+    },
+    comment: "Translators Comment",
+    message: "{count, select, male {He} female {She} other {<0>Other</0>}}",
+    context: "Message Context"
+}} render={(v)=>v}/>;

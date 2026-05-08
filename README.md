@@ -2,7 +2,7 @@
 
 <div align="center">
 
-A Rust versions of [LinguiJS Macro](https://lingui.dev/ref/macro) [<img src="https://img.shields.io/badge/beta-yellow"/>](https://github.com/lingui/swc-plugin)
+A Rust version of [LinguiJS Macro](https://lingui.dev/ref/macro) [<img src="https://img.shields.io/badge/beta-yellow"/>](https://github.com/lingui/swc-plugin)
 
 [![npm](https://img.shields.io/npm/v/@lingui/swc-plugin?logo=npm&cacheSeconds=1800)](https://www.npmjs.com/package/@lingui/swc-plugin)
 [![npm](https://img.shields.io/npm/dt/@lingui/swc-plugin?cacheSeconds=500)](https://www.npmjs.com/package/@lingui/swc-plugin)
@@ -50,9 +50,24 @@ https://swc.rs/docs/configuration/swcrc
             //   "i18n": ["@lingui/core", "i18n"],
             //   "trans": ["@lingui/react", "Trans"]
             // }
-            // Lingui strips non-essential fields in production builds for performance.
-            // You can override the default behavior with:
-            // "stripNonEssentialFields": false/true
+            //
+            // Optional. Controls which descriptor fields are preserved in output.
+            // "descriptorFields": "auto" (default) | "all" | "id-only" | "message"
+            //
+            // Compatibility option allows to use v6.* SWC Plugin release channel with @lingui/cli@5.*
+            // Controls the BASE64 alphabet used for generating message IDs.
+            // - false (default): Uses URL-safe BASE64 alphabet (Lingui v6 behavior)
+            // - true: Uses standard BASE64 alphabet (Lingui v5 behavior for compatibility)
+            //
+            // IMPORTANT: This option is temporal and will be removed in the next major release.
+            // "useLinguiV5IdGeneration": true
+            //
+            // To configure custom JSX placeholder attribute and its defaults:
+            // "jsxPlaceholderAttribute": "_t",
+            // "jsxPlaceholderDefaults": {
+            //   "a": "link",
+            //   "em": "em"
+            // }
           },
         ],
       ],
@@ -60,6 +75,17 @@ https://swc.rs/docs/configuration/swcrc
   },
 }
 ```
+
+### `descriptorFields`
+
+Controls which fields are preserved in the transformed message descriptors. Accepts one of:
+
+- **`"auto"`** (default) — In production (`NODE_ENV=production`), behaves like `"id-only"`. Otherwise, behaves like `"all"`.
+- **`"all"`** — Keeps `id`, `message`, `context`, and `comment`. Use this for extraction (replaces the old `extract: true` from the Babel plugin).
+- **`"id-only"`** — Keeps only the `id`. Most optimized for production bundles.
+- **`"message"`** — Keeps `id`, `message`, and `context` (but not `comment`). Useful when you need message content at runtime.
+
+Check [this article](https://lingui.dev/guides/optimizing-bundle-size) for more info about this configuration.
 
 Or Next JS Usage:
 
@@ -93,29 +119,29 @@ Below is a table referencing the `swc_core` version used during the plugin build
 
 To learn more about SWC Plugins compatibility check this issue https://github.com/lingui/swc-plugin/issues/179
 
-| Plugin Version                                    | used `swc_core`                                                                                                                                                       |
-|---------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `0.1.0`, `4.0.0-next.0`                           | `0.52.8`                                                                                                                                                              |
-| `0.2.*`, `4.0.0-next.1` ~ `4.0.0-next.3`          | `0.56.1`                                                                                                                                                              |
-| `4.0.0`                                           | `0.75.33`                                                                                                                                                             |
-| `4.0.1`                                           | `0.76.0`                                                                                                                                                              |
-| `4.0.2`                                           | `0.76.41`                                                                                                                                                             |
-| `4.0.3`                                           | `0.78.28`                                                                                                                                                             |
-| `4.0.4`                                           | `0.79.x`                                                                                                                                                              |
-| `4.0.5`, `4.0.6`                                  | [`0.87.x`](https://plugins.swc.rs/versions/range/10)                                                                                                                  |
-| `4.0.7`, `4.0.8`, `5.0.0-next.0` ~ `5.0.0-next.1` | [`0.90.35`](https://plugins.swc.rs/versions/range/12)                                                                                                                 |
-| `4.0.9`                                           | [`0.96.9`](https://plugins.swc.rs/versions/range/15)                                                                                                                  |
-| `4.0.10`                                          | [`0.101.4`](https://plugins.swc.rs/versions/range/94)                                                                                                                 |
-| `4.1.0`, `5.0.0` ~ `5.2.0`                        | [`0.106.3`](https://plugins.swc.rs/versions/range/95)                                                                                                                 |
-| `5.3.0`                                           | [`5.0.4`](https://plugins.swc.rs/versions/range/116)                                                                                                                  |
-| `5.4.0`                                           | [`14.1.0`](https://plugins.swc.rs/versions/range/138)                                                                                                                 |
-| `5.5.0` ~ `5.5.2`                                 | [`15.0.1`](https://plugins.swc.rs/versions/range/271)                                                                                                                 |
-| `5.6.0` ~ `5.6.1`                                 | [`27.0.6`](https://plugins.swc.rs/versions/range/364)                                                                                                                 |
-| `5.7.0`                                           | [`39.0.3`](https://plugins.swc.rs/versions/range/426)                                                                                                                 |
-| `5.8.0`                                           | [`45.0.2`](https://plugins.swc.rs/versions/range/497)                                                                                                                 |
-| `5.9.0`                                           | [`46.0.3`](https://plugins.swc.rs/versions/range/713)                                                                                                                 |
-| `5.10.0`                                          | [`50.2.3`](https://plugins.swc.rs/versions/range/768)                                                                                                                 |
-| `5.10.1`, `5.11.0`                                | [`50.2.3`](https://plugins.swc.rs/versions/range/768) with [`--cfg=swc_ast_unknown`](https://swc.rs/docs/plugin/ecmascript/compatibility#make-your-plugin-compatible) |
+| Plugin Version                                                                                                                                                                                                                | used `swc_core`                                                                                                                                                       |
+|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `0.1.0`, `4.0.0-next.0`                                                                                                                                                                                                       | `0.52.8`                                                                                                                                                              |
+| `0.2.*`, `4.0.0-next.1` ~ `4.0.0-next.3`                                                                                                                                                                                      | `0.56.1`                                                                                                                                                              |
+| `4.0.0`                                                                                                                                                                                                                       | `0.75.33`                                                                                                                                                             |
+| `4.0.1`                                                                                                                                                                                                                       | `0.76.0`                                                                                                                                                              |
+| `4.0.2`                                                                                                                                                                                                                       | `0.76.41`                                                                                                                                                             |
+| `4.0.3`                                                                                                                                                                                                                       | `0.78.28`                                                                                                                                                             |
+| `4.0.4`                                                                                                                                                                                                                       | `0.79.x`                                                                                                                                                              |
+| `4.0.5`, `4.0.6`                                                                                                                                                                                                              | [`0.87.x`](https://plugins.swc.rs/versions/range/10)                                                                                                                  |
+| `4.0.7`, `4.0.8`, `5.0.0-next.0` ~ `5.0.0-next.1`                                                                                                                                                                             | [`0.90.35`](https://plugins.swc.rs/versions/range/12)                                                                                                                 |
+| `4.0.9`                                                                                                                                                                                                                       | [`0.96.9`](https://plugins.swc.rs/versions/range/15)                                                                                                                  |
+| `4.0.10`                                                                                                                                                                                                                      | [`0.101.4`](https://plugins.swc.rs/versions/range/94)                                                                                                                 |
+| `4.1.0`, `5.0.0` ~ `5.2.0`                                                                                                                                                                                                    | [`0.106.3`](https://plugins.swc.rs/versions/range/95)                                                                                                                 |
+| `5.3.0`                                                                                                                                                                                                                       | [`5.0.4`](https://plugins.swc.rs/versions/range/116)                                                                                                                  |
+| `5.4.0`                                                                                                                                                                                                                       | [`14.1.0`](https://plugins.swc.rs/versions/range/138)                                                                                                                 |
+| `5.5.0` ~ `5.5.2`                                                                                                                                                                                                             | [`15.0.1`](https://plugins.swc.rs/versions/range/271)                                                                                                                 |
+| `5.6.0` ~ `5.6.1`                                                                                                                                                                                                             | [`27.0.6`](https://plugins.swc.rs/versions/range/364)                                                                                                                 |
+| `5.7.0`                                                                                                                                                                                                                       | [`39.0.3`](https://plugins.swc.rs/versions/range/426)                                                                                                                 |
+| `5.8.0`                                                                                                                                                                                                                       | [`45.0.2`](https://plugins.swc.rs/versions/range/497)                                                                                                                 |
+| `5.9.0`                                                                                                                                                                                                                       | [`46.0.3`](https://plugins.swc.rs/versions/range/713)                                                                                                                 |
+| `5.10.0`                                                                                                                                                                                                                      | [`50.2.3`](https://plugins.swc.rs/versions/range/768)                                                                                                                 |
+| `5.10.1` ~ `*`  <br/> Starting from this version Wasm plugins are compatible between `@swc/core` versions to some extent. Read more [here](https://swc.rs/docs/plugin/ecmascript/compatibility#make-your-plugin-compatible). | [`50.2.3`](https://plugins.swc.rs/versions/range/768) with [`--cfg=swc_ast_unknown`](https://swc.rs/docs/plugin/ecmascript/compatibility#make-your-plugin-compatible) |
 
 
 > **Note**
@@ -127,6 +153,7 @@ To learn more about SWC Plugins compatibility check this issue https://github.co
 - Version `0.1.0` ~ `0.*` compatible with `@lingui/core@3.*`
 - Version `4.*` compatible with `@lingui/core@4.*`
 - Version `5.*` compatible with `@lingui/core@5.*`
+- Version `6.*` compatible with `@lingui/core@5.*` with `useLinguiV5IdGeneration: true` and `@lingui/core@6.*`
 
 ## License
 

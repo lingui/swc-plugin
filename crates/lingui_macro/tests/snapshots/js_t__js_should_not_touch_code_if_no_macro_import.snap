@@ -1,0 +1,8 @@
+---
+source: tests/js_t.rs
+---
+t`Refresh inbox`;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+t`Refresh inbox`;

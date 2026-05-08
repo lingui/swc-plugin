@@ -1,0 +1,23 @@
+---
+source: tests/jsx_icu.rs
+---
+import { SelectOrdinal } from "@lingui/react/macro";
+
+ <SelectOrdinal
+   value={count}
+   offset="1"
+   _0=" #st"
+   one=" #nd"
+   other=' #rd'
+ />;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "cp8FR4",
+    values: {
+        count: count
+    },
+    message: "{count, selectordinal, offset:1 =0 { #st} one { #nd} other { #rd}}"
+}}/>;

@@ -1,0 +1,19 @@
+---
+source: tests/js_define_message.rs
+---
+import { defineMessage, plural, arg } from '@lingui/macro';
+const message = defineMessage({
+  comment: "Description",
+  message: plural(count, { one: "book", other: "books" })
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+const message = /*i18n*/ {
+    id: "AJdPPy",
+    message: "{count, plural, one {book} other {books}}",
+    values: {
+        count: count
+    },
+    comment: "Description"
+};

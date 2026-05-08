@@ -1,0 +1,20 @@
+---
+source: tests/jsx_named_placeholders.rs
+info:
+  jsx_placeholder_attribute: _t
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  <a _t="link" href="/about">About</a>
+</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "Ym2S6K",
+    components: {
+        link: <a href="/about"/>
+    },
+    message: "<link>About</link>"
+}}/>;

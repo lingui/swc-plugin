@@ -1,0 +1,29 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>
+   Hello <strong>World!</strong><br />
+   <p>
+     My name is <a href="/about">{" "}
+     <em>{name}</em></a>
+   </p>
+ </Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "k9gsHO",
+    values: {
+        name: name
+    },
+    components: {
+        0: <strong/>,
+        1: <br/>,
+        2: <p/>,
+        3: <a href="/about"/>,
+        4: <em/>
+    },
+    message: "Hello <0>World!</0><1/><2>My name is <3> <4>{name}</4></3></2>"
+}}/>;

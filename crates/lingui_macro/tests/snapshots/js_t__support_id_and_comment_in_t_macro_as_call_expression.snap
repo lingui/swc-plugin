@@ -1,0 +1,17 @@
+---
+source: tests/js_t.rs
+---
+import { t, plural } from '@lingui/core/macro'
+const msg = t({ id: 'msgId', comment: 'description for translators', message: plural(val, { one: '...', other: '...' }) })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+const msg = $_i18n._(/*i18n*/ {
+    id: "msgId",
+    message: "{val, plural, one {...} other {...}}",
+    values: {
+        val: val
+    },
+    comment: "description for translators"
+});
