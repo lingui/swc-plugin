@@ -1,6 +1,6 @@
 use crate::message_extractor_visitor::{ExtractionResult, MessageExtractorVisitor};
 use data_encoding::BASE64;
-use lingui_macro::{DescriptorFields, LinguiMacroFolder, LinguiOptions};
+use lingui_macro::{DescriptorFields, LinguiJsOptions, LinguiMacroFolder, LinguiOptions};
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use std::sync::Arc;
@@ -58,6 +58,8 @@ fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {
 #[serde(rename_all = "camelCase")]
 pub struct ExtractorOptions {
     pub parser: Syntax,
+    #[serde(default, rename = "macro")]
+    pub macro_options: Option<LinguiJsOptions>,
 }
 
 /// Extract messages from source code
@@ -97,13 +99,19 @@ pub fn extract_messages(
         inline_source_map,
     );
 
-    let lingui_macro = LinguiMacroFolder::new(
-        LinguiOptions {
+    let lingui_options = match options.macro_options.clone() {
+        Some(opts) => {
+            let mut lingui_opts = opts.into_options("");
+            lingui_opts.descriptor_fields = DescriptorFields::All;
+            lingui_opts
+        }
+        None => LinguiOptions {
             descriptor_fields: DescriptorFields::All,
             ..Default::default()
         },
-        Some(&comments as &dyn Comments),
-    );
+    };
+
+    let lingui_macro = LinguiMacroFolder::new(lingui_options, Some(&comments as &dyn Comments));
 
     let globals = Globals::default();
 

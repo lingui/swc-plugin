@@ -27,7 +27,6 @@ mod tokens;
 
 use crate::generate_id::*;
 use crate::macro_utils::*;
-use crate::options::*;
 use ast_utils::*;
 use builder::*;
 use js_macro_folder::JsMacroFolder;
@@ -517,7 +516,10 @@ where
     }
 }
 
-pub use self::options::{DescriptorFields, LinguiOptions, RuntimeModulesConfigMapNormalized};
+pub use self::options::{
+    DescriptorFields, LinguiJsOptions, LinguiOptions, RuntimeModulesConfigMap,
+    RuntimeModulesConfigMapNormalized,
+};
 
 #[plugin_transform]
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {

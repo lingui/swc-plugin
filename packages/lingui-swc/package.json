@@ -60,6 +60,9 @@
     "preversion": "napi build --platform && git add .",
     "version": "napi version"
   },
+  "dependencies": {
+    "@lingui/swc-plugin": "workspace:*"
+  },
   "devDependencies": {
     "@emnapi/core": "^1.8.1",
     "@emnapi/runtime": "^1.8.1",

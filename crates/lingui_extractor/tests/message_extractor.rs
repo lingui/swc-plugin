@@ -1,5 +1,6 @@
 use lingui_extractor::ExtractedMessage;
 use lingui_extractor::{extract_messages, ExtractorOptions};
+use lingui_macro::LinguiJsOptions;
 
 fn extract_and_sort(source_code: &str, filename: &str) -> (Vec<ExtractedMessage>, Vec<String>) {
     let options = ExtractorOptions {
@@ -8,6 +9,7 @@ fn extract_and_sort(source_code: &str, filename: &str) -> (Vec<ExtractedMessage>
 
             ..Default::default()
         }),
+        macro_options: None,
     };
 
     let result =
@@ -372,6 +374,49 @@ const msg = /*i18n*/{
 //     assert_eq!(origin.1, 2); // Line 2 because of the blank line at the start
 //     assert_eq!(origin.2, Some(13)); // Column where i18n._ starts
 // }
+
+// ============================================================================
+// Macro Options Tests
+// ============================================================================
+
+#[test]
+fn test_macro_options_jsx_placeholder_attribute() {
+    let code = r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <strong _t="em">world</strong>!</Trans>;
+    "#;
+
+    let options = ExtractorOptions {
+        parser: Syntax::Typescript(TsSyntax {
+            tsx: true,
+            ..Default::default()
+        }),
+        macro_options: Some(LinguiJsOptions {
+            jsx_placeholder_attribute: Some("_t".into()),
+            ..Default::default()
+        }),
+    };
+
+    let result = extract_messages(code, "test.tsx", &options).expect("Failed to extract messages");
+    assert_eq!(result.messages.len(), 1);
+    assert_eq!(
+        result.messages[0].message,
+        Some("Hello <em>world</em>!".to_string())
+    );
+}
+
+#[test]
+fn test_macro_options_jsx_placeholder_attribute_not_set() {
+    let code = r#"
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello <strong _t="em">world</strong>!</Trans>;
+    "#;
+
+    let (messages, _) = extract_and_sort(code, "test.tsx");
+    assert_eq!(messages.len(), 1);
+    // Without jsxPlaceholderAttribute, the _t attribute is ignored and index-based placeholder is used
+    assert_eq!(messages[0].message, Some("Hello <0>world</0>!".to_string()));
+}
 
 // ============================================================================
 // Snapshot Testing Framework

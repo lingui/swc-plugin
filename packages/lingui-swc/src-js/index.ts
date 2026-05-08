@@ -1,8 +1,10 @@
 import binding = require('../binding')
 import type {ParserConfig} from "@swc/types"
+import type {LinguiMacroOptions} from "@lingui/swc-plugin/types"
 
 export type ExtractorOptions = {
   parser?: ParserConfig
+  macro?: Omit<LinguiMacroOptions, 'descriptorFields'>
 }
 
 function toBuffer(t: any): Buffer {

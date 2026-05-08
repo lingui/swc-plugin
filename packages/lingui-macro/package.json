@@ -23,14 +23,16 @@
   ],
   "main": "./lingui_macro.wasm",
   "exports": {
-    ".": "./lingui_macro.wasm"
+    ".": "./lingui_macro.wasm",
+    "./types": {
+      "types": "./types.ts"
+    }
   },
   "scripts": {
     "build:binary": "cargo build -p lingui_macro --target wasm32-wasip1 --release && cp ../../target/wasm32-wasip1/release/lingui_macro.wasm lingui_macro.wasm",
     "prepublishOnly": "yarn build:binary",
     "test:e2e": "yarn build:binary && vitest run"
   },
-  "files": [],
   "peerDependencies": {
     "@lingui/core": "6"
   },

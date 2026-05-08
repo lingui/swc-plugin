@@ -29,29 +29,29 @@ impl DescriptorFields {
     }
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
-    runtime_modules: Option<RuntimeModulesConfigMap>,
+    pub runtime_modules: Option<RuntimeModulesConfigMap>,
     #[serde(default)]
-    descriptor_fields: Option<DescriptorFields>,
+    pub descriptor_fields: Option<DescriptorFields>,
     #[serde(default)]
-    use_lingui_v5_id_generation: Option<bool>,
+    pub use_lingui_v5_id_generation: Option<bool>,
     #[serde(default)]
-    jsx_placeholder_attribute: Option<String>,
+    pub jsx_placeholder_attribute: Option<String>,
     #[serde(default)]
-    jsx_placeholder_defaults: Option<HashMap<String, String>>,
+    pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-struct RuntimeModulesConfig(String, #[serde(default)] Option<String>);
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
+pub struct RuntimeModulesConfig(pub String, #[serde(default)] pub Option<String>);
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct RuntimeModulesConfigMap {
-    i18n: Option<RuntimeModulesConfig>,
-    trans: Option<RuntimeModulesConfig>,
-    use_lingui: Option<RuntimeModulesConfig>,
+    pub i18n: Option<RuntimeModulesConfig>,
+    pub trans: Option<RuntimeModulesConfig>,
+    pub use_lingui: Option<RuntimeModulesConfig>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

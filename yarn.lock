@@ -488,7 +488,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lingui/swc-plugin@workspace:packages/lingui-macro":
+"@lingui/swc-plugin@workspace:*, @lingui/swc-plugin@workspace:packages/lingui-macro":
   version: 0.0.0-use.local
   resolution: "@lingui/swc-plugin@workspace:packages/lingui-macro"
   dependencies:
@@ -497,7 +497,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.0.18"
   peerDependencies:
-    "@lingui/core": 5 || 6
+    "@lingui/core": 6
   peerDependenciesMeta:
     "@swc/core":
       optional: true
@@ -2450,6 +2450,7 @@ __metadata:
   dependencies:
     "@emnapi/core": "npm:^1.8.1"
     "@emnapi/runtime": "npm:^1.8.1"
+    "@lingui/swc-plugin": "workspace:*"
     "@napi-rs/cli": "npm:^3.5.1"
     "@oxc-node/core": "npm:^0.0.35"
     "@swc/types": "npm:^0.1.25"
