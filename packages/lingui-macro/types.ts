@@ -1,4 +1,4 @@
-export type RuntimeModuleConfig = [modulePath: string, exportName?: string];
+export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: string];
 
 export interface RuntimeModulesConfig {
   i18n?: RuntimeModuleConfig;
