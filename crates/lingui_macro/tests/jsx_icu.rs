@@ -1,4 +1,4 @@
-use lingui_macro_plugin::{DescriptorFields, LinguiOptions};
+use lingui_macro::{DescriptorFields, LinguiOptions};
 
 #[macro_use]
 mod common;

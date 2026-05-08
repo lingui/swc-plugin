@@ -21,4 +21,8 @@ swc_core = { workspace = true, features = [
   "ecma_parser",
   "common",
   "testing_transform",
+  "ecma_codegen"
 ] }
+
+[dev-dependencies]
+insta = { workspace = true }

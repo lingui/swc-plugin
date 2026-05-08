@@ -1,6 +1,6 @@
 use crate::message_extractor_visitor::{ExtractionResult, MessageExtractorVisitor};
 use data_encoding::BASE64;
-use lingui_macro::{LinguiMacroFolder, LinguiOptions};
+use lingui_macro::{DescriptorFields, LinguiMacroFolder, LinguiOptions};
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 use std::sync::Arc;
@@ -99,7 +99,7 @@ pub fn extract_messages(
 
     let lingui_macro = LinguiMacroFolder::new(
         LinguiOptions {
-            strip_non_essential_fields: false,
+            descriptor_fields: DescriptorFields::All,
             ..Default::default()
         },
         Some(&comments as &dyn Comments),
