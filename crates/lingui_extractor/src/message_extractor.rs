@@ -2,8 +2,6 @@ use crate::message_extractor_visitor::{ExtractionResult, MessageExtractorVisitor
 use data_encoding::BASE64;
 use lingui_macro::{DescriptorFields, LinguiJsOptions, LinguiMacroFolder, LinguiOptions};
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
-use std::sync::Arc;
 use swc_core::common::{Globals, Mark, GLOBALS};
 use swc_core::ecma::transforms::base::resolver;
 use swc_core::{
@@ -103,11 +101,11 @@ pub fn extract_messages(
     let syntax = detect_parser_config(filename, options.parser);
 
     let source_file = source_map.new_source_file(
-        Arc::new(FileName::Custom(filename.to_string())),
+        Lrc::new(FileName::Custom(filename.to_string())),
         source_code.to_string(),
     );
 
-    let comments = Rc::new(SingleThreadedComments::default());
+    let comments = SingleThreadedComments::default();
 
     let mut parser = Parser::new(syntax, StringInput::from(&*source_file), Some(&comments));
 

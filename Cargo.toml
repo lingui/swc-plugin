@@ -19,6 +19,6 @@ opt-level = "s"
 # opt-level = "z"
 
 [workspace.dependencies]
-swc_core = { version = "56.0.0", default-features = false }
+swc_core = { version = "65.0.3", default-features = false }
 insta = { version = "1.47.2", features = ["serde"] }
 

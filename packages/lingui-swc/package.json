@@ -1,6 +1,6 @@
 {
   "name": "lingui-swc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lingui Extractor Implementation using Rust and SWC",
   "license": "MIT",
   "repository": {
@@ -61,14 +61,14 @@
     "version": "napi version"
   },
   "dependencies": {
-    "@lingui/conf": "^6.0.1"
+    "@lingui/conf": "^6.0.1",
+    "@swc/types": "^0.1.25"
   },
   "devDependencies": {
     "@emnapi/core": "^1.8.1",
     "@emnapi/runtime": "^1.8.1",
     "@napi-rs/cli": "^3.5.1",
     "@oxc-node/core": "^0.0.35",
-    "@swc/types": "^0.1.25",
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.0",
     "@types/node": "^24.1.0",

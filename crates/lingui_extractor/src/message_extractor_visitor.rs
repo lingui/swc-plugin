@@ -1,9 +1,9 @@
 use napi_derive::napi;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use std::sync::Arc as Lrc;
 use swc_core::common::comments::Comments;
 use swc_core::common::source_map::SmallPos;
+use swc_core::common::sync::Lrc;
 use swc_core::common::{SourceMap, SourceMapper, Span, Spanned};
 use swc_core::ecma::ast::{
     BinaryOp, CallExpr, Callee, Expr, JSXAttrName, JSXAttrOrSpread, JSXAttrValue, JSXElement,
