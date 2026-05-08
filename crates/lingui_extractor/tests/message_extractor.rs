@@ -4,11 +4,7 @@ use lingui_macro::LinguiJsOptions;
 
 fn extract_and_sort(source_code: &str, filename: &str) -> (Vec<ExtractedMessage>, Vec<String>) {
     let options = ExtractorOptions {
-        parser: Syntax::Typescript(TsSyntax {
-            tsx: true,
-
-            ..Default::default()
-        }),
+        parser: None,
         macro_options: None,
     };
 
@@ -30,7 +26,7 @@ const message = "Hello World";
 console.log(message);
     "#;
 
-    let (messages, warnings) = extract_and_sort(code, "test.js");
+    let (messages, warnings) = extract_and_sort(code, "test.jsx");
     assert_no_warnings(&warnings);
     assert_eq!(messages.len(), 0);
 }
@@ -45,7 +41,7 @@ import { Trans } from "@lingui/react";
 <Trans id="msg.default" message="Hello World" />;
     "#;
 
-    let (messages, warnings) = extract_and_sort(code, "test.js");
+    let (messages, warnings) = extract_and_sort(code, "test.jsx");
     assert_no_warnings(&warnings);
     assert_eq!(messages.len(), 3);
 
@@ -68,7 +64,7 @@ import { Trans } from "@lingui/react";
 <Trans id={message.field} />;
     "#;
 
-    let (messages, warnings) = extract_and_sort(code, "test.js");
+    let (messages, warnings) = extract_and_sort(code, "test.jsx");
     assert_no_warnings(&warnings);
     assert_eq!(messages.len(), 0);
 }
@@ -82,7 +78,7 @@ import { Trans } from "@lingui/react";
 <Trans message="Missing ID" />;
     "#;
 
-    let (messages, warnings) = extract_and_sort(code, "test.js");
+    let (messages, warnings) = extract_and_sort(code, "test.jsx");
     assert!(messages.is_empty());
     assert!(!warnings.is_empty());
     assert!(warnings.iter().any(|w| w.contains("Missing message ID")));
@@ -387,10 +383,7 @@ import { Trans } from "@lingui/react/macro";
     "#;
 
     let options = ExtractorOptions {
-        parser: Syntax::Typescript(TsSyntax {
-            tsx: true,
-            ..Default::default()
-        }),
+        parser: None,
         macro_options: Some(LinguiJsOptions {
             jsx_placeholder_attribute: Some("_t".into()),
             ..Default::default()
@@ -424,7 +417,6 @@ import { Trans } from "@lingui/react/macro";
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use swc_core::ecma::parser::{Syntax, TsSyntax};
 
 /// Load fixture file from tests/fixtures/
 fn load_fixture(filename: &str) -> String {
@@ -535,22 +527,22 @@ fn test_snapshot_js_with_macros() {
 
 #[test]
 fn test_snapshot_jsx_with_macros() {
-    snapshot_test("jsx-with-macros.js");
+    snapshot_test("jsx-with-macros.jsx");
 }
 
 #[test]
 fn test_snapshot_jsx_without_macros() {
-    snapshot_test("jsx-without-macros.js");
+    snapshot_test("jsx-without-macros.jsx");
 }
 
 #[test]
 fn test_snapshot_jsx_without_trans() {
-    snapshot_test("jsx-without-trans.js");
+    snapshot_test("jsx-without-trans.jsx");
 }
 
 #[test]
 fn test_snapshot_without_lingui() {
-    snapshot_test("without-lingui.js");
+    snapshot_test("without-lingui.jsx");
 }
 
 #[test]

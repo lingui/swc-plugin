@@ -14,7 +14,7 @@ use swc_core::{
     },
     ecma::{
         ast::*,
-        parser::{Parser, StringInput, Syntax},
+        parser::{EsSyntax, Parser, StringInput, Syntax, TsSyntax},
         visit::VisitWith,
     },
 };
@@ -57,9 +57,39 @@ fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtractorOptions {
-    pub parser: Syntax,
+    pub parser: Option<Syntax>,
     #[serde(default, rename = "macro")]
     pub macro_options: Option<LinguiJsOptions>,
+}
+
+pub fn detect_parser_config(filename: &str, user_config: Option<Syntax>) -> Syntax {
+    let ext = std::path::Path::new(filename)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+
+    let detected_jsx = matches!(ext.as_str(), "tsx" | "jsx");
+    let detected_is_typescript = matches!(ext.as_str(), "tsx" | "ts" | "mts" | "cts");
+
+    match user_config {
+        Some(Syntax::Typescript(ts)) => Syntax::Typescript(TsSyntax {
+            tsx: ts.tsx || detected_jsx,
+            ..ts
+        }),
+        Some(Syntax::Es(es)) => Syntax::Es(EsSyntax {
+            jsx: es.jsx || detected_jsx,
+            ..es
+        }),
+        None if detected_is_typescript => Syntax::Typescript(TsSyntax {
+            tsx: detected_jsx,
+            ..Default::default()
+        }),
+        None => Syntax::Es(EsSyntax {
+            jsx: detected_jsx,
+            ..Default::default()
+        }),
+    }
 }
 
 /// Extract messages from source code
@@ -70,6 +100,8 @@ pub fn extract_messages(
 ) -> Result<ExtractionResult, Box<dyn std::error::Error>> {
     let source_map = Lrc::new(SourceMap::default());
 
+    let syntax = detect_parser_config(filename, options.parser);
+
     let source_file = source_map.new_source_file(
         Arc::new(FileName::Custom(filename.to_string())),
         source_code.to_string(),
@@ -77,11 +109,7 @@ pub fn extract_messages(
 
     let comments = Rc::new(SingleThreadedComments::default());
 
-    let mut parser = Parser::new(
-        options.parser,
-        StringInput::from(&*source_file),
-        Some(&comments),
-    );
+    let mut parser = Parser::new(syntax, StringInput::from(&*source_file), Some(&comments));
 
     let module = parser
         .parse_module()
@@ -123,7 +151,7 @@ pub fn extract_messages(
             .apply(&mut resolver(
                 unresolved_mark,
                 top_level_mark,
-                options.parser.typescript(),
+                syntax.typescript(),
             ))
             .apply(swc_core::ecma::visit::fold_pass(lingui_macro))
             .visit_with(&mut extractor_visitor);

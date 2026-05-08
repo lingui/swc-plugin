@@ -8,7 +8,7 @@
       "count": "count"
     },
     "origin": {
-      "filename": "jsx-without-trans.js",
+      "filename": "jsx-without-trans.jsx",
       "line": 2,
       "column": 16
     }
@@ -22,7 +22,7 @@
       "count": "count"
     },
     "origin": {
-      "filename": "jsx-without-trans.js",
+      "filename": "jsx-without-trans.jsx",
       "line": 3,
       "column": 16
     }

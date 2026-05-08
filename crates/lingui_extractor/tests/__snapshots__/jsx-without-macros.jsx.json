@@ -6,7 +6,7 @@
     "comment": "Description",
     "placeholders": {},
     "origin": {
-      "filename": "jsx-without-macros.js",
+      "filename": "jsx-without-macros.jsx",
       "line": 5,
       "column": 2
     }
@@ -18,7 +18,7 @@
     "comment": null,
     "placeholders": {},
     "origin": {
-      "filename": "jsx-without-macros.js",
+      "filename": "jsx-without-macros.jsx",
       "line": 6,
       "column": 2
     }
@@ -30,7 +30,7 @@
     "comment": null,
     "placeholders": {},
     "origin": {
-      "filename": "jsx-without-macros.js",
+      "filename": "jsx-without-macros.jsx",
       "line": 7,
       "column": 2
     }
@@ -42,7 +42,7 @@
     "comment": null,
     "placeholders": {},
     "origin": {
-      "filename": "jsx-without-macros.js",
+      "filename": "jsx-without-macros.jsx",
       "line": 8,
       "column": 2
     }
@@ -54,7 +54,7 @@
     "comment": null,
     "placeholders": {},
     "origin": {
-      "filename": "jsx-without-macros.js",
+      "filename": "jsx-without-macros.jsx",
       "line": 9,
       "column": 2
     }
@@ -66,7 +66,7 @@
     "comment": null,
     "placeholders": {},
     "origin": {
-      "filename": "jsx-without-macros.js",
+      "filename": "jsx-without-macros.jsx",
       "line": 10,
       "column": 2
     }
@@ -78,7 +78,7 @@
     "comment": null,
     "placeholders": {},
     "origin": {
-      "filename": "jsx-without-macros.js",
+      "filename": "jsx-without-macros.jsx",
       "line": 11,
       "column": 2
     }
