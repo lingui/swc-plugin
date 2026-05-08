@@ -61,8 +61,7 @@
     "version": "napi version"
   },
   "dependencies": {
-    "@lingui/conf": "^6.0.1",
-    "@lingui/swc-plugin": "workspace:*"
+    "@lingui/conf": "^6.0.1"
   },
   "devDependencies": {
     "@emnapi/core": "^1.8.1",

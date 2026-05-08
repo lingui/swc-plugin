@@ -1,7 +1,23 @@
 import binding = require('../binding')
 import type {ParserConfig} from "@swc/types"
-import type {LinguiMacroOptions} from "@lingui/swc-plugin/types" with {"resolution-mode": "import"}
 import type {ExtractorType} from "@lingui/conf" with {"resolution-mode": "import"}
+
+export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: string];
+
+export interface RuntimeModulesConfig {
+  i18n?: RuntimeModuleConfig;
+  trans?: RuntimeModuleConfig;
+  useLingui?: RuntimeModuleConfig;
+}
+
+export interface LinguiMacroOptions {
+  runtimeModules?: RuntimeModulesConfig;
+  useLinguiV5IdGeneration?: boolean;
+  jsxPlaceholderAttribute?: string;
+  jsxPlaceholderDefaults?: Record<string, string>;
+  descriptorFields?: 'auto' | 'all' | 'id-only' | 'message'
+}
+
 
 export type ExtractorOptions = {
   /**
