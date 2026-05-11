@@ -97,6 +97,7 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
           placeholders: msg.placeholders,
           context: msg.context,
           comment: msg.comment,
+          message: msg.message,
         })
       })
     },
