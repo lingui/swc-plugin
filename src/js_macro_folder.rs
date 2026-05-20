@@ -31,18 +31,6 @@ where
         JsMacroFolder { ctx, comments }
     }
 
-    fn build_prefixed_id(&self, id: &str, defaults: Option<&DirectiveValues>) -> Option<String> {
-        let id_prefix = defaults.and_then(|defaults| defaults.id_prefix.as_deref())?;
-
-        if let Some(leader) = self.ctx.options.id_prefix_leader.as_deref() {
-            if !id.starts_with(leader) {
-                return None;
-            }
-        }
-
-        Some(format!("{id_prefix}{id}"))
-    }
-
     fn create_message_descriptor_from_tokens(
         &mut self,
         tokens: Vec<MsgToken>,
@@ -154,7 +142,8 @@ where
 
             if let Some(id_prop) = id_prop {
                 if let Some(value) = get_expr_as_string(&id_prop.value) {
-                    let value = self.build_prefixed_id(&value, defaults).unwrap_or(value);
+                    let value =
+                        build_prefixed_id(&self.ctx.options, &value, defaults).unwrap_or(value);
                     new_props.push(create_key_value_prop("id", value.into()));
                 } else {
                     new_props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(

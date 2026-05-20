@@ -32,7 +32,6 @@ use crate::options::*;
 use ast_utils::*;
 use builder::*;
 use comment_directive::collect_lingui_directives;
-use comment_directive::DirectiveValues;
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
 
@@ -66,18 +65,6 @@ impl<C> LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
-    fn build_prefixed_id(&self, id: &str, defaults: Option<&DirectiveValues>) -> Option<String> {
-        let id_prefix = defaults.and_then(|defaults| defaults.id_prefix.as_deref())?;
-
-        if let Some(leader) = self.ctx.options.id_prefix_leader.as_deref() {
-            if !id.starts_with(leader) {
-                return None;
-            }
-        }
-
-        Some(format!("{id_prefix}{id}"))
-    }
-
     pub fn new(options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
@@ -146,8 +133,7 @@ where
         let mut message_descriptor_props: Vec<PropOrSpread> = vec![];
 
         if let Some(id_value) = id_attr.and_then(get_jsx_attr_value_as_string) {
-            let id_value = self
-                .build_prefixed_id(&id_value, defaults.as_ref())
+            let id_value = build_prefixed_id(&self.ctx.options, &id_value, defaults.as_ref())
                 .unwrap_or(id_value);
 
             message_descriptor_props.push(create_key_value_prop("id", id_value.into()));

@@ -373,10 +373,9 @@ to!(
         ..Default::default()
     },
     r#"
-        import { i18n } from '@lingui/core/macro';
         import { t } from '@lingui/core/macro';
         /* lingui-set idPrefix="module" comment="cmt" */
-        const msg = i18n.t({ id: "unprefixed", message: "Welcome" })
+        const msg = t({ id: "unprefixed", message: "Welcome" })
         const msg2 = t({ id: ".my.id", message: "Welcome" })
     "#
 );

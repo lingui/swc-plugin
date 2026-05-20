@@ -9,6 +9,22 @@ use swc_core::ecma::{ast::*, atoms::Atom};
 
 const LINGUI_T: &str = "t";
 
+pub fn build_prefixed_id(
+    options: &LinguiOptions,
+    id: &str,
+    defaults: Option<&DirectiveValues>,
+) -> Option<String> {
+    let id_prefix = defaults.and_then(|defaults| defaults.id_prefix.as_deref())?;
+
+    if let Some(leader) = options.id_prefix_leader.as_deref() {
+        if !id.starts_with(leader) {
+            return None;
+        }
+    }
+
+    Some(format!("{id_prefix}{id}"))
+}
+
 #[derive(Default, Clone)]
 pub struct MacroCtx {
     // export name -> local name
