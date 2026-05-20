@@ -1,0 +1,18 @@
+---
+source: tests/jsx_icu.rs
+---
+import { Plural } from "@lingui/react/macro";
+/* lingui-set context="my context" */
+const el = <Plural value={count} one="# book" other="# books" />;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+/* lingui-set context="my context" */ const el = <Trans_ {.../*i18n*/ {
+    id: "SSborG",
+    values: {
+        count: count
+    },
+    message: "{count, plural, one {# book} other {# books}}",
+    context: "my context"
+}}/>;

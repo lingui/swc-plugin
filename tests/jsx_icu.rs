@@ -4,6 +4,24 @@ use lingui_macro_plugin::{DescriptorFields, LinguiOptions};
 mod common;
 
 to!(
+    jsx_plural_with_directive_context,
+    r##"
+       import { Plural } from "@lingui/react/macro";
+       /* lingui-set context="my context" */
+       const el = <Plural value={count} one="# book" other="# books" />;
+     "##
+);
+
+to!(
+    jsx_select_with_directive_context,
+    r#"
+       import { Select } from "@lingui/react/macro";
+       /* lingui-set context="my context" */
+       const el = <Select value={gender} male="he" female="she" other="they" />;
+     "#
+);
+
+to!(
     jsx_icu,
     r#"
 import { Plural } from "@lingui/react/macro";

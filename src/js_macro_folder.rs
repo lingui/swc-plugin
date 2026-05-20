@@ -1,5 +1,6 @@
 use crate::ast_utils::*;
 use crate::builder::MessageBuilder;
+use crate::comment_directive::DirectiveValues;
 use crate::generate_id::generate_message_id;
 use crate::macro_utils::*;
 use crate::tokens::MsgToken;
@@ -30,14 +31,35 @@ where
         JsMacroFolder { ctx, comments }
     }
 
-    fn create_message_descriptor_from_tokens(&mut self, tokens: Vec<MsgToken>, span: Span) -> Expr {
+    fn build_prefixed_id(&self, id: &str, defaults: Option<&DirectiveValues>) -> Option<String> {
+        let id_prefix = defaults.and_then(|defaults| defaults.id_prefix.as_deref())?;
+
+        if let Some(leader) = self.ctx.options.id_prefix_leader.as_deref() {
+            if !id.starts_with(leader) {
+                return None;
+            }
+        }
+
+        Some(format!("{id_prefix}{id}"))
+    }
+
+    fn create_message_descriptor_from_tokens(
+        &mut self,
+        tokens: Vec<MsgToken>,
+        span: Span,
+        defaults: Option<&DirectiveValues>,
+    ) -> Expr {
         let parsed = MessageBuilder::parse(tokens, &self.ctx.options);
+
+        let context = defaults
+            .and_then(|defaults| defaults.context.as_deref())
+            .unwrap_or_default();
 
         let mut props: Vec<PropOrSpread> = vec![create_key_value_prop(
             "id",
             generate_message_id(
                 &parsed.message_str,
-                "",
+                context,
                 self.ctx.options.use_lingui_v5_id_generation,
             )
             .into(),
@@ -49,6 +71,18 @@ where
 
         if let Some(v) = parsed.values {
             props.push(create_key_value_prop("values", v))
+        }
+
+        if self.ctx.options.descriptor_fields.should_keep_comment() {
+            if let Some(comment) = defaults.and_then(|defaults| defaults.comment.as_deref()) {
+                props.push(create_key_value_prop("comment", comment.into()));
+            }
+        }
+
+        if self.ctx.options.descriptor_fields.should_keep_context() {
+            if let Some(context) = defaults.and_then(|defaults| defaults.context.as_deref()) {
+                props.push(create_key_value_prop("context", context.into()));
+            }
         }
 
         let message_descriptor = Expr::Object(ObjectLit { span, props });
@@ -65,8 +99,12 @@ where
         msg_dscrptr_span: Span,
         call_expr_span: Span,
     ) -> CallExpr {
-        let message_descriptor =
-            Box::new(self.create_message_descriptor_from_tokens(tokens, msg_dscrptr_span));
+        let defaults = self.ctx.get_comment_directive(msg_dscrptr_span.lo).cloned();
+        let message_descriptor = Box::new(self.create_message_descriptor_from_tokens(
+            tokens,
+            msg_dscrptr_span,
+            defaults.as_ref(),
+        ));
 
         self.create_i18n_fn_call(
             callee_obj,
@@ -102,17 +140,27 @@ where
     // take {message: "", id: "", ...} object literal, process message and return updated props
     fn update_msg_descriptor_props(&self, expr: Box<Expr>, span: Span) -> Box<Expr> {
         if let Expr::Object(obj) = *expr {
+            let defaults = self.ctx.get_comment_directive(span.lo);
             let id_prop = get_object_prop(&obj.props, "id");
 
-            let context_val = get_object_prop(&obj.props, "context")
-                .and_then(|prop| get_expr_as_string(&prop.value));
+            let explicit_context_prop = get_object_prop(&obj.props, "context");
+            let context_val =
+                explicit_context_prop.and_then(|prop| get_expr_as_string(&prop.value));
 
             let message_prop = get_object_prop(&obj.props, "message");
+            let explicit_comment_prop = get_object_prop(&obj.props, "comment");
 
             let mut new_props: Vec<PropOrSpread> = vec![];
 
-            if let Some(value) = id_prop.and_then(|prop| get_expr_as_string(&prop.value)) {
-                new_props.push(create_key_value_prop("id", value.into()));
+            if let Some(id_prop) = id_prop {
+                if let Some(value) = get_expr_as_string(&id_prop.value) {
+                    let value = self.build_prefixed_id(&value, defaults).unwrap_or(value);
+                    new_props.push(create_key_value_prop("id", value.into()));
+                } else {
+                    new_props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(
+                        id_prop.clone(),
+                    ))));
+                }
             }
 
             if let Some(prop) = message_prop {
@@ -121,11 +169,16 @@ where
                 let parsed = MessageBuilder::parse(tokens, &self.ctx.options);
 
                 if id_prop.is_none() {
+                    let resolved_context = context_val
+                        .as_deref()
+                        .or_else(|| defaults.and_then(|defaults| defaults.context.as_deref()))
+                        .unwrap_or_default();
+
                     new_props.push(create_key_value_prop(
                         "id",
                         generate_message_id(
                             &parsed.message_str,
-                            context_val.as_deref().unwrap_or_default(),
+                            resolved_context,
                             self.ctx.options.use_lingui_v5_id_generation,
                         )
                         .into(),
@@ -142,14 +195,24 @@ where
             }
 
             if self.ctx.options.descriptor_fields.should_keep_context() {
-                if let Some(context) = context_val {
+                if let Some(context_prop) = explicit_context_prop {
+                    new_props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(
+                        context_prop.clone(),
+                    ))));
+                } else if let Some(context) =
+                    defaults.and_then(|defaults| defaults.context.as_deref())
+                {
                     new_props.push(create_key_value_prop("context", context.into()));
                 }
             }
 
             if self.ctx.options.descriptor_fields.should_keep_comment() {
-                if let Some(value) = get_object_prop(&obj.props, "comment")
-                    .and_then(|prop| get_expr_as_string(&prop.value))
+                if let Some(comment_prop) = explicit_comment_prop {
+                    new_props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(
+                        comment_prop.clone(),
+                    ))));
+                } else if let Some(value) =
+                    defaults.and_then(|defaults| defaults.comment.as_deref())
                 {
                     new_props.push(create_key_value_prop("comment", value.into()));
                 }
@@ -194,7 +257,12 @@ where
             if let Expr::Ident(ident) = tagged_tpl.tag.as_ref() {
                 if self.ctx.is_define_message_ident(ident) {
                     let tokens = self.ctx.tokenize_tpl(&tagged_tpl.tpl);
-                    return self.create_message_descriptor_from_tokens(tokens, span);
+                    let defaults = self.ctx.get_comment_directive(span.lo).cloned();
+                    return self.create_message_descriptor_from_tokens(
+                        tokens,
+                        span,
+                        defaults.as_ref(),
+                    );
                 }
             }
         }

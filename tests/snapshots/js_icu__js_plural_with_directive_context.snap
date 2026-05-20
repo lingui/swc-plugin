@@ -1,0 +1,18 @@
+---
+source: tests/js_icu.rs
+---
+import { plural } from "@lingui/core/macro";
+/* lingui-set context="my context" */
+const msg = plural(count, { one: "# book", other: "# books" })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set context="my context" */ const msg = $_i18n._(/*i18n*/ {
+    id: "SSborG",
+    message: "{count, plural, one {# book} other {# books}}",
+    values: {
+        count: count
+    },
+    context: "my context"
+});

@@ -2,6 +2,24 @@
 mod common;
 
 to!(
+    js_plural_with_directive_context,
+    r##"
+      import { plural } from "@lingui/core/macro";
+      /* lingui-set context="my context" */
+      const msg = plural(count, { one: "# book", other: "# books" })
+   "##
+);
+
+to!(
+    js_select_with_directive_context,
+    r#"
+      import { select } from "@lingui/core/macro";
+      /* lingui-set context="my context" */
+      const msg = select(gender, { male: "he", female: "she", other: "they" })
+   "#
+);
+
+to!(
     js_icu_macro,
     r#"
     import { plural, select, selectOrdinal } from "@lingui/core/macro";

@@ -1,0 +1,18 @@
+---
+source: tests/jsx_icu.rs
+---
+import { Select } from "@lingui/react/macro";
+/* lingui-set context="my context" */
+const el = <Select value={gender} male="he" female="she" other="they" />;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+/* lingui-set context="my context" */ const el = <Trans_ {.../*i18n*/ {
+    id: "vfcacx",
+    values: {
+        gender: gender
+    },
+    message: "{gender, select, other {they}}",
+    context: "my context"
+}}/>;

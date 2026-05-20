@@ -1,0 +1,18 @@
+---
+source: tests/js_t.rs
+info:
+  id_prefix_leader: "."
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set idPrefix="module" */
+const dynId = "dynamic";
+const msg = t({ id: dynId, message: "Welcome" })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set idPrefix="module" */ const dynId = "dynamic";
+const msg = $_i18n._(/*i18n*/ {
+    id: dynId,
+    message: "Welcome"
+});

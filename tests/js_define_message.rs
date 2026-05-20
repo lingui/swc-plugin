@@ -95,3 +95,65 @@ to!(
         })
     "#
 );
+
+to!(
+    define_message_with_directive_context,
+    r#"
+        import { defineMessage } from '@lingui/core/macro';
+        /* lingui-set context="my context" */
+        const msg = defineMessage({ message: "Hello" })
+    "#
+);
+
+to!(
+    define_message_tagged_template_with_directive,
+    r#"
+        import { defineMessage } from '@lingui/core/macro';
+        /* lingui-set context="my context" comment="note" */
+        const msg = defineMessage`Hello`
+    "#
+);
+
+to!(
+    define_message_explicit_context_overrides_directive,
+    r#"
+        import { defineMessage } from '@lingui/core/macro';
+        /* lingui-set context="directive ctx" comment="directive cmt" */
+        const msg = defineMessage({ message: "Hello", context: "explicit ctx" })
+    "#
+);
+
+to!(
+    define_message_id_prefix_with_explicit_id,
+    r#"
+        import { defineMessage } from '@lingui/core/macro';
+        /* lingui-set idPrefix="module." */
+        const msg = defineMessage({ id: "greeting", message: "Hello" })
+    "#
+);
+
+to!(
+    define_message_id_prefix_leader_with_matching_explicit_id,
+    LinguiOptions {
+        id_prefix_leader: Some(".".into()),
+        ..Default::default()
+    },
+    r#"
+        import { defineMessage } from '@lingui/core/macro';
+        /* lingui-set idPrefix="module" */
+        const msg = defineMessage({ id: ".greeting", message: "Hello" })
+    "#
+);
+
+to!(
+    define_message_id_prefix_leader_with_non_matching_explicit_id,
+    LinguiOptions {
+        id_prefix_leader: Some(".".into()),
+        ..Default::default()
+    },
+    r#"
+        import { defineMessage } from '@lingui/core/macro';
+        /* lingui-set idPrefix="module." */
+        const msg = defineMessage({ id: "greeting", message: "Hello" })
+    "#
+);

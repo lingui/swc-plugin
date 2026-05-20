@@ -1,0 +1,15 @@
+---
+source: tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+/* lingui-set context="my context" */
+const el = <Trans>Hello</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+/* lingui-set context="my context" */ const el = <Trans_ {.../*i18n*/ {
+    id: "WMU_Op",
+    message: "Hello",
+    context: "my context"
+}}/>;

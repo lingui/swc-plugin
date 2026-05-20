@@ -1,0 +1,22 @@
+---
+source: tests/js_t.rs
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set context="first" */
+const msg1 = t`Hello`
+/* lingui-set context="second" */
+const msg2 = t`World`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set context="first" */ const msg1 = $_i18n._(/*i18n*/ {
+    id: "VUeJYD",
+    message: "Hello",
+    context: "first"
+});
+/* lingui-set context="second" */ const msg2 = $_i18n._(/*i18n*/ {
+    id: "ovKD_8",
+    message: "World",
+    context: "second"
+});

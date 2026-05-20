@@ -62,6 +62,10 @@ https://swc.rs/docs/configuration/swcrc
             // IMPORTANT: This option is temporal and will be removed in the next major release.
             // "useLinguiV5IdGeneration": true
             //
+            // Optional. Restricts directive-based idPrefix application to explicit ids
+            // starting with this leader string, while keeping the leader in the final id.
+            // "idPrefixLeader": "."
+            //
             // To configure custom JSX placeholder attribute and its defaults:
             // "jsxPlaceholderAttribute": "_t",
             // "jsxPlaceholderDefaults": {
@@ -86,6 +90,76 @@ Controls which fields are preserved in the transformed message descriptors. Acce
 - **`"message"`** — Keeps `id`, `message`, and `context` (but not `comment`). Useful when you need message content at runtime.
 
 Check [this article](https://lingui.dev/guides/optimizing-bundle-size) for more info about this configuration.
+
+### `idPrefixLeader`
+
+Controls how directive-based `idPrefix` values are applied to explicit message ids.
+
+- When omitted, `idPrefix` is prepended to explicit static ids.
+- When set, `idPrefix` is prepended only when the explicit static id starts with the configured leader string.
+- Auto-generated hash ids are never prefixed.
+
+Example:
+
+```json5
+{
+  "jsc": {
+    "experimental": {
+      "plugins": [["@lingui/swc-plugin", {
+        "idPrefixLeader": "."
+      }]]
+    }
+  }
+}
+```
+
+```ts
+/* lingui-set idPrefix="checkout" */
+const msg = t({ id: ".header.title", message: "Title" })
+// => checkout.header.title
+```
+
+### Comment Directives
+
+The SWC plugin supports the same file-level `lingui-set` and `lingui-reset` comment directives as Lingui's Babel macro.
+
+Both block and line comments are supported:
+
+```ts
+/* lingui-set context="checkout" comment="Checkout page strings" */
+// lingui-set idPrefix="checkout."
+```
+
+Supported keys:
+
+- `context`
+- `comment`
+- `idPrefix`
+
+Behavior:
+
+- `lingui-set` merges with the currently accumulated directive state.
+- `lingui-reset` clears accumulated directive state, then applies any new values from the same directive.
+- Setting a key to an empty string unsets only that key.
+- Explicit `context` or `comment` values on a macro override the directive-provided value.
+- Directive `context` still affects generated hash ids even when `descriptorFields` strips `context` from the emitted descriptor.
+- Directive `idPrefix` applies only to explicit static ids. Generated hash ids are not prefixed.
+
+Example:
+
+```ts
+import { t } from "@lingui/core/macro"
+
+/* lingui-set context="dashboard" */
+const title = t`Welcome`
+const subtitle = t`Overview`
+
+/* lingui-set comment="dashboard strings" */
+const heading = t`Preferences`
+
+/* lingui-reset */
+const other = t`Standalone`
+```
 
 Or Next JS Usage:
 

@@ -1,0 +1,22 @@
+---
+source: tests/use_lingui.rs
+---
+import { useLingui } from '@lingui/react/macro';
+
+function App() {
+  const { t } = useLingui();
+  /* lingui-set context="my context" */
+  return t`Hello`;
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+function App() {
+    const { i18n: $__i18n, _: $__ } = $_useLingui();
+    /* lingui-set context="my context" */ return $__i18n._(/*i18n*/ {
+        id: "WMU_Op",
+        message: "Hello",
+        context: "my context"
+    });
+}

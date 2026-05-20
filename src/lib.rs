@@ -18,6 +18,7 @@ use swc_core::{
 
 mod ast_utils;
 mod builder;
+mod comment_directive;
 mod generate_id;
 mod js_macro_folder;
 mod jsx_visitor;
@@ -30,6 +31,8 @@ use crate::macro_utils::*;
 use crate::options::*;
 use ast_utils::*;
 use builder::*;
+use comment_directive::collect_lingui_directives;
+use comment_directive::DirectiveValues;
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
 
@@ -63,6 +66,18 @@ impl<C> LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
+    fn build_prefixed_id(&self, id: &str, defaults: Option<&DirectiveValues>) -> Option<String> {
+        let id_prefix = defaults.and_then(|defaults| defaults.id_prefix.as_deref())?;
+
+        if let Some(leader) = self.ctx.options.id_prefix_leader.as_deref() {
+            if !id.starts_with(leader) {
+                return None;
+            }
+        }
+
+        Some(format!("{id_prefix}{id}"))
+    }
+
     pub fn new(options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
@@ -117,27 +132,31 @@ where
 
         let parsed = MessageBuilder::parse(trans_visitor.tokens, &self.ctx.options);
         let id_attr = get_jsx_attr(&el.opening, "id").and_then(|attr| attr.value.as_ref());
+        let defaults = self.ctx.get_comment_directive(el.span.lo).cloned();
 
         let context_attr =
             get_jsx_attr(&el.opening, "context").and_then(|attr| attr.value.as_ref());
+        let context_attr_val = context_attr.and_then(get_jsx_attr_value_as_string);
+        let resolved_context = context_attr_val.clone().or_else(|| {
+            defaults
+                .as_ref()
+                .and_then(|defaults| defaults.context.clone())
+        });
 
         let mut message_descriptor_props: Vec<PropOrSpread> = vec![];
 
-        if let Some(attr) = id_attr {
-            message_descriptor_props.push(create_key_value_prop(
-                "id",
-                get_jsx_attr_value_as_string(attr)
-                    .unwrap_or_default()
-                    .into(),
-            ));
-        } else {
-            let context_attr_val = context_attr.and_then(get_jsx_attr_value_as_string);
+        if let Some(id_value) = id_attr.and_then(get_jsx_attr_value_as_string) {
+            let id_value = self
+                .build_prefixed_id(&id_value, defaults.as_ref())
+                .unwrap_or(id_value);
 
+            message_descriptor_props.push(create_key_value_prop("id", id_value.into()));
+        } else {
             message_descriptor_props.push(create_key_value_prop(
                 "id",
                 generate_message_id(
                     &parsed.message_str,
-                    &context_attr_val.unwrap_or_default(),
+                    resolved_context.as_deref().unwrap_or_default(),
                     self.ctx.options.use_lingui_v5_id_generation,
                 )
                 .into(),
@@ -156,7 +175,11 @@ where
             let comment_attr_val = get_jsx_attr(&el.opening, "comment")
                 .and_then(|attr| get_jsx_attr_value_as_string(attr.value.as_ref()?));
 
-            if let Some(comment_attr_val) = comment_attr_val {
+            if let Some(comment_attr_val) = comment_attr_val.or_else(|| {
+                defaults
+                    .as_ref()
+                    .and_then(|defaults| defaults.comment.clone())
+            }) {
                 message_descriptor_props
                     .push(create_key_value_prop("comment", comment_attr_val.into()));
             }
@@ -167,11 +190,13 @@ where
         }
 
         if self.ctx.options.descriptor_fields.should_keep_context() {
-            if let Some(context_attr_val) = context_attr.and_then(get_jsx_attr_value_as_string) {
+            if let Some(context_attr_val) = resolved_context {
                 message_descriptor_props.push(create_key_value_prop(
                     "context",
                     Box::new(Expr::Lit(Lit::Str(Str {
-                        span: context_attr.span(),
+                        span: context_attr
+                            .map(|attr| attr.span())
+                            .unwrap_or(message_dscrptr_span),
                         value: context_attr_val.into(),
                         raw: None,
                     }))),
@@ -360,6 +385,13 @@ impl<C> Fold for LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
+    fn fold_program(&mut self, program: Program) -> Program {
+        self.ctx
+            .set_comment_directives(collect_lingui_directives(&program, &self.comments));
+
+        program.fold_children_with(self)
+    }
+
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
         let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();

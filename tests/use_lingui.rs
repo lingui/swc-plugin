@@ -2,6 +2,35 @@
 mod common;
 
 to!(
+    use_lingui_t_with_directive_context,
+    r#"
+import { useLingui } from '@lingui/react/macro';
+
+function App() {
+  const { t } = useLingui();
+  /* lingui-set context="my context" */
+  return t`Hello`;
+}
+     "#
+);
+
+to!(
+    use_lingui_t_with_directive_applied_per_reference,
+    r#"
+import { useLingui } from '@lingui/react/macro';
+
+function App() {
+  const { t } = useLingui();
+  /* lingui-set context="first" */
+  const msg1 = t`Hello`;
+  /* lingui-set context="second" */
+  const msg2 = t`World`;
+  return msg1 + msg2;
+}
+     "#
+);
+
+to!(
     js_use_lingui_hook,
     r#"
      import { useLingui } from "@lingui/react/macro";

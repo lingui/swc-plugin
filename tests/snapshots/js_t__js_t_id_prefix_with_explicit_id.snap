@@ -1,0 +1,14 @@
+---
+source: tests/js_t.rs
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set idPrefix="module." */
+const msg = t({ id: "greeting", message: "Hello" })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set idPrefix="module." */ const msg = $_i18n._(/*i18n*/ {
+    id: "module.greeting",
+    message: "Hello"
+});
