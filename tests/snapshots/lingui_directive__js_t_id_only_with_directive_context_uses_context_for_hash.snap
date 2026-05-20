@@ -1,0 +1,15 @@
+---
+source: tests/lingui_directive.rs
+info:
+  descriptor_fields: id-only
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set context="my context" */
+const msg = t`Hello`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set context="my context" */ const msg = $_i18n._(/*i18n*/ {
+    id: "WMU_Op"
+});

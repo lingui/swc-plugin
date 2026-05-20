@@ -371,13 +371,6 @@ impl<C> Fold for LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
-    fn fold_program(&mut self, program: Program) -> Program {
-        self.ctx
-            .set_comment_directives(collect_lingui_directives(&program, &self.comments));
-
-        program.fold_children_with(self)
-    }
-
     fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
         let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
@@ -404,6 +397,13 @@ where
             index += 1;
             true
         });
+
+        if !self.has_lingui_macro_imports {
+            return n;
+        }
+
+        self.ctx
+            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
 
         n = n.fold_children_with(self);
 
