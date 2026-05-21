@@ -1,18 +1,18 @@
-import { describe, expect, it } from "vitest"
-import { resolve } from "node:path"
+import {describe, expect, it} from "vitest"
+import {resolve} from "node:path"
 
-import { linguiSwcOptions } from "@lingui/swc-plugin/options"
+import {linguiMacroSwcPlugin} from "./options"
 
 const fixturesDir = resolve(import.meta.dirname, "e2e/fixtures/lingui-options")
 
-describe("linguiSwcOptions", () => {
+describe("linguiMacroSwcPlugin", () => {
   it("discovers the default Lingui config from cwd", () => {
     const previousCwd = process.cwd()
 
     try {
       process.chdir(fixturesDir)
 
-      expect(linguiSwcOptions()).toEqual({
+      expect(linguiMacroSwcPlugin()).toEqual(["@lingui/swc-plugin", {
         jsxPlaceholderAttribute: "_t",
         jsxPlaceholderDefaults: {
           a: "link",
@@ -22,15 +22,15 @@ describe("linguiSwcOptions", () => {
           trans: ["@acme/react", "Trans"],
           useLingui: ["@acme/react", "useLingui"],
         },
-      })
+      }])
     } finally {
       process.chdir(previousCwd)
     }
   })
 
   it("maps shared options from an explicit config path", () => {
-    expect(linguiSwcOptions({}, resolve(fixturesDir, "custom.config.js"))).toEqual(
-      {
+    expect(linguiMacroSwcPlugin({}, {configPath: resolve(fixturesDir, "custom.config.js")})).toEqual(
+      ["@lingui/swc-plugin", {
         jsxPlaceholderAttribute: "data-i18n",
         jsxPlaceholderDefaults: {
           a: "anchor",
@@ -41,22 +41,22 @@ describe("linguiSwcOptions", () => {
           trans: ["@custom/react", "CustomTrans"],
           useLingui: ["@custom/react", "useCustomLingui"],
         },
-      },
+      }],
     )
   })
 
   it("merges overrides over mapped config", () => {
     expect(
-      linguiSwcOptions(
+      linguiMacroSwcPlugin(
         {
           jsxPlaceholderAttribute: "data-test",
           runtimeModules: {
             trans: ["@override/react", "OverrideTrans"],
           },
         },
-        resolve(fixturesDir, "custom.config.js"),
+        {configPath: resolve(fixturesDir, "custom.config.js")},
       ),
-    ).toEqual({
+    ).toEqual(["@lingui/swc-plugin", {
       jsxPlaceholderAttribute: "data-test",
       jsxPlaceholderDefaults: {
         a: "anchor",
@@ -67,6 +67,6 @@ describe("linguiSwcOptions", () => {
         trans: ["@override/react", "OverrideTrans"],
         useLingui: ["@custom/react", "useCustomLingui"],
       },
-    })
+    }])
   })
 })

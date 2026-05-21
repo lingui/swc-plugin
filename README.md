@@ -55,14 +55,14 @@ https://swc.rs/docs/configuration/swcrc
 ### `next.config.js`
 
 ```js
-const { linguiSwcOptions } = require("@lingui/swc-plugin/options")
+const { linguiMacroSwcPlugin } = require("@lingui/swc-plugin/options")
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
     swcPlugins: [
-      ["@lingui/swc-plugin", linguiSwcOptions()],
+      linguiMacroSwcPlugin(),
     ],
   },
 };
@@ -79,35 +79,35 @@ module.exports = nextConfig;
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react-swc"
 import { lingui } from "@lingui/vite-plugin"
-import { linguiSwcOptions } from "@lingui/swc-plugin/options"
+import { linguiMacroSwcPlugin } from "@lingui/swc-plugin/options"
 
 export default defineConfig({
   plugins: [
     react({
-      plugins: [["@lingui/swc-plugin", linguiSwcOptions()]],
+      plugins: [linguiMacroSwcPlugin()],
     }),
     lingui(),
   ],
 })
 ```
 
-### `linguiSwcOptions(overrides?, linguiConfigPath?)`
+### `linguiMacroSwcPlugin(overrides?, configOptions?)`
 
-`linguiSwcOptions` lets you automatically reuse SWC related options already defined in your Lingui config, and can be used in JS based configurations.
+`linguiMacroSwcPlugin` lets you automatically reuse SWC related options already defined in your Lingui config, and can be used in JS based configurations. It returns a `["@lingui/swc-plugin", options]` tuple ready to use in plugin arrays.
 
 ```js
-import { linguiSwcOptions } from "@lingui/swc-plugin/options"
+import { linguiMacroSwcPlugin } from "@lingui/swc-plugin/options"
 
 // Recommended approach
-["@lingui/swc-plugin", linguiSwcOptions()]
+linguiMacroSwcPlugin()
 
 // Optional: override specific options
-["@lingui/swc-plugin", linguiSwcOptions({
+linguiMacroSwcPlugin({
   jsxPlaceholderAttribute: "_t",
-})]
+})
 
 // Optional: specify which lingui config to use
-["@lingui/swc-plugin", linguiSwcOptions({}, '../lingui.config.js')]
+linguiMacroSwcPlugin({}, { configPath: '../lingui.config.js' })
 ```
 
 ## Options
