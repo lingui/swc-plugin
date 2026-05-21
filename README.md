@@ -31,7 +31,7 @@ yarn add @lingui/macro
 
 ## Usage
 
-`.swcrc`
+### `.swcrc`
 https://swc.rs/docs/configuration/swcrc
 
 ```json5
@@ -43,35 +43,7 @@ https://swc.rs/docs/configuration/swcrc
         [
           "@lingui/swc-plugin",
           {
-            // Optional
-            // Unlike the JS version this option must be passed as object only.
-            // Docs https://lingui.dev/ref/conf#runtimeconfigmodule
-            // "runtimeModules": {
-            //   "i18n": ["@lingui/core", "i18n"],
-            //   "trans": ["@lingui/react", "Trans"]
-            // }
-            //
-            // Optional. Controls which descriptor fields are preserved in output.
-            // "descriptorFields": "auto" (default) | "all" | "id-only" | "message"
-            //
-            // Compatibility option allows to use v6.* SWC Plugin release channel with @lingui/cli@5.*
-            // Controls the BASE64 alphabet used for generating message IDs.
-            // - false (default): Uses URL-safe BASE64 alphabet (Lingui v6 behavior)
-            // - true: Uses standard BASE64 alphabet (Lingui v5 behavior for compatibility)
-            //
-            // IMPORTANT: This option is temporal and will be removed in the next major release.
-            // "useLinguiV5IdGeneration": true
-            //
-            // Optional. Restricts directive-based idPrefix application to explicit ids
-            // starting with this leader string, while keeping the leader in the final id.
-            // "idPrefixLeader": "."
-            //
-            // To configure custom JSX placeholder attribute and its defaults:
-            // "jsxPlaceholderAttribute": "_t",
-            // "jsxPlaceholderDefaults": {
-            //   "a": "link",
-            //   "em": "em"
-            // }
+            // Options
           },
         ],
       ],
@@ -79,6 +51,66 @@ https://swc.rs/docs/configuration/swcrc
   },
 }
 ```
+
+### `next.config.js`
+
+```js
+const { linguiSwcOptions } = require("@lingui/swc-plugin/options")
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  experimental: {
+    swcPlugins: [
+      ["@lingui/swc-plugin", linguiSwcOptions()],
+    ],
+  },
+};
+
+module.exports = nextConfig;
+```
+
+> **Note**
+> Consult with full working example for NextJS in the `/examples` folder in this repo.
+
+### `vite.config.ts`
+
+```ts
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react-swc"
+import { lingui } from "@lingui/vite-plugin"
+import { linguiSwcOptions } from "@lingui/swc-plugin/options"
+
+export default defineConfig({
+  plugins: [
+    react({
+      plugins: [["@lingui/swc-plugin", linguiSwcOptions()]],
+    }),
+    lingui(),
+  ],
+})
+```
+
+### `linguiSwcOptions(overrides?, linguiConfigPath?)`
+
+`linguiSwcOptions` lets you automatically reuse SWC related options already defined in your Lingui config, and can be used in JS based configurations.
+
+```js
+import { linguiSwcOptions } from "@lingui/swc-plugin/options"
+
+// Recommended approach
+["@lingui/swc-plugin", linguiSwcOptions()]
+
+// Optional: override specific options
+["@lingui/swc-plugin", linguiSwcOptions({
+  jsxPlaceholderAttribute: "_t",
+})]
+
+// Optional: specify which lingui config to use
+["@lingui/swc-plugin", linguiSwcOptions({}, '../lingui.config.js')]
+```
+
+## Options
 
 ### `descriptorFields`
 
@@ -89,7 +121,7 @@ Controls which fields are preserved in the transformed message descriptors. Acce
 - **`"id-only"`** — Keeps only the `id`. Most optimized for production bundles.
 - **`"message"`** — Keeps `id`, `message`, and `context` (but not `comment`). Useful when you need message content at runtime.
 
-Check [this article](https://lingui.dev/guides/optimizing-bundle-size) for more info about this configuration.
+See [Optimizing bundle size](https://lingui.dev/guides/optimizing-bundle-size) for more info about this configuration.
 
 ### `idPrefixLeader`
 
@@ -101,28 +133,27 @@ Controls how directive-based `idPrefix` values are applied to explicit message i
 
 See [Lingui macro docs](https://lingui.dev/ref/macro) for comment directive syntax and semantics. The SWC plugin matches the Babel macro behavior.
 
-Or Next JS Usage:
+### `jsxPlaceholderAttribute`
 
-`next.config.js`
-```js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  experimental: {
-    swcPlugins: [
-      ['@lingui/swc-plugin', {
-       // the same options as in .swcrc
-      }],
-    ],
-  },
-};
+Sets the JSX attribute name used to provide explicit placeholder names inside `<Trans>` content.
 
-module.exports = nextConfig;
-```
+### `jsxPlaceholderDefaults`
+
+Defines default placeholder names for JSX tags when no explicit placeholder attribute is present.
+
+### `runtimeModules`
+
+Overrides the runtime imports used by the plugin. Unlike [the Babel macro configuration](https://lingui.dev/ref/conf#runtimeconfigmodule), this option must be passed as an object.
+
+### `useLinguiV5IdGeneration`
+
+Compatibility option for using the v6 SWC plugin release channel with `@lingui/cli@5.*`.
+
+- **`false`** (default) — Uses the URL-safe Base64 alphabet used by Lingui v6.
+- **`true`** — Uses the standard Base64 alphabet used by Lingui v5.
 
 > **Note**
-> Consult with full working example for NextJS in the `/examples` folder in this repo.
-
+> This option is temporary and will be removed in the next major release.
 
 ## Compatibility
 SWC Plugin support is still experimental. They do not guarantee a semver backwards compatibility between different `swc-core` versions.
