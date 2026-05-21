@@ -97,7 +97,7 @@ linguiMacroSwcPlugin({}, { configPath: '../lingui.config.js' })
 
 ### `.swcrc`
 
-When using SWC directly via CLI or a JSON-only configuration, pass options manually:
+When using SWC directly via CLI or a JSON-only configuration, pass options manually. All options are optional — if your have a standard setup, an empty object `{}` is sufficient:
 
 ```json5
 {
