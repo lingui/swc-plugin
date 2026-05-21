@@ -31,28 +31,13 @@ yarn add @lingui/macro
 
 ## Usage
 
-### `.swcrc`
-https://swc.rs/docs/configuration/swcrc
+If your build tool uses a JS config (Next.js, Vite, etc.), use the `linguiMacroSwcPlugin` helper — it reads your Lingui config and prepares all plugin options automatically.
 
-```json5
-{
-  "$schema": "https://json.schemastore.org/swcrc",
-  "jsc": {
-    "experimental": {
-      "plugins": [
-        [
-          "@lingui/swc-plugin",
-          {
-            // Options
-          },
-        ],
-      ],
-    },
-  },
-}
-```
+If you configure SWC directly via `.swcrc` (e.g. the SWC CLI), pass options manually as described in the [Options](#options) section below.
 
-### `next.config.js`
+### JS config (recommended)
+
+#### `next.config.js`
 
 ```js
 const { linguiMacroSwcPlugin } = require("@lingui/swc-plugin/options")
@@ -73,7 +58,7 @@ module.exports = nextConfig;
 > **Note**
 > Consult with full working example for NextJS in the `/examples` folder in this repo.
 
-### `vite.config.ts`
+#### `vite.config.ts`
 
 ```ts
 import { defineConfig } from "vite"
@@ -91,23 +76,54 @@ export default defineConfig({
 })
 ```
 
-### `linguiMacroSwcPlugin(overrides?, configOptions?)`
+#### `linguiMacroSwcPlugin(overrides?, configOptions?)`
 
-`linguiMacroSwcPlugin` lets you automatically reuse SWC related options already defined in your Lingui config, and can be used in JS based configurations. It returns a `["@lingui/swc-plugin", options]` tuple ready to use in plugin arrays.
+`linguiMacroSwcPlugin` reads your Lingui config and maps relevant options to the SWC plugin format. It returns a `["@lingui/swc-plugin", options]` tuple ready to use in plugin arrays.
 
 ```js
 import { linguiMacroSwcPlugin } from "@lingui/swc-plugin/options"
 
-// Recommended approach
+// Recommended — reads lingui.config.{js,ts} automatically
 linguiMacroSwcPlugin()
 
-// Optional: override specific options
+// Override specific options
 linguiMacroSwcPlugin({
-  jsxPlaceholderAttribute: "_t",
+  useLinguiV5IdGeneration: true,
 })
 
-// Optional: specify which lingui config to use
+// Specify which lingui config to use
 linguiMacroSwcPlugin({}, { configPath: '../lingui.config.js' })
+```
+
+### `.swcrc`
+
+When using SWC directly via CLI or a JSON-only configuration, pass options manually:
+
+```json5
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "jsc": {
+    "experimental": {
+      "plugins": [
+        [
+          "@lingui/swc-plugin",
+          {
+            "runtimeModules": {
+              "i18n": ["@lingui/core", "i18n"],
+              "trans": ["@lingui/react", "Trans"],
+              "useLingui": ["@lingui/react", "useLingui"]
+            },
+            "descriptorFields": "auto",
+            "jsxPlaceholderAttribute": "_t",
+            "jsxPlaceholderDefaults": {
+              "a": "link"
+            }
+          },
+        ],
+      ],
+    },
+  },
+}
 ```
 
 ## Options
@@ -125,13 +141,9 @@ See [Optimizing bundle size](https://lingui.dev/guides/optimizing-bundle-size) f
 
 ### `idPrefixLeader`
 
-Controls how directive-based `idPrefix` values are applied to explicit message ids.
+The SWC plugin matches the Babel macro behavior
 
-- When omitted, `idPrefix` is prepended to explicit static ids.
-- When set, `idPrefix` is prepended only when the explicit static id starts with the configured leader string.
-- Auto-generated hash ids are never prefixed.
-
-See [Lingui macro docs](https://lingui.dev/ref/macro) for comment directive syntax and semantics. The SWC plugin matches the Babel macro behavior.
+See [Configuration Doc](https://lingui.dev/ref/conf#macroidprefixleader) and [`lingui-set` / `lingui-reset` Comment Directives Doc](https://lingui.dev/ref/macro#lingui-directive)
 
 ### `jsxPlaceholderAttribute`
 

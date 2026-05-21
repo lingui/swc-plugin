@@ -4,15 +4,33 @@ export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: str
 
 /** Options accepted by the `@lingui/swc-plugin` WASM plugin. */
 export type LinguiMacroOptions = {
+  /** JSX attribute name used to provide explicit placeholder names inside `<Trans>` content. */
   jsxPlaceholderAttribute?: string
+  /** Default placeholder names for JSX tags when no explicit placeholder attribute is present. */
   jsxPlaceholderDefaults?: Record<string, string>
+  /** Overrides the runtime imports used by the plugin. Unlike the Babel macro configuration, must be passed as an object. */
   runtimeModules: {
     i18n: RuntimeModuleConfig
     trans: RuntimeModuleConfig
     useLingui: RuntimeModuleConfig
   }
+  /**
+   * Compatibility option for using the v6 SWC plugin with `@lingui/cli@5.*`.
+   * - `false` (default) — URL-safe Base64 alphabet (Lingui v6).
+   * - `true` — Standard Base64 alphabet (Lingui v5).
+   *
+   * Temporary — will be removed in the next major release.
+   */
   useLinguiV5IdGeneration?: boolean
+  /**
+   * Controls which descriptor fields are preserved in output.
+   * - `"auto"` (default) — `"id-only"` in production, `"all"` otherwise.
+   * - `"all"` — Keeps id, message, context, and comment.
+   * - `"id-only"` — Keeps only id. Most optimized for production bundles.
+   * - `"message"` — Keeps id, message, and context (not comment).
+   */
   descriptorFields?: 'auto' | 'all' | 'id-only' | 'message'
+  /** Restricts directive-based `idPrefix` to explicit ids starting with this leader string. When omitted, `idPrefix` is prepended to all explicit static ids. */
   idPrefixLeader?: string
 }
 
