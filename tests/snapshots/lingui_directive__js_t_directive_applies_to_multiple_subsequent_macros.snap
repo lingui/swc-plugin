@@ -1,0 +1,21 @@
+---
+source: tests/lingui_directive.rs
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set context="shared" */
+const msg1 = t`Hello`
+const msg2 = t`World`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set context="shared" */ const msg1 = $_i18n._(/*i18n*/ {
+    id: "YyfqC4",
+    message: "Hello",
+    context: "shared"
+});
+const msg2 = $_i18n._(/*i18n*/ {
+    id: "b_h2Bm",
+    message: "World",
+    context: "shared"
+});

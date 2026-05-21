@@ -1,0 +1,15 @@
+---
+source: tests/lingui_directive.rs
+---
+import { defineMessage } from '@lingui/core/macro';
+/* lingui-set context="my context" comment="note" */
+const msg = defineMessage`Hello`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+/* lingui-set context="my context" comment="note" */ const msg = /*i18n*/ {
+    id: "WMU_Op",
+    message: "Hello",
+    comment: "note",
+    context: "my context"
+};

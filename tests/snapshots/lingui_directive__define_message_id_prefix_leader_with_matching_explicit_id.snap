@@ -1,0 +1,15 @@
+---
+source: tests/lingui_directive.rs
+info:
+  id_prefix_leader: "."
+---
+import { defineMessage } from '@lingui/core/macro';
+/* lingui-set idPrefix="module" */
+const msg = defineMessage({ id: ".greeting", message: "Hello" })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+/* lingui-set idPrefix="module" */ const msg = /*i18n*/ {
+    id: "module.greeting",
+    message: "Hello"
+};

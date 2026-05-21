@@ -62,6 +62,10 @@ https://swc.rs/docs/configuration/swcrc
             // IMPORTANT: This option is temporal and will be removed in the next major release.
             // "useLinguiV5IdGeneration": true
             //
+            // Optional. Restricts directive-based idPrefix application to explicit ids
+            // starting with this leader string, while keeping the leader in the final id.
+            // "idPrefixLeader": "."
+            //
             // To configure custom JSX placeholder attribute and its defaults:
             // "jsxPlaceholderAttribute": "_t",
             // "jsxPlaceholderDefaults": {
@@ -86,6 +90,16 @@ Controls which fields are preserved in the transformed message descriptors. Acce
 - **`"message"`** — Keeps `id`, `message`, and `context` (but not `comment`). Useful when you need message content at runtime.
 
 Check [this article](https://lingui.dev/guides/optimizing-bundle-size) for more info about this configuration.
+
+### `idPrefixLeader`
+
+Controls how directive-based `idPrefix` values are applied to explicit message ids.
+
+- When omitted, `idPrefix` is prepended to explicit static ids.
+- When set, `idPrefix` is prepended only when the explicit static id starts with the configured leader string.
+- Auto-generated hash ids are never prefixed.
+
+See [Lingui macro docs](https://lingui.dev/ref/macro) for comment directive syntax and semantics. The SWC plugin matches the Babel macro behavior.
 
 Or Next JS Usage:
 
