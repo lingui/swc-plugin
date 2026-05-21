@@ -38,8 +38,7 @@
   "files": [
     "LICENSE",
     "README.md",
-    "options.d.ts",
-    "options.js",
+    "dist/",
     "target/wasm32-wasip1/release/lingui_macro_plugin.wasm"
   ],
   "dependencies": {
