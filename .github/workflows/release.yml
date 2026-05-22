@@ -27,6 +27,9 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      - name: Install dependencies
+        run: yarn install --immutable
+
       - uses: Swatinem/rust-cache@v2
 
       - name: Install npm CLI
