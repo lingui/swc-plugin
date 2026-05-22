@@ -73,3 +73,10 @@ export declare function extractMessages(sourceCode: string, filename: string, op
  * ```
  */
 export declare function extractMessagesFromFiles(filePaths: Array<string>, options: Buffer): Promise<ExtractionResult>
+export interface TransformOutput {
+  code: string
+  map?: string
+  output?: string
+  extractedComments?: Array<string>
+  diagnostics: Array<string>
+}
