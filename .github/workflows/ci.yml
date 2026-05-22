@@ -21,7 +21,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Uses values from rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -55,7 +55,7 @@ jobs:
     name: E2E Smoke Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Setup Rust
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -63,7 +63,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       # Setup Node.js with corepack
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
 
