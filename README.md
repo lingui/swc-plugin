@@ -128,6 +128,18 @@ When using SWC directly via CLI or a JSON-only configuration, pass options manua
 
 ## Options
 
+### `corePackage`
+
+Defines which module specifiers the plugin should treat as core macro imports.
+
+Defaults to `[@lingui/macro, @lingui/core/macro]` for backwards compatibility with the legacy combined macro entrypoint.
+
+### `jsxPackage`
+
+Defines which module specifiers the plugin should treat as JSX macro imports.
+
+Defaults to `[@lingui/macro, @lingui/react/macro]` for backwards compatibility with the legacy combined macro entrypoint.
+
 ### `descriptorFields`
 
 Controls which fields are preserved in the transformed message descriptors. Accepts one of:

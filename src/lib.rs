@@ -65,7 +65,9 @@ impl<C> LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
-    pub fn new(options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
+    pub fn new(mut options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
+        options.sync_derived_fields();
+
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
             ctx: MacroCtx::new(options),
@@ -382,11 +384,14 @@ where
 
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
-                // drop macro imports
-                if &imp.src.value == "@lingui/macro"
-                    || &imp.src.value == "@lingui/core/macro"
-                    || &imp.src.value == "@lingui/react/macro"
-                {
+                let is_macro_import = self
+                    .ctx
+                    .options
+                    .all_macro_packages
+                    .iter()
+                    .any(|package| imp.src.value == package.as_str());
+
+                if is_macro_import {
                     self.has_lingui_macro_imports = true;
                     self.ctx.register_macro_import(imp);
                     insert_index = index;
@@ -535,7 +540,10 @@ where
     }
 }
 
-pub use self::options::{DescriptorFields, LinguiOptions, RuntimeModulesConfigMapNormalized};
+pub use self::options::{
+    DescriptorFields, LinguiOptions, MacroPackagesConfigNormalized,
+    RuntimeModulesConfigMapNormalized,
+};
 
 #[plugin_transform]
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {
