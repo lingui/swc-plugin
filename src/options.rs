@@ -52,6 +52,7 @@ struct RuntimeModulesConfig(String, #[serde(default)] Option<String>);
 #[serde(rename_all = "camelCase")]
 pub struct RuntimeModulesConfigMap {
     i18n: Option<RuntimeModulesConfig>,
+    #[serde(alias = "Trans")]
     trans: Option<RuntimeModulesConfig>,
     use_lingui: Option<RuntimeModulesConfig>,
 }
@@ -196,6 +197,37 @@ mod lib_tests {
                         "my-react".into(),
                         Some("myUseLingui".into())
                     )),
+                }),
+                descriptor_fields: None,
+                use_lingui_v5_id_generation: None,
+                id_prefix_leader: None,
+                jsx_placeholder_attribute: None,
+                jsx_placeholder_defaults: None,
+            }
+        )
+    }
+
+    #[test]
+    fn test_config_capital_trans() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {
+                    "Trans": ["@lingui/react", "Trans"]
+                }
+               }"#,
+        )
+        .expect("invalid config for lingui-plugin");
+
+        assert_eq!(
+            config,
+            LinguiJsOptions {
+                runtime_modules: Some(RuntimeModulesConfigMap {
+                    i18n: None,
+                    trans: Some(RuntimeModulesConfig(
+                        "@lingui/react".into(),
+                        Some("Trans".into())
+                    )),
+                    use_lingui: None,
                 }),
                 descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
