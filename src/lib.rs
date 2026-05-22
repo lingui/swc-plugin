@@ -65,9 +65,7 @@ impl<C> LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
-    pub fn new(mut options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
-        options.sync_derived_fields();
-
+    pub fn new(options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
             ctx: MacroCtx::new(options),
@@ -386,7 +384,6 @@ where
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 let is_macro_import = self
                     .ctx
-                    .options
                     .all_macro_packages
                     .iter()
                     .any(|package| imp.src.value == package.as_str());

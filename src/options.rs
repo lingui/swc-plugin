@@ -111,12 +111,6 @@ impl Default for RuntimeModulesConfigMapNormalized {
     }
 }
 
-impl LinguiOptions {
-    pub fn sync_derived_fields(&mut self) {
-        self.all_macro_packages = self.macro_packages.all_macro_packages();
-    }
-}
-
 impl LinguiJsOptions {
     pub fn into_options(self, env_name: &str) -> LinguiOptions {
         let descriptor_fields = match self.descriptor_fields.unwrap_or(DescriptorFields::Auto) {
@@ -138,7 +132,6 @@ impl LinguiJsOptions {
                 .jsx_package
                 .unwrap_or_else(|| MacroPackagesConfigNormalized::default().jsx),
         };
-        let all_macro_packages = macro_packages.all_macro_packages();
 
         LinguiOptions {
             descriptor_fields,
@@ -147,7 +140,6 @@ impl LinguiJsOptions {
             jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
             jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
             macro_packages,
-            all_macro_packages,
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules
@@ -202,8 +194,6 @@ pub struct LinguiOptions {
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "is_default")]
     pub macro_packages: MacroPackagesConfigNormalized,
-    #[serde(skip)]
-    pub all_macro_packages: Vec<String>,
     #[serde(skip_serializing_if = "is_default")]
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
     #[serde(skip_serializing_if = "is_default")]
@@ -212,16 +202,13 @@ pub struct LinguiOptions {
 
 impl Default for LinguiOptions {
     fn default() -> LinguiOptions {
-        let macro_packages = MacroPackagesConfigNormalized::default();
-
         LinguiOptions {
             descriptor_fields: DescriptorFields::All,
             use_lingui_v5_id_generation: false,
             id_prefix_leader: None,
             jsx_placeholder_attribute: None,
             jsx_placeholder_defaults: None,
-            all_macro_packages: macro_packages.all_macro_packages(),
-            macro_packages,
+            macro_packages: Default::default(),
             runtime_modules: Default::default(),
         }
     }
@@ -320,7 +307,7 @@ mod lib_tests {
             }
         );
         assert_eq!(
-            options.all_macro_packages,
+            options.macro_packages.all_macro_packages(),
             vec!["@lingui/macro", "@lingui/core/macro", "@lingui/react/macro"]
         );
     }
@@ -345,7 +332,7 @@ mod lib_tests {
             }
         );
         assert_eq!(
-            options.all_macro_packages,
+            options.macro_packages.all_macro_packages(),
             vec!["@acme/core/macro", "@acme/react/macro"]
         );
     }
