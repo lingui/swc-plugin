@@ -110,7 +110,7 @@ When using SWC directly via CLI or a JSON-only configuration, pass options manua
           {
             "runtimeModules": {
               "i18n": ["@lingui/core", "i18n"],
-              "trans": ["@lingui/react", "Trans"],
+              "Trans": ["@lingui/react", "Trans"],
               "useLingui": ["@lingui/react", "useLingui"]
             },
             "descriptorFields": "auto",

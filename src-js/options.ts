@@ -11,7 +11,7 @@ export type LinguiMacroOptions = {
   /** Overrides the runtime imports used by the plugin. Unlike the Babel macro configuration, must be passed as an object. */
   runtimeModules: {
     i18n: RuntimeModuleConfig
-    trans: RuntimeModuleConfig
+    Trans: RuntimeModuleConfig
     useLingui: RuntimeModuleConfig
   }
   /**
@@ -74,16 +74,13 @@ export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>
   const config = getConfig(
     configOptions,
   )
-  const {i18n, Trans, useLingui} = config.runtimeConfigModule
 
   const macroOptions: LinguiMacroOptions = {
     jsxPlaceholderAttribute: config.macro.jsxPlaceholderAttribute,
     jsxPlaceholderDefaults: config.macro.jsxPlaceholderDefaults,
     ...overrides,
     runtimeModules: {
-      i18n,
-      trans: Trans,
-      useLingui,
+      ...config.runtimeConfigModule,
       ...overrides?.runtimeModules,
     },
   } satisfies LinguiMacroOptions
