@@ -13,5 +13,5 @@ const msg = $_i18n._(/*i18n*/ {
     values: {
         val: val
     },
-    comment: "description for translators"
+    comment: 'description for translators'
 });

@@ -1,0 +1,23 @@
+---
+source: tests/lingui_directive.rs
+info:
+  id_prefix_leader: "."
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set idPrefix="module" comment="cmt" */
+const msg = t({ id: "unprefixed", message: "Welcome" })
+const msg2 = t({ id: ".my.id", message: "Welcome" })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set idPrefix="module" comment="cmt" */ const msg = $_i18n._(/*i18n*/ {
+    id: "unprefixed",
+    message: "Welcome",
+    comment: "cmt"
+});
+const msg2 = $_i18n._(/*i18n*/ {
+    id: "module.my.id",
+    message: "Welcome",
+    comment: "cmt"
+});

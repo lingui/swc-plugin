@@ -18,6 +18,6 @@ const msg2 = $_i18n._(/*i18n*/ {
     values: {
         name: name
     },
-    context: "My Context",
-    comment: "description for translators"
+    context: 'My Context',
+    comment: 'description for translators'
 });

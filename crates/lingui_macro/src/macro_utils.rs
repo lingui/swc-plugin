@@ -1,11 +1,29 @@
 use crate::ast_utils::*;
+use crate::comment_directive::{find_directive_for_pos, DirectiveEntry, DirectiveValues};
 use crate::tokens::*;
 use crate::LinguiOptions;
 use std::collections::{HashMap, HashSet};
+use swc_core::common::BytePos;
 use swc_core::ecma::utils::quote_ident;
 use swc_core::ecma::{ast::*, atoms::Atom};
 
 const LINGUI_T: &str = "t";
+
+pub fn build_prefixed_id(
+    options: &LinguiOptions,
+    id: &str,
+    defaults: Option<&DirectiveValues>,
+) -> Option<String> {
+    let id_prefix = defaults.and_then(|defaults| defaults.id_prefix.as_deref())?;
+
+    if let Some(leader) = options.id_prefix_leader.as_deref() {
+        if !id.starts_with(leader) {
+            return None;
+        }
+    }
+
+    Some(format!("{id_prefix}{id}"))
+}
 
 #[derive(Default, Clone)]
 pub struct MacroCtx {
@@ -19,6 +37,7 @@ pub struct MacroCtx {
     pub should_add_uselingui_import: bool,
 
     pub options: LinguiOptions,
+    pub comment_directives: Vec<DirectiveEntry>,
     pub runtime_idents: RuntimeIdents,
 }
 
@@ -45,6 +64,14 @@ impl MacroCtx {
             options,
             ..Default::default()
         }
+    }
+
+    pub fn set_comment_directives(&mut self, directives: Vec<DirectiveEntry>) {
+        self.comment_directives = directives;
+    }
+
+    pub fn get_comment_directive(&self, pos: BytePos) -> Option<&DirectiveValues> {
+        find_directive_for_pos(&self.comment_directives, pos)
     }
 
     /// is given ident exported from @lingui/macro? and one of choice functions?

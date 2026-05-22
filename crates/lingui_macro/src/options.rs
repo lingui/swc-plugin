@@ -38,6 +38,8 @@ pub struct LinguiJsOptions {
     #[serde(default)]
     pub use_lingui_v5_id_generation: Option<bool>,
     #[serde(default)]
+    pub id_prefix_leader: Option<String>,
+    #[serde(default)]
     pub jsx_placeholder_attribute: Option<String>,
     #[serde(default)]
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
@@ -87,6 +89,7 @@ impl LinguiJsOptions {
         LinguiOptions {
             descriptor_fields,
             use_lingui_v5_id_generation: self.use_lingui_v5_id_generation.unwrap_or(false),
+            id_prefix_leader: self.id_prefix_leader.clone(),
             jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
             jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
             runtime_modules: RuntimeModulesConfigMapNormalized {
@@ -136,6 +139,8 @@ pub struct LinguiOptions {
     #[serde(skip_serializing_if = "is_default")]
     pub descriptor_fields: DescriptorFields,
     #[serde(skip_serializing_if = "is_default")]
+    pub id_prefix_leader: Option<String>,
+    #[serde(skip_serializing_if = "is_default")]
     pub jsx_placeholder_attribute: Option<String>,
     #[serde(skip_serializing_if = "is_default")]
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
@@ -150,6 +155,7 @@ impl Default for LinguiOptions {
         LinguiOptions {
             descriptor_fields: DescriptorFields::All,
             use_lingui_v5_id_generation: false,
+            id_prefix_leader: None,
             jsx_placeholder_attribute: None,
             jsx_placeholder_defaults: None,
             runtime_modules: Default::default(),
@@ -193,6 +199,7 @@ mod lib_tests {
                 }),
                 descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
+                id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
             }
@@ -220,10 +227,25 @@ mod lib_tests {
                 }),
                 descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
+                id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
             }
         )
+    }
+
+    #[test]
+    fn test_id_prefix_leader_config() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "idPrefixLeader": ".",
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert_eq!(options.id_prefix_leader.as_deref(), Some("."));
     }
 
     #[test]

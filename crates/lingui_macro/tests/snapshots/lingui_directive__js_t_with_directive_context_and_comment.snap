@@ -1,0 +1,16 @@
+---
+source: tests/lingui_directive.rs
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set context="ctx" comment="cmt" */
+const msg = t`Hello`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+/* lingui-set context="ctx" comment="cmt" */ const msg = $_i18n._(/*i18n*/ {
+    id: "3ZSjnQ",
+    message: "Hello",
+    comment: "cmt",
+    context: "ctx"
+});

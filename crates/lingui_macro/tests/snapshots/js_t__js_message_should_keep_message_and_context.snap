@@ -25,5 +25,5 @@ const msg2 = $_i18n._(/*i18n*/ {
     values: {
         name: name
     },
-    context: "My Context"
+    context: 'My Context'
 });

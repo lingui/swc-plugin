@@ -1,0 +1,15 @@
+---
+source: tests/lingui_directive.rs
+---
+import { Trans } from "@lingui/react/macro";
+const dynId = "dynamic";
+const el = <Trans id={dynId}>Hello</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+const dynId = "dynamic";
+const el = <Trans_ {.../*i18n*/ {
+    id: "uzTaYi",
+    message: "Hello"
+}}/>;
