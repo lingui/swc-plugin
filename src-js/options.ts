@@ -70,7 +70,7 @@ export type GetConfigOptions = {
  * @param overrides - Plugin options merged over values derived from the Lingui config.
  * @param configOptions - Controls how the Lingui config is discovered or loaded.
  */
-export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>, configOptions: GetConfigOptions = {}) {
+export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>, configOptions: GetConfigOptions = {}): [string, LinguiMacroOptions] {
   const config = getConfig(
     configOptions,
   )
