@@ -22,6 +22,15 @@ to!(
 );
 
 to!(
+    js_t_with_top_of_file_directive_before_macro_import,
+    r#"
+        // lingui-set context="test"
+        import { t } from '@lingui/core/macro';
+        const msg = t`Success`
+    "#
+);
+
+to!(
     js_t_with_directive_context_and_comment,
     r#"
         import { t } from '@lingui/core/macro';

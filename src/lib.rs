@@ -380,6 +380,9 @@ where
         let mut insert_index: usize = 0;
         let mut index = 0;
 
+        self.ctx
+            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
+
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 // drop macro imports
@@ -401,9 +404,6 @@ where
         if !self.has_lingui_macro_imports {
             return n;
         }
-
-        self.ctx
-            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
 
         n = n.fold_children_with(self);
 
