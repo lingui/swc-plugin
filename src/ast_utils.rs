@@ -204,18 +204,23 @@ pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     })))
 }
 
-pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> ModuleItem {
+pub fn create_import(
+    source: Atom,
+    imported: IdentName,
+    local: IdentName,
+    span: Span,
+) -> ModuleItem {
     ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-        span: DUMMY_SP,
+        span,
         phase: ImportPhase::default(),
         specifiers: vec![ImportSpecifier::Named(ImportNamedSpecifier {
-            span: DUMMY_SP,
+            span,
             local: local.into(),
             imported: Some(ModuleExportName::Ident(imported.into())),
             is_type_only: false,
         })],
         src: Box::new(Str {
-            span: DUMMY_SP,
+            span,
             value: source.to_string().into(),
             raw: None,
         }),

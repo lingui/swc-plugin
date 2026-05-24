@@ -31,6 +31,16 @@ to!(
 );
 
 to!(
+    js_t_with_directive_before_removed_macro_import_after_regular_import,
+    r#"
+        import foo from 'bar';
+        /* lingui-set context="test" */
+        import { t } from '@lingui/core/macro';
+        const msg = t`Success`
+    "#
+);
+
+to!(
     js_t_with_directive_context_and_comment,
     r#"
         import { t } from '@lingui/core/macro';
