@@ -75,7 +75,7 @@ pub struct MacroPackagesConfig {
 }
 
 impl MacroPackagesConfig {
-    pub fn contains(&self, value: &impl PartialEq<str>) -> bool {
+    pub fn contains(&self, value: &str) -> bool {
         self.core.iter().any(|s| value == s.as_str())
             || self.jsx.iter().any(|s| value == s.as_str())
     }

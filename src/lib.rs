@@ -380,7 +380,7 @@ where
         self.has_lingui_macro_imports = n.iter().any(|m| {
             matches!(m,
                 ModuleItem::ModuleDecl(ModuleDecl::Import(imp))
-                if self.ctx.options.macro_packages.contains(&imp.src.value)
+                if self.ctx.options.macro_packages.contains(&imp.src.value.to_string_lossy())
             )
         });
 
@@ -397,7 +397,12 @@ where
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 // drop macro imports
-                if self.ctx.options.macro_packages.contains(&imp.src.value) {
+                if self
+                    .ctx
+                    .options
+                    .macro_packages
+                    .contains(&imp.src.value.to_string_lossy())
+                {
                     self.ctx.register_macro_import(imp);
                     insert_index = index;
                     return false;
