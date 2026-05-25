@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@lingui/conf": "^6.0.1",
-    "@lingui/swc-plugin": "6.3.0",
+    "@lingui/swc-plugin": "^6.3.0",
     "@swc/types": "^0.1.25"
   },
   "devDependencies": {
