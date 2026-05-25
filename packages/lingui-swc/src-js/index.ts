@@ -1,23 +1,9 @@
 import binding = require('../binding')
 import type {ParserConfig} from "@swc/types"
 import type {ExtractorType} from "@lingui/conf" with {"resolution-mode": "import"}
+import type {LinguiMacroOptions} from "@lingui/swc-plugin/options" with {"resolution-mode": "import"}
 
-export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: string];
-
-export interface RuntimeModulesConfig {
-  i18n?: RuntimeModuleConfig;
-  trans?: RuntimeModuleConfig;
-  useLingui?: RuntimeModuleConfig;
-}
-
-export interface LinguiMacroOptions {
-  runtimeModules?: RuntimeModulesConfig;
-  useLinguiV5IdGeneration?: boolean;
-  jsxPlaceholderAttribute?: string;
-  jsxPlaceholderDefaults?: Record<string, string>;
-  descriptorFields?: 'auto' | 'all' | 'id-only' | 'message'
-}
-
+export type {LinguiMacroOptions};
 
 export type ExtractorOptions = {
   /**
@@ -49,7 +35,7 @@ export function extractMessagesFromFiles(filePaths: string[], options?: Extracto
 }
 
 /**
- * Creates pluggable SWC  Lingui Extractor implementation.
+ * Creates pluggable SWC Lingui Extractor implementation.
  *
  * Example:
  *
@@ -81,10 +67,15 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
       const {messages} = await extractMessages(code, filename, {
         ...options,
         macro: {
+          // todo: reuse options mapping from linguiMacroSwcPlugin helper, to avoid implementation drifting
+          corePackage: ctx.linguiConfig.macro.corePackage,
+          jsxPackage: ctx.linguiConfig.macro.jsxPackage,
           jsxPlaceholderAttribute: ctx.linguiConfig.macro.jsxPlaceholderAttribute,
           jsxPlaceholderDefaults: ctx.linguiConfig.macro.jsxPlaceholderDefaults,
-          runtimeModules: ctx.linguiConfig.runtimeConfigModule,
-          ...options.macro
+          idPrefixLeader: ctx.linguiConfig.macro.idPrefixLeader,
+          runtimeModules: {
+            ...ctx.linguiConfig.runtimeConfigModule,
+          },
         }
       })
 

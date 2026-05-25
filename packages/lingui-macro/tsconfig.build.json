@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "strict": true,
-    "outDir": "../../dist",
+    "outDir": "./dist",
     "rootDir": "./src-js",
     "declaration": true,
     "module": "esnext",
