@@ -1,4 +1,6 @@
-export default {
+import {defineConfig} from "@lingui/conf";
+
+export default defineConfig({
   locales: ["en"],
   sourceLocale: "en",
   runtimeConfigModule: {
@@ -7,6 +9,7 @@ export default {
     useLingui: ["@custom/react", "useCustomLingui"],
   },
   macro: {
+    idPrefixLeader: '.',
     corePackage: ["@custom/core/macro"],
     jsxPackage: ["@custom/react/macro"],
     jsxPlaceholderAttribute: "data-i18n",
@@ -15,4 +18,4 @@ export default {
       strong: "bold",
     },
   },
-}
+})

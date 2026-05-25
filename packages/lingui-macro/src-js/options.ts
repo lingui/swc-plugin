@@ -1,4 +1,4 @@
-import {getConfig} from "@lingui/conf"
+import {getConfig, LinguiConfigNormalized} from "@lingui/conf"
 
 export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: string];
 
@@ -39,7 +39,7 @@ export type LinguiMacroOptions = {
 }
 
 /** Makes all properties in `T` optional, recursing into nested objects but preserving tuples/arrays as-is. */
-export type DeepPartial<T> = {
+type DeepPartial<T> = {
   [Key in keyof T]?: T[Key] extends readonly unknown[]
     ? T[Key]
     : T[Key] extends object
@@ -79,17 +79,23 @@ export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>
     configOptions,
   )
 
-  const macroOptions: LinguiMacroOptions = {
-    corePackage: config.macro.corePackage,
-    jsxPackage: config.macro.jsxPackage,
-    jsxPlaceholderAttribute: config.macro.jsxPlaceholderAttribute,
-    jsxPlaceholderDefaults: config.macro.jsxPlaceholderDefaults,
+  return ["@lingui/swc-plugin", mapOptions(config, overrides)];
+}
+
+/**
+ * Maps relevant options from the Lingui config to the SWC plugin format
+ */
+export function mapOptions(linguiConfig: LinguiConfigNormalized, overrides?: DeepPartial<LinguiMacroOptions>): LinguiMacroOptions {
+  return {
+    corePackage: linguiConfig.macro.corePackage,
+    jsxPackage: linguiConfig.macro.jsxPackage,
+    jsxPlaceholderAttribute: linguiConfig.macro.jsxPlaceholderAttribute,
+    jsxPlaceholderDefaults: linguiConfig.macro.jsxPlaceholderDefaults,
+    idPrefixLeader: linguiConfig.macro.idPrefixLeader,
     ...overrides,
     runtimeModules: {
-      ...config.runtimeConfigModule,
+      ...linguiConfig.runtimeConfigModule,
       ...overrides?.runtimeModules,
     },
-  } satisfies LinguiMacroOptions
-
-  return ["@lingui/swc-plugin", macroOptions];
+  }
 }
