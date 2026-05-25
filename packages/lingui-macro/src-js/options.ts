@@ -4,6 +4,10 @@ export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: str
 
 /** Options accepted by the `@lingui/swc-plugin` WASM plugin. */
 export type LinguiMacroOptions = {
+  /** Module specifiers treated as core macro imports, such as `t`, `msg`, and `defineMessage`. */
+  corePackage?: string[]
+  /** Module specifiers treated as JSX macro imports, such as `Trans` and `useLingui`. */
+  jsxPackage?: string[]
   /** JSX attribute name used to provide explicit placeholder names inside `<Trans>` content. */
   jsxPlaceholderAttribute?: string
   /** Default placeholder names for JSX tags when no explicit placeholder attribute is present. */
@@ -11,7 +15,7 @@ export type LinguiMacroOptions = {
   /** Overrides the runtime imports used by the plugin. Unlike the Babel macro configuration, must be passed as an object. */
   runtimeModules: {
     i18n: RuntimeModuleConfig
-    trans: RuntimeModuleConfig
+    Trans: RuntimeModuleConfig
     useLingui: RuntimeModuleConfig
   }
   /**
@@ -70,20 +74,19 @@ export type GetConfigOptions = {
  * @param overrides - Plugin options merged over values derived from the Lingui config.
  * @param configOptions - Controls how the Lingui config is discovered or loaded.
  */
-export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>, configOptions: GetConfigOptions = {}) {
+export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>, configOptions: GetConfigOptions = {}): [wasmPackage: string, config: LinguiMacroOptions] {
   const config = getConfig(
     configOptions,
   )
-  const {i18n, Trans, useLingui} = config.runtimeConfigModule
 
   const macroOptions: LinguiMacroOptions = {
+    corePackage: config.macro.corePackage,
+    jsxPackage: config.macro.jsxPackage,
     jsxPlaceholderAttribute: config.macro.jsxPlaceholderAttribute,
     jsxPlaceholderDefaults: config.macro.jsxPlaceholderDefaults,
     ...overrides,
     runtimeModules: {
-      i18n,
-      trans: Trans,
-      useLingui,
+      ...config.runtimeConfigModule,
       ...overrides?.runtimeModules,
     },
   } satisfies LinguiMacroOptions

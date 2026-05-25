@@ -1,0 +1,16 @@
+---
+source: crates/lingui_macro/tests/lingui_directive.rs
+---
+// lingui-set context="test"
+import { t } from '@lingui/core/macro';
+const msg = t`Success`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+// lingui-set context="test"
+import { i18n as $_i18n } from "@lingui/core";
+const msg = $_i18n._(/*i18n*/ {
+    id: "vznMx_",
+    message: "Success",
+    context: "test"
+});

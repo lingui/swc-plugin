@@ -1,4 +1,4 @@
-use lingui_macro_plugin::{DescriptorFields, LinguiOptions};
+use lingui_macro::{DescriptorFields, LinguiOptions};
 
 #[macro_use]
 mod common;
@@ -18,6 +18,25 @@ to!(
         import { t } from '@lingui/core/macro';
         // lingui-set comment="translator note"
         const msg = t`Hello`
+    "#
+);
+
+to!(
+    js_t_with_top_of_file_directive_before_macro_import,
+    r#"
+        // lingui-set context="test"
+        import { t } from '@lingui/core/macro';
+        const msg = t`Success`
+    "#
+);
+
+to!(
+    js_t_with_directive_before_removed_macro_import_after_regular_import,
+    r#"
+        import foo from 'bar';
+        /* lingui-set context="test" */
+        import { t } from '@lingui/core/macro';
+        const msg = t`Success`
     "#
 );
 

@@ -16,18 +16,24 @@ describe("linguiMacroSwcPlugin", () => {
         [
           "@lingui/swc-plugin",
           {
+            "corePackage": [
+              "@lingui/core/macro",
+            ],
+            "jsxPackage": [
+              "@lingui/react/macro",
+            ],
             "jsxPlaceholderAttribute": "_t",
             "jsxPlaceholderDefaults": {
               "a": "link",
             },
             "runtimeModules": {
+              "Trans": [
+                "@acme/react",
+                "Trans",
+              ],
               "i18n": [
                 "@acme/core",
                 "i18n",
-              ],
-              "trans": [
-                "@acme/react",
-                "Trans",
               ],
               "useLingui": [
                 "@acme/react",
@@ -44,24 +50,29 @@ describe("linguiMacroSwcPlugin", () => {
 
   it("maps shared options from an explicit config path", () => {
     expect(linguiMacroSwcPlugin({}, {configPath: resolve(fixturesDir, "custom.config.js")})).toMatchInlineSnapshot(
-
-    `
+      `
       [
         "@lingui/swc-plugin",
         {
+          "corePackage": [
+            "@custom/core/macro",
+          ],
+          "jsxPackage": [
+            "@custom/react/macro",
+          ],
           "jsxPlaceholderAttribute": "data-i18n",
           "jsxPlaceholderDefaults": {
             "a": "anchor",
             "strong": "bold",
           },
           "runtimeModules": {
+            "Trans": [
+              "@custom/react",
+              "CustomTrans",
+            ],
             "i18n": [
               "@custom/core",
               "customI18n",
-            ],
-            "trans": [
-              "@custom/react",
-              "CustomTrans",
             ],
             "useLingui": [
               "@custom/react",
@@ -77,9 +88,11 @@ describe("linguiMacroSwcPlugin", () => {
     expect(
       linguiMacroSwcPlugin(
         {
+          corePackage: ["@override/core/macro"],
+          jsxPackage: ["@override/react/macro"],
           jsxPlaceholderAttribute: "data-test",
           runtimeModules: {
-            trans: ["@override/react", "OverrideTrans"],
+            Trans: ["@override/react", "OverrideTrans"],
           },
         },
         {configPath: resolve(fixturesDir, "custom.config.js")},
@@ -88,19 +101,25 @@ describe("linguiMacroSwcPlugin", () => {
       [
         "@lingui/swc-plugin",
         {
+          "corePackage": [
+            "@override/core/macro",
+          ],
+          "jsxPackage": [
+            "@override/react/macro",
+          ],
           "jsxPlaceholderAttribute": "data-test",
           "jsxPlaceholderDefaults": {
             "a": "anchor",
             "strong": "bold",
           },
           "runtimeModules": {
+            "Trans": [
+              "@override/react",
+              "OverrideTrans",
+            ],
             "i18n": [
               "@custom/core",
               "customI18n",
-            ],
-            "trans": [
-              "@override/react",
-              "OverrideTrans",
             ],
             "useLingui": [
               "@custom/react",

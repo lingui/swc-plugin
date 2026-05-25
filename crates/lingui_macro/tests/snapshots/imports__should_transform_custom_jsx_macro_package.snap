@@ -1,0 +1,22 @@
+---
+source: crates/lingui_macro/tests/imports.rs
+info:
+  macro_packages:
+    core:
+      - "@lingui/macro"
+      - "@lingui/core/macro"
+    jsx:
+      - "@acme/react/macro"
+---
+import { Trans } from "@acme/react/macro";
+
+;<Trans>Hello!</Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+;
+<Trans_ {.../*i18n*/ {
+    id: "mAYvqA",
+    message: "Hello!"
+}}/>;

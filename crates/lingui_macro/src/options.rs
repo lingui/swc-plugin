@@ -33,6 +33,9 @@ impl DescriptorFields {
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
     pub runtime_modules: Option<RuntimeModulesConfigMap>,
+    pub core_package: Option<Vec<String>>,
+    #[serde(default)]
+    pub jsx_package: Option<Vec<String>>,
     #[serde(default)]
     pub descriptor_fields: Option<DescriptorFields>,
     #[serde(default)]
@@ -52,6 +55,7 @@ pub struct RuntimeModulesConfig(pub String, #[serde(default)] pub Option<String>
 #[serde(rename_all = "camelCase")]
 pub struct RuntimeModulesConfigMap {
     pub i18n: Option<RuntimeModulesConfig>,
+    #[serde(alias = "Trans")]
     pub trans: Option<RuntimeModulesConfig>,
     pub use_lingui: Option<RuntimeModulesConfig>,
 }
@@ -61,6 +65,28 @@ pub struct RuntimeModulesConfigMapNormalized {
     pub i18n: (String, String),
     pub trans: (String, String),
     pub use_lingui: (String, String),
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct MacroPackagesConfig {
+    pub core: Vec<String>,
+    pub jsx: Vec<String>,
+}
+
+impl MacroPackagesConfig {
+    pub fn contains(&self, value: &str) -> bool {
+        self.core.iter().any(|s| value == s.as_str())
+            || self.jsx.iter().any(|s| value == s.as_str())
+    }
+}
+
+impl Default for MacroPackagesConfig {
+    fn default() -> Self {
+        Self {
+            core: vec!["@lingui/macro".into(), "@lingui/core/macro".into()],
+            jsx: vec!["@lingui/macro".into(), "@lingui/react/macro".into()],
+        }
+    }
 }
 
 impl Default for RuntimeModulesConfigMapNormalized {
@@ -92,6 +118,14 @@ impl LinguiJsOptions {
             id_prefix_leader: self.id_prefix_leader.clone(),
             jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
             jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
+            macro_packages: MacroPackagesConfig {
+                core: self
+                    .core_package
+                    .unwrap_or_else(|| MacroPackagesConfig::default().core),
+                jsx: self
+                    .jsx_package
+                    .unwrap_or_else(|| MacroPackagesConfig::default().jsx),
+            },
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules
@@ -145,6 +179,8 @@ pub struct LinguiOptions {
     #[serde(skip_serializing_if = "is_default")]
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "is_default")]
+    pub macro_packages: MacroPackagesConfig,
+    #[serde(skip_serializing_if = "is_default")]
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
     #[serde(skip_serializing_if = "is_default")]
     pub use_lingui_v5_id_generation: bool,
@@ -158,6 +194,7 @@ impl Default for LinguiOptions {
             id_prefix_leader: None,
             jsx_placeholder_attribute: None,
             jsx_placeholder_defaults: None,
+            macro_packages: Default::default(),
             runtime_modules: Default::default(),
         }
     }
@@ -197,11 +234,46 @@ mod lib_tests {
                         Some("myUseLingui".into())
                     )),
                 }),
+                core_package: None,
+                jsx_package: None,
                 descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+            }
+        )
+    }
+
+    #[test]
+    fn test_config_capital_trans() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {
+                    "Trans": ["@lingui/react", "Trans"]
+                }
+               }"#,
+        )
+        .expect("invalid config for lingui-plugin");
+
+        assert_eq!(
+            config,
+            LinguiJsOptions {
+                runtime_modules: Some(RuntimeModulesConfigMap {
+                    i18n: None,
+                    trans: Some(RuntimeModulesConfig(
+                        "@lingui/react".into(),
+                        Some("Trans".into())
+                    )),
+                    use_lingui: None,
+                }),
+                descriptor_fields: None,
+                use_lingui_v5_id_generation: None,
+                id_prefix_leader: None,
+                jsx_placeholder_attribute: None,
+                jsx_placeholder_defaults: None,
+                core_package: None,
+                jsx_package: None,
             }
         )
     }
@@ -225,6 +297,8 @@ mod lib_tests {
                     trans: None,
                     use_lingui: None,
                 }),
+                core_package: None,
+                jsx_package: None,
                 descriptor_fields: None,
                 use_lingui_v5_id_generation: None,
                 id_prefix_leader: None,
@@ -232,6 +306,56 @@ mod lib_tests {
                 jsx_placeholder_defaults: None,
             }
         )
+    }
+
+    #[test]
+    fn test_macro_package_defaults() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert_eq!(
+            options.macro_packages,
+            MacroPackagesConfig {
+                core: vec!["@lingui/macro".into(), "@lingui/core/macro".into()],
+                jsx: vec!["@lingui/macro".into(), "@lingui/react/macro".into()],
+            }
+        );
+
+        assert!(options.macro_packages.contains("@lingui/macro"));
+
+        assert!(options.macro_packages.contains("@lingui/core/macro"));
+
+        assert!(options.macro_packages.contains("@lingui/react/macro"));
+    }
+
+    #[test]
+    fn test_macro_package_overrides() {
+        let config = serde_json::from_str::<LinguiJsOptions>(
+            r#"{
+                "corePackage": ["@acme/core/macro"],
+                "jsxPackage": ["@acme/react/macro"],
+                "runtimeModules": {}
+               }"#,
+        )
+        .unwrap();
+
+        let options = config.into_options("development");
+        assert_eq!(
+            options.macro_packages,
+            MacroPackagesConfig {
+                core: vec!["@acme/core/macro".into()],
+                jsx: vec!["@acme/react/macro".into()],
+            }
+        );
+
+        assert!(options.macro_packages.contains("@acme/core/macro"));
+
+        assert!(options.macro_packages.contains("@acme/react/macro"));
     }
 
     #[test]

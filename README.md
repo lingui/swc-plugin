@@ -56,7 +56,7 @@ module.exports = nextConfig;
 ```
 
 > **Note**
-> Consult with full working example for NextJS in the `/examples` folder in this repo.
+> Consult with [full working example](https://github.com/lingui/js-lingui/tree/main/examples/nextjs-swc) for NextJS with SWC.
 
 #### `vite.config.ts`
 
@@ -110,7 +110,7 @@ When using SWC directly via CLI or a JSON-only configuration, pass options manua
           {
             "runtimeModules": {
               "i18n": ["@lingui/core", "i18n"],
-              "trans": ["@lingui/react", "Trans"],
+              "Trans": ["@lingui/react", "Trans"],
               "useLingui": ["@lingui/react", "useLingui"]
             },
             "descriptorFields": "auto",
@@ -127,6 +127,18 @@ When using SWC directly via CLI or a JSON-only configuration, pass options manua
 ```
 
 ## Options
+
+### `corePackage`
+
+Defines which module specifiers the plugin should treat as core macro imports.
+
+Defaults to `[@lingui/macro, @lingui/core/macro]` for backwards compatibility with the legacy combined macro entrypoint.
+
+### `jsxPackage`
+
+Defines which module specifiers the plugin should treat as JSX macro imports.
+
+Defaults to `[@lingui/macro, @lingui/react/macro]` for backwards compatibility with the legacy combined macro entrypoint.
 
 ### `descriptorFields`
 
