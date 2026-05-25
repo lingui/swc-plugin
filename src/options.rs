@@ -327,17 +327,11 @@ mod lib_tests {
             }
         );
 
-        assert!(options
-            .macro_packages
-            .contains(&"@lingui/macro".to_string()));
+        assert!(options.macro_packages.contains("@lingui/macro"));
 
-        assert!(options
-            .macro_packages
-            .contains(&"@lingui/core/macro".to_string()));
+        assert!(options.macro_packages.contains("@lingui/core/macro"));
 
-        assert!(options
-            .macro_packages
-            .contains(&"@lingui/react/macro".to_string()));
+        assert!(options.macro_packages.contains("@lingui/react/macro"));
     }
 
     #[test]
@@ -360,13 +354,9 @@ mod lib_tests {
             }
         );
 
-        assert!(options
-            .macro_packages
-            .contains(&"@acme/core/macro".to_string()));
+        assert!(options.macro_packages.contains("@acme/core/macro"));
 
-        assert!(options
-            .macro_packages
-            .contains(&"@acme/react/macro".to_string()));
+        assert!(options.macro_packages.contains("@acme/react/macro"));
     }
 
     #[test]
