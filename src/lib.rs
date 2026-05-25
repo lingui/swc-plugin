@@ -377,19 +377,32 @@ where
         let (use_lingui_source, use_lingui_export) =
             self.ctx.options.runtime_modules.use_lingui.clone();
 
+        self.has_lingui_macro_imports = n.iter().any(|m| {
+            matches!(m,
+                ModuleItem::ModuleDecl(ModuleDecl::Import(imp))
+                if self.ctx.options.macro_packages.contains(&imp.src.value.to_string_lossy())
+            )
+        });
+
+        if !self.has_lingui_macro_imports {
+            return n;
+        }
+
+        self.ctx
+            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
+
         let mut insert_index: usize = 0;
         let mut index = 0;
 
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
-                let is_macro_import = self
+                // drop macro imports
+                if self
                     .ctx
-                    .all_macro_packages
-                    .iter()
-                    .any(|package| imp.src.value == package.as_str());
-
-                if is_macro_import {
-                    self.has_lingui_macro_imports = true;
+                    .options
+                    .macro_packages
+                    .contains(&imp.src.value.to_string_lossy())
+                {
                     self.ctx.register_macro_import(imp);
                     insert_index = index;
                     return false;
@@ -399,13 +412,6 @@ where
             index += 1;
             true
         });
-
-        if !self.has_lingui_macro_imports {
-            return n;
-        }
-
-        self.ctx
-            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
 
         n = n.fold_children_with(self);
 
@@ -538,8 +544,7 @@ where
 }
 
 pub use self::options::{
-    DescriptorFields, LinguiOptions, MacroPackagesConfigNormalized,
-    RuntimeModulesConfigMapNormalized,
+    DescriptorFields, LinguiOptions, MacroPackagesConfig, RuntimeModulesConfigMapNormalized,
 };
 
 #[plugin_transform]
