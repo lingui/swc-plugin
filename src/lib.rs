@@ -376,31 +376,35 @@ where
         let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
         let (use_lingui_source, use_lingui_export) =
             self.ctx.options.runtime_modules.use_lingui.clone();
-        let comment_directives = collect_lingui_directives(&n, &self.comments);
+
+        self.has_lingui_macro_imports = n.iter().any(|m| {
+            matches!(m,
+                ModuleItem::ModuleDecl(ModuleDecl::Import(imp))
+                if imp.src.value == "@lingui/macro"
+                    || imp.src.value == "@lingui/core/macro"
+                    || imp.src.value == "@lingui/react/macro"
+            )
+        });
+
+        if !self.has_lingui_macro_imports {
+            return n;
+        }
+
+        self.ctx
+            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
 
         let mut insert_index: usize = 0;
         let mut index = 0;
-        let mut removed_import_comments = vec![];
-        let mut import_span = None;
 
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 // drop macro imports
-                if &imp.src.value == "@lingui/macro"
-                    || &imp.src.value == "@lingui/core/macro"
-                    || &imp.src.value == "@lingui/react/macro"
+                if imp.src.value == "@lingui/macro"
+                    || imp.src.value == "@lingui/core/macro"
+                    || imp.src.value == "@lingui/react/macro"
                 {
-                    self.has_lingui_macro_imports = true;
                     self.ctx.register_macro_import(imp);
                     insert_index = index;
-                    import_span.get_or_insert(imp.span);
-
-                    if let Some(comments) = &self.comments {
-                        if let Some(mut leading_comments) = comments.take_leading(imp.span.lo) {
-                            removed_import_comments.append(&mut leading_comments);
-                        }
-                    }
-
                     return false;
                 }
             }
@@ -408,18 +412,6 @@ where
             index += 1;
             true
         });
-
-        if !self.has_lingui_macro_imports {
-            return n;
-        }
-
-        let import_span = import_span.unwrap_or(DUMMY_SP);
-
-        if let Some(comments) = &self.comments {
-            comments.add_leading_comments(import_span.lo, removed_import_comments);
-        }
-
-        self.ctx.set_comment_directives(comment_directives);
 
         n = n.fold_children_with(self);
 
@@ -430,7 +422,6 @@ where
                     i18n_source.into(),
                     quote_ident!(i18n_export[..]),
                     self.ctx.runtime_idents.i18n.clone().into(),
-                    import_span,
                 ),
             );
         }
@@ -442,7 +433,6 @@ where
                     trans_source.into(),
                     quote_ident!(trans_export[..]),
                     self.ctx.runtime_idents.trans.clone(),
-                    import_span,
                 ),
             );
         }
@@ -454,7 +444,6 @@ where
                     use_lingui_source.into(),
                     quote_ident!(use_lingui_export[..]),
                     self.ctx.runtime_idents.use_lingui.clone(),
-                    import_span,
                 ),
             );
         }
