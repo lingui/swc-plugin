@@ -1,4 +1,6 @@
-export default {
+import {defineConfig} from "@lingui/conf";
+
+export default defineConfig({
   locales: ["en"],
   sourceLocale: "en",
   runtimeConfigModule: {
@@ -7,9 +9,12 @@ export default {
     useLingui: ["@acme/react", "useLingui"],
   },
   macro: {
+    idPrefixLeader: '.',
+    corePackage: ["@acme/core/macro"],
+    jsxPackage: ["@acme/jsx/macro"],
     jsxPlaceholderAttribute: "_t",
     jsxPlaceholderDefaults: {
       a: "link",
     },
   },
-}
+})
