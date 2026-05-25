@@ -56,7 +56,7 @@ module.exports = nextConfig;
 ```
 
 > **Note**
-> Consult with full working example for NextJS in the `/examples` folder in this repo.
+> Consult with [full working example](https://github.com/lingui/js-lingui/tree/main/examples/nextjs-swc) for NextJS with SWC.
 
 #### `vite.config.ts`
 
