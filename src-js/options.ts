@@ -4,6 +4,10 @@ export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: str
 
 /** Options accepted by the `@lingui/swc-plugin` WASM plugin. */
 export type LinguiMacroOptions = {
+  /** Module specifiers treated as core macro imports, such as `t`, `msg`, and `defineMessage`. */
+  corePackage?: string[]
+  /** Module specifiers treated as JSX macro imports, such as `Trans` and `useLingui`. */
+  jsxPackage?: string[]
   /** JSX attribute name used to provide explicit placeholder names inside `<Trans>` content. */
   jsxPlaceholderAttribute?: string
   /** Default placeholder names for JSX tags when no explicit placeholder attribute is present. */
@@ -76,6 +80,8 @@ export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>
   )
 
   const macroOptions: LinguiMacroOptions = {
+    corePackage: config.macro.corePackage,
+    jsxPackage: config.macro.jsxPackage,
     jsxPlaceholderAttribute: config.macro.jsxPlaceholderAttribute,
     jsxPlaceholderDefaults: config.macro.jsxPlaceholderDefaults,
     ...overrides,

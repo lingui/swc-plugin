@@ -7,6 +7,8 @@ export default {
     useLingui: ["@custom/react", "useCustomLingui"],
   },
   macro: {
+    corePackage: ["@custom/core/macro"],
+    jsxPackage: ["@custom/react/macro"],
     jsxPlaceholderAttribute: "data-i18n",
     jsxPlaceholderDefaults: {
       a: "anchor",

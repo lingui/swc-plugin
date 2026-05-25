@@ -16,6 +16,12 @@ describe("linguiMacroSwcPlugin", () => {
         [
           "@lingui/swc-plugin",
           {
+            "corePackage": [
+              "@lingui/core/macro",
+            ],
+            "jsxPackage": [
+              "@lingui/react/macro",
+            ],
             "jsxPlaceholderAttribute": "_t",
             "jsxPlaceholderDefaults": {
               "a": "link",
@@ -48,6 +54,12 @@ describe("linguiMacroSwcPlugin", () => {
       [
         "@lingui/swc-plugin",
         {
+          "corePackage": [
+            "@custom/core/macro",
+          ],
+          "jsxPackage": [
+            "@custom/react/macro",
+          ],
           "jsxPlaceholderAttribute": "data-i18n",
           "jsxPlaceholderDefaults": {
             "a": "anchor",
@@ -76,6 +88,8 @@ describe("linguiMacroSwcPlugin", () => {
     expect(
       linguiMacroSwcPlugin(
         {
+          corePackage: ["@override/core/macro"],
+          jsxPackage: ["@override/react/macro"],
           jsxPlaceholderAttribute: "data-test",
           runtimeModules: {
             Trans: ["@override/react", "OverrideTrans"],
@@ -87,6 +101,12 @@ describe("linguiMacroSwcPlugin", () => {
       [
         "@lingui/swc-plugin",
         {
+          "corePackage": [
+            "@override/core/macro",
+          ],
+          "jsxPackage": [
+            "@override/react/macro",
+          ],
           "jsxPlaceholderAttribute": "data-test",
           "jsxPlaceholderDefaults": {
             "a": "anchor",

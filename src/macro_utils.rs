@@ -32,6 +32,8 @@ pub struct MacroCtx {
     // local name -> export name
     id_to_symbol_map: HashMap<Id, Atom>,
 
+    pub all_macro_packages: Vec<String>,
+
     pub should_add_18n_import: bool,
     pub should_add_trans_import: bool,
     pub should_add_uselingui_import: bool,
@@ -60,7 +62,10 @@ impl Default for RuntimeIdents {
 
 impl MacroCtx {
     pub fn new(options: LinguiOptions) -> MacroCtx {
+        let all_macro_packages = options.macro_packages.all_macro_packages();
+
         MacroCtx {
+            all_macro_packages,
             options,
             ..Default::default()
         }
