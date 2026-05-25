@@ -103,3 +103,35 @@ to!(
       t`Text`
      "#
 );
+
+to!(
+    should_transform_custom_core_macro_package,
+    lingui_macro_plugin::LinguiOptions {
+        macro_packages: lingui_macro_plugin::MacroPackagesConfigNormalized {
+            core: vec!["@acme/core/macro".into()],
+            jsx: vec!["@lingui/macro".into(), "@lingui/react/macro".into()],
+        },
+        ..Default::default()
+    },
+    r#"
+    import { t } from "@acme/core/macro";
+
+    t`Hello World!`;
+  "#
+);
+
+to!(
+    should_transform_custom_jsx_macro_package,
+    lingui_macro_plugin::LinguiOptions {
+        macro_packages: lingui_macro_plugin::MacroPackagesConfigNormalized {
+            core: vec!["@lingui/macro".into(), "@lingui/core/macro".into()],
+            jsx: vec!["@acme/react/macro".into()],
+        },
+        ..Default::default()
+    },
+    r#"
+    import { Trans } from "@acme/react/macro";
+
+    ;<Trans>Hello!</Trans>
+  "#
+);

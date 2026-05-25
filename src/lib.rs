@@ -380,9 +380,11 @@ where
         self.has_lingui_macro_imports = n.iter().any(|m| {
             matches!(m,
                 ModuleItem::ModuleDecl(ModuleDecl::Import(imp))
-                if imp.src.value == "@lingui/macro"
-                    || imp.src.value == "@lingui/core/macro"
-                    || imp.src.value == "@lingui/react/macro"
+                if self
+                    .ctx
+                    .all_macro_packages
+                    .iter()
+                    .any(|package| imp.src.value == package.as_str())
             )
         });
 
@@ -398,10 +400,13 @@ where
 
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
-                // drop macro imports
-                if imp.src.value == "@lingui/macro"
-                    || imp.src.value == "@lingui/core/macro"
-                    || imp.src.value == "@lingui/react/macro"
+
+              // drop macro imports
+                if  self
+                  .ctx
+                  .all_macro_packages
+                  .iter()
+                  .any(|package| imp.src.value == package.as_str());
                 {
                     self.ctx.register_macro_import(imp);
                     insert_index = index;
@@ -543,7 +548,10 @@ where
     }
 }
 
-pub use self::options::{DescriptorFields, LinguiOptions, RuntimeModulesConfigMapNormalized};
+pub use self::options::{
+    DescriptorFields, LinguiOptions, MacroPackagesConfigNormalized,
+    RuntimeModulesConfigMapNormalized,
+};
 
 #[plugin_transform]
 pub fn process_transform(program: Program, metadata: TransformPluginProgramMetadata) -> Program {
