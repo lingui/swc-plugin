@@ -380,11 +380,7 @@ where
         self.has_lingui_macro_imports = n.iter().any(|m| {
             matches!(m,
                 ModuleItem::ModuleDecl(ModuleDecl::Import(imp))
-                if self
-                    .ctx
-                    .all_macro_packages
-                    .iter()
-                    .any(|package| imp.src.value == package.as_str())
+                if self.ctx.options.macro_packages.contains(&imp.src.value)
             )
         });
 
@@ -400,14 +396,8 @@ where
 
         n.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
-
-              // drop macro imports
-                if  self
-                  .ctx
-                  .all_macro_packages
-                  .iter()
-                  .any(|package| imp.src.value == package.as_str());
-                {
+                // drop macro imports
+                if self.ctx.options.macro_packages.contains(&imp.src.value) {
                     self.ctx.register_macro_import(imp);
                     insert_index = index;
                     return false;
@@ -549,8 +539,7 @@ where
 }
 
 pub use self::options::{
-    DescriptorFields, LinguiOptions, MacroPackagesConfigNormalized,
-    RuntimeModulesConfigMapNormalized,
+    DescriptorFields, LinguiOptions, MacroPackagesConfig, RuntimeModulesConfigMapNormalized,
 };
 
 #[plugin_transform]

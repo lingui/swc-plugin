@@ -69,31 +69,23 @@ pub struct RuntimeModulesConfigMapNormalized {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-pub struct MacroPackagesConfigNormalized {
+pub struct MacroPackagesConfig {
     pub core: Vec<String>,
     pub jsx: Vec<String>,
 }
 
-impl MacroPackagesConfigNormalized {
-    pub(crate) fn all_macro_packages(&self) -> Vec<String> {
-        let mut all_macro_packages = Vec::with_capacity(self.core.len() + self.jsx.len());
+impl MacroPackagesConfig {
+    pub fn new(core: Vec<String>, jsx: Vec<String>) -> Self {
+        Self { core, jsx }
+    }
 
-        for package in self.core.iter().chain(self.jsx.iter()) {
-            if all_macro_packages
-                .iter()
-                .any(|existing| existing == package)
-            {
-                continue;
-            }
-
-            all_macro_packages.push(package.clone());
-        }
-
-        all_macro_packages
+    pub fn contains(&self, value: &impl PartialEq<str>) -> bool {
+        self.core.iter().any(|s| value == s.as_str())
+            || self.jsx.iter().any(|s| value == s.as_str())
     }
 }
 
-impl Default for MacroPackagesConfigNormalized {
+impl Default for MacroPackagesConfig {
     fn default() -> Self {
         Self {
             core: vec!["@lingui/macro".into(), "@lingui/core/macro".into()],
@@ -125,22 +117,20 @@ impl LinguiJsOptions {
             other => other,
         };
 
-        let macro_packages = MacroPackagesConfigNormalized {
-            core: self
-                .core_package
-                .unwrap_or_else(|| MacroPackagesConfigNormalized::default().core),
-            jsx: self
-                .jsx_package
-                .unwrap_or_else(|| MacroPackagesConfigNormalized::default().jsx),
-        };
-
         LinguiOptions {
             descriptor_fields,
             use_lingui_v5_id_generation: self.use_lingui_v5_id_generation.unwrap_or(false),
             id_prefix_leader: self.id_prefix_leader.clone(),
             jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
             jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
-            macro_packages,
+            macro_packages: MacroPackagesConfig {
+                core: self
+                    .core_package
+                    .unwrap_or_else(|| MacroPackagesConfig::default().core),
+                jsx: self
+                    .jsx_package
+                    .unwrap_or_else(|| MacroPackagesConfig::default().jsx),
+            },
             runtime_modules: RuntimeModulesConfigMapNormalized {
                 i18n: (
                     self.runtime_modules
@@ -194,7 +184,7 @@ pub struct LinguiOptions {
     #[serde(skip_serializing_if = "is_default")]
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "is_default")]
-    pub macro_packages: MacroPackagesConfigNormalized,
+    pub macro_packages: MacroPackagesConfig,
     #[serde(skip_serializing_if = "is_default")]
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
     #[serde(skip_serializing_if = "is_default")]
@@ -287,6 +277,8 @@ mod lib_tests {
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+                core_package: None,
+                jsx_package: None,
             }
         )
     }
@@ -333,15 +325,23 @@ mod lib_tests {
         let options = config.into_options("development");
         assert_eq!(
             options.macro_packages,
-            MacroPackagesConfigNormalized {
+            MacroPackagesConfig {
                 core: vec!["@lingui/macro".into(), "@lingui/core/macro".into()],
                 jsx: vec!["@lingui/macro".into(), "@lingui/react/macro".into()],
             }
         );
-        assert_eq!(
-            options.macro_packages.all_macro_packages(),
-            vec!["@lingui/macro", "@lingui/core/macro", "@lingui/react/macro"]
-        );
+
+        assert!(options
+            .macro_packages
+            .contains(&"@lingui/macro".to_string()));
+
+        assert!(options
+            .macro_packages
+            .contains(&"@lingui/core/macro".to_string()));
+
+        assert!(options
+            .macro_packages
+            .contains(&"@lingui/react/macro".to_string()));
     }
 
     #[test]
@@ -358,15 +358,19 @@ mod lib_tests {
         let options = config.into_options("development");
         assert_eq!(
             options.macro_packages,
-            MacroPackagesConfigNormalized {
+            MacroPackagesConfig {
                 core: vec!["@acme/core/macro".into()],
                 jsx: vec!["@acme/react/macro".into()],
             }
         );
-        assert_eq!(
-            options.macro_packages.all_macro_packages(),
-            vec!["@acme/core/macro", "@acme/react/macro"]
-        );
+
+        assert!(options
+            .macro_packages
+            .contains(&"@acme/core/macro".to_string()));
+
+        assert!(options
+            .macro_packages
+            .contains(&"@acme/react/macro".to_string()));
     }
 
     #[test]
