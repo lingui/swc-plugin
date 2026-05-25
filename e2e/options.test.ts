@@ -1,7 +1,7 @@
 import {describe, expect, it} from "vitest"
 import {resolve} from "node:path"
-
-import {linguiMacroSwcPlugin} from "../src-js/options"
+import {makeConfig} from '@lingui/conf'
+import {linguiMacroSwcPlugin, mapOptions} from "../src-js/options"
 
 const fixturesDir = resolve(import.meta.dirname, "fixtures/lingui-options")
 
@@ -17,10 +17,11 @@ describe("linguiMacroSwcPlugin", () => {
           "@lingui/swc-plugin",
           {
             "corePackage": [
-              "@lingui/core/macro",
+              "@acme/core/macro",
             ],
+            "idPrefixLeader": ".",
             "jsxPackage": [
-              "@lingui/react/macro",
+              "@acme/jsx/macro",
             ],
             "jsxPlaceholderAttribute": "_t",
             "jsxPlaceholderDefaults": {
@@ -57,6 +58,7 @@ describe("linguiMacroSwcPlugin", () => {
           "corePackage": [
             "@custom/core/macro",
           ],
+          "idPrefixLeader": ".",
           "jsxPackage": [
             "@custom/react/macro",
           ],
@@ -104,6 +106,7 @@ describe("linguiMacroSwcPlugin", () => {
           "corePackage": [
             "@override/core/macro",
           ],
+          "idPrefixLeader": ".",
           "jsxPackage": [
             "@override/react/macro",
           ],
@@ -129,5 +132,60 @@ describe("linguiMacroSwcPlugin", () => {
         },
       ]
     `)
+  })
+})
+
+describe('mapOptions', () => {
+  it('should map Lingui config options to SWC Wasm Plugin options', () => {
+    const config = makeConfig({
+      locales: ["en"],
+      sourceLocale: "en",
+      runtimeConfigModule: {
+        i18n: ["@custom/core", "customI18n"],
+        Trans: ["@custom/react", "CustomTrans"],
+        useLingui: ["@custom/react", "useCustomLingui"],
+      },
+      macro: {
+        idPrefixLeader: '.',
+        corePackage: ["@custom/core/macro"],
+        jsxPackage: ["@custom/react/macro"],
+        jsxPlaceholderAttribute: "data-i18n",
+        jsxPlaceholderDefaults: {
+          a: "anchor",
+          strong: "bold",
+        },
+      },
+    })
+
+    expect(mapOptions(config)).toMatchInlineSnapshot(`
+      {
+        "corePackage": [
+          "@custom/core/macro",
+        ],
+        "idPrefixLeader": ".",
+        "jsxPackage": [
+          "@custom/react/macro",
+        ],
+        "jsxPlaceholderAttribute": "data-i18n",
+        "jsxPlaceholderDefaults": {
+          "a": "anchor",
+          "strong": "bold",
+        },
+        "runtimeModules": {
+          "Trans": [
+            "@custom/react",
+            "CustomTrans",
+          ],
+          "i18n": [
+            "@custom/core",
+            "customI18n",
+          ],
+          "useLingui": [
+            "@custom/react",
+            "useCustomLingui",
+          ],
+        },
+      }
+    `);
   })
 })
