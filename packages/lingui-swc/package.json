@@ -1,6 +1,6 @@
 {
   "name": "lingui-swc",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Lingui Extractor Implementation using Rust and SWC",
   "license": "MIT",
   "repository": {
