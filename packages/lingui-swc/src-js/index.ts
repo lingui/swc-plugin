@@ -1,7 +1,7 @@
 import binding = require('../binding')
 import type {ParserConfig} from "@swc/types"
-import type {ExtractorType} from "@lingui/conf" with {"resolution-mode": "import"}
-import type {LinguiMacroOptions} from "@lingui/swc-plugin/options" with {"resolution-mode": "import"}
+import type {ExtractorType} from "@lingui/conf"
+import {LinguiMacroOptions, mapOptions} from "./macro-src/map-options"
 
 export type {LinguiMacroOptions};
 
@@ -66,17 +66,7 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
     async extract(filename, code, onMessageExtracted, ctx) {
       const {messages} = await extractMessages(code, filename, {
         ...options,
-        macro: {
-          // todo: reuse options mapping from linguiMacroSwcPlugin helper, to avoid implementation drifting
-          corePackage: ctx.linguiConfig.macro.corePackage,
-          jsxPackage: ctx.linguiConfig.macro.jsxPackage,
-          jsxPlaceholderAttribute: ctx.linguiConfig.macro.jsxPlaceholderAttribute,
-          jsxPlaceholderDefaults: ctx.linguiConfig.macro.jsxPlaceholderDefaults,
-          idPrefixLeader: ctx.linguiConfig.macro.idPrefixLeader,
-          runtimeModules: {
-            ...ctx.linguiConfig.runtimeConfigModule,
-          },
-        }
+        macro: mapOptions(ctx.linguiConfig)
       })
 
       messages.forEach((msg) => {
