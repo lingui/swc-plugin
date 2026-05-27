@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use swc_core::common::{Span, Spanned, SyntaxContext, DUMMY_SP};
+use swc_core::common::{SourceMapper, Span, Spanned, SyntaxContext, DUMMY_SP};
 
 use swc_core::common::comments::*;
 use swc_core::ecma::utils::private_ident;
@@ -31,7 +31,7 @@ use crate::macro_utils::*;
 use crate::options::*;
 use ast_utils::*;
 use builder::*;
-use comment_directive::collect_lingui_directives;
+use comment_directive::{collect_lingui_directives, collect_lingui_directives_from_source};
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
 
@@ -562,5 +562,37 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
             .unwrap_or_default(),
     );
 
-    program.fold_with(&mut LinguiMacroFolder::new(config, metadata.comments))
+    let mut folder = LinguiMacroFolder::new(config, metadata.comments);
+    let program_span = program.span();
+    let file = metadata.source_map.lookup_char_pos(program_span.lo).file;
+    let file_span = Span::new(file.start_pos, program_span.hi);
+
+    if let Ok(source) = metadata.source_map.span_to_snippet(file_span) {
+        let start_line = metadata.source_map.lookup_char_pos(file_span.lo).line;
+        let line_starts = collect_line_starts(file_span.lo, &source);
+        let directives = collect_lingui_directives_from_source(&source, start_line);
+
+        folder
+            .ctx
+            .set_source_directives(directives, line_starts, start_line);
+    }
+
+    program.fold_with(&mut folder)
+}
+
+fn collect_line_starts(
+    start: swc_core::common::BytePos,
+    source: &str,
+) -> Vec<swc_core::common::BytePos> {
+    let mut line_starts = vec![start];
+    let mut offset = start.0;
+
+    for byte in source.bytes() {
+        offset += 1;
+        if byte == b'\n' {
+            line_starts.push(swc_core::common::BytePos(offset));
+        }
+    }
+
+    line_starts
 }

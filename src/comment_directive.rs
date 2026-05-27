@@ -25,6 +25,12 @@ pub struct DirectiveEntry {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DirectiveLineEntry {
+    pub line: usize,
+    pub values: DirectiveValues,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum DirectiveValueUpdate {
     Set(String),
     Unset,
@@ -233,6 +239,92 @@ pub fn find_directive_for_pos(
     } else {
         Some(&directives[lo - 1].values)
     }
+}
+
+pub fn collect_lingui_directives_from_source(
+    source: &str,
+    start_line: usize,
+) -> Vec<DirectiveLineEntry> {
+    let mut directives: Vec<(usize, bool, DirectiveUpdate)> = source
+        .lines()
+        .enumerate()
+        .filter_map(|(index, line)| {
+            let comment = extract_directive_comment(line)?;
+            match parse_lingui_directive_raw(comment) {
+                Ok(Some(parsed)) => Some((index + start_line, parsed.reset, parsed.values)),
+                Ok(None) => None,
+                Err(message) => {
+                    HANDLER.with(|handler| handler.struct_err(&message).emit());
+                    None
+                }
+            }
+        })
+        .collect();
+
+    directives.sort_by_key(|directive| directive.0);
+
+    let mut accumulated = DirectiveValues::default();
+
+    directives
+        .into_iter()
+        .map(|(line, reset, values)| {
+            if reset {
+                accumulated = DirectiveValues::default();
+            }
+
+            accumulated.apply_update(values);
+
+            DirectiveLineEntry {
+                line,
+                values: accumulated.clone(),
+            }
+        })
+        .collect()
+}
+
+pub fn find_directive_for_line(
+    directives: &[DirectiveLineEntry],
+    line: usize,
+) -> Option<&DirectiveValues> {
+    if directives.is_empty() {
+        return None;
+    }
+
+    let mut lo = 0usize;
+    let mut hi = directives.len();
+
+    while lo < hi {
+        let mid = (lo + hi) / 2;
+        if directives[mid].line <= line {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+
+    if lo == 0 {
+        None
+    } else {
+        Some(&directives[lo - 1].values)
+    }
+}
+
+fn extract_directive_comment(line: &str) -> Option<&str> {
+    let trimmed = line.trim();
+
+    if let Some(comment) = trimmed.strip_prefix("//") {
+        return Some(comment.trim());
+    }
+
+    if let Some(comment) = trimmed.strip_prefix("/*") {
+        return Some(comment.trim_end_matches("*/").trim());
+    }
+
+    if let Some(comment) = trimmed.strip_prefix('*') {
+        return Some(comment.trim_end_matches("*/").trim());
+    }
+
+    None
 }
 
 pub(crate) fn collect_lingui_directives<C: Comments, N>(

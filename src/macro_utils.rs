@@ -1,5 +1,8 @@
 use crate::ast_utils::*;
-use crate::comment_directive::{find_directive_for_pos, DirectiveEntry, DirectiveValues};
+use crate::comment_directive::{
+    find_directive_for_line, find_directive_for_pos, DirectiveEntry, DirectiveLineEntry,
+    DirectiveValues,
+};
 use crate::tokens::*;
 use crate::LinguiOptions;
 use std::collections::{HashMap, HashSet};
@@ -38,6 +41,9 @@ pub struct MacroCtx {
 
     pub options: LinguiOptions,
     pub comment_directives: Vec<DirectiveEntry>,
+    pub source_directives: Vec<DirectiveLineEntry>,
+    pub source_line_starts: Vec<BytePos>,
+    pub source_start_line: usize,
     pub runtime_idents: RuntimeIdents,
 }
 
@@ -70,8 +76,46 @@ impl MacroCtx {
         self.comment_directives = directives;
     }
 
+    pub fn set_source_directives(
+        &mut self,
+        directives: Vec<DirectiveLineEntry>,
+        line_starts: Vec<BytePos>,
+        start_line: usize,
+    ) {
+        self.source_directives = directives;
+        self.source_line_starts = line_starts;
+        self.source_start_line = start_line;
+    }
+
     pub fn get_comment_directive(&self, pos: BytePos) -> Option<&DirectiveValues> {
         find_directive_for_pos(&self.comment_directives, pos)
+            .or_else(|| self.get_source_directive(pos))
+    }
+
+    fn get_source_directive(&self, pos: BytePos) -> Option<&DirectiveValues> {
+        let line = self.line_for_pos(pos)?;
+        find_directive_for_line(&self.source_directives, line)
+    }
+
+    fn line_for_pos(&self, pos: BytePos) -> Option<usize> {
+        let first = *self.source_line_starts.first()?;
+        if pos < first {
+            return None;
+        }
+
+        let mut lo = 0usize;
+        let mut hi = self.source_line_starts.len();
+
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if self.source_line_starts[mid] <= pos {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+
+        Some(self.source_start_line + lo.saturating_sub(1))
     }
 
     /// is given ident exported from @lingui/macro? and one of choice functions?
