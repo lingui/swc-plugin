@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use swc_core::common::comments::SingleThreadedComments;
 use swc_core::common::errors::{EmitterWriter, Handler, HANDLER};
 use swc_core::common::sync::Lrc;
-use swc_core::common::{FileName, Globals, Mark, SourceMap, GLOBALS};
+use swc_core::common::{BytePos, FileName, Globals, Mark, SourceMap, GLOBALS};
 use swc_core::ecma::ast::Pass;
 use swc_core::ecma::codegen::to_code_default;
 use swc_core::ecma::parser::{Parser, StringInput, Syntax, TsSyntax};
@@ -23,7 +23,7 @@ impl Write for SharedWriter {
 
 pub fn transform<P: Pass>(
     input: &str,
-    transform_cb: impl FnOnce(&SingleThreadedComments) -> P,
+    transform_cb: impl FnOnce(&SingleThreadedComments, BytePos) -> P,
 ) -> Result<String, String> {
     let error_buffer = Arc::new(Mutex::new(Vec::new()));
     let cm: Lrc<SourceMap> = Default::default();
@@ -66,7 +66,7 @@ pub fn transform<P: Pass>(
 
             let program = program
                 .apply(resolver(Mark::new(), Mark::new(), true))
-                .apply(transform_cb(&comments))
+                .apply(transform_cb(&comments, fm.start_pos))
                 .apply(hygiene::hygiene())
                 .apply(fixer::fixer(Some(&comments)));
 
@@ -129,11 +129,17 @@ macro_rules! to {
         #[test]
         fn $name() {
             let source = common::dedent($input);
-            let output = common::transform(source.as_str(), |comments| {
-                swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
-                    Default::default(),
-                    Some(comments.clone()),
-                ))
+            let output = common::transform(source.as_str(), |comments, start_pos| {
+                swc_core::ecma::visit::fold_pass(
+                    lingui_macro_plugin::LinguiMacroFolder::new(
+                        Default::default(),
+                        Some(comments.clone()),
+                    )
+                    .with_directive_source(lingui_macro_plugin::DirectiveSource::Text {
+                        start_pos,
+                        source: source.clone(),
+                    }),
+                )
             })
             .expect("Transform produced unexpected errors");
             insta::with_settings!({
@@ -149,11 +155,17 @@ macro_rules! to {
             let options: lingui_macro_plugin::LinguiOptions = $options;
             let source = common::dedent($input);
 
-            let output = common::transform(source.as_str(), |comments| {
-                swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
-                    options.clone(),
-                    Some(comments.clone()),
-                ))
+            let output = common::transform(source.as_str(), |comments, start_pos| {
+                swc_core::ecma::visit::fold_pass(
+                    lingui_macro_plugin::LinguiMacroFolder::new(
+                        options.clone(),
+                        Some(comments.clone()),
+                    )
+                    .with_directive_source(lingui_macro_plugin::DirectiveSource::Text {
+                        start_pos,
+                        source: source.clone(),
+                    }),
+                )
             })
             .expect("Transform produced unexpected errors");
             insta::with_settings!({
@@ -173,11 +185,17 @@ macro_rules! to_panic {
         fn $name() {
             let options: lingui_macro_plugin::LinguiOptions = $options;
             let source = common::dedent($input);
-            let err = common::transform(source.as_str(), |comments| {
-                swc_core::ecma::visit::fold_pass(lingui_macro_plugin::LinguiMacroFolder::new(
-                    options.clone(),
-                    Some(comments.clone()),
-                ))
+            let err = common::transform(source.as_str(), |comments, start_pos| {
+                swc_core::ecma::visit::fold_pass(
+                    lingui_macro_plugin::LinguiMacroFolder::new(
+                        options.clone(),
+                        Some(comments.clone()),
+                    )
+                    .with_directive_source(lingui_macro_plugin::DirectiveSource::Text {
+                        start_pos,
+                        source: source.clone(),
+                    }),
+                )
             })
             .expect_err("Expected transform to produce an error, but it succeeded");
             insta::with_settings!({

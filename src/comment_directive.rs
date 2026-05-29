@@ -1,15 +1,17 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::collections::HashSet;
-use swc_core::common::comments::{Comment, Comments};
-use swc_core::common::{BytePos, Span, Spanned};
-use swc_core::ecma::ast::*;
-use swc_core::ecma::visit::{Visit, VisitWith};
+#[cfg(test)]
+use swc_core::common::comments::Comment;
+use swc_core::common::{BytePos, Span};
 use swc_core::plugin::errors::HANDLER;
 
 static DIRECTIVE_RE: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"^(lingui-(?:set|reset))(?:\s|$)(.*)").unwrap());
 static TOKEN_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\s+|(\w+)(?:="([^"]*)")?"#).unwrap());
+
+fn is_lingui_directive_prefix(comment: &str) -> bool {
+    comment.starts_with("lingui-set") || comment.starts_with("lingui-reset")
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct DirectiveValues {
@@ -39,13 +41,6 @@ struct DirectiveUpdate {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ParsedDirective {
-    reset: bool,
-    values: DirectiveUpdate,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct RawDirectiveEntry {
-    pos: BytePos,
     reset: bool,
     values: DirectiveUpdate,
 }
@@ -163,51 +158,6 @@ fn parse_lingui_directive_raw(comment_value: &str) -> Result<Option<ParsedDirect
     Ok(Some(ParsedDirective { reset, values }))
 }
 
-pub fn collect_lingui_directives_from_comments(comments: &[Comment]) -> Vec<DirectiveEntry> {
-    let mut directives: Vec<RawDirectiveEntry> = comments
-        .iter()
-        .filter_map(
-            |comment| match parse_lingui_directive_raw(comment.text.as_ref()) {
-                Ok(Some(parsed)) => Some(RawDirectiveEntry {
-                    pos: comment.span.lo,
-                    reset: parsed.reset,
-                    values: parsed.values,
-                }),
-                Ok(None) => None,
-                Err(message) => {
-                    HANDLER.with(|handler| {
-                        handler.struct_span_err(comment.span, &message).emit();
-                    });
-                    None
-                }
-            },
-        )
-        .collect();
-
-    directives.sort_by_key(|directive| directive.pos);
-
-    let mut accumulated = DirectiveValues::default();
-
-    directives
-        .into_iter()
-        .map(|directive| {
-            let mut values = if directive.reset {
-                DirectiveValues::default()
-            } else {
-                accumulated.clone()
-            };
-
-            values.apply_update(directive.values);
-            accumulated = values.clone();
-
-            DirectiveEntry {
-                pos: directive.pos,
-                values,
-            }
-        })
-        .collect()
-}
-
 pub fn find_directive_for_pos(
     directives: &[DirectiveEntry],
     pos: BytePos,
@@ -235,75 +185,243 @@ pub fn find_directive_for_pos(
     }
 }
 
-pub(crate) fn collect_lingui_directives<C: Comments, N>(
-    node: &N,
-    comments: &Option<C>,
-) -> Vec<DirectiveEntry>
-where
-    for<'a> N: VisitWith<DirectiveCollector<'a, C>>,
-{
-    let Some(comments) = comments.as_ref() else {
-        return vec![];
-    };
+#[cfg(test)]
+pub fn collect_lingui_directives_from_comments(comments: &[Comment]) -> Vec<DirectiveEntry> {
+    let mut accumulated = DirectiveValues::default();
 
-    let mut collector = DirectiveCollector::new(comments);
-    node.visit_with(&mut collector);
-    collect_lingui_directives_from_comments(&collector.comments)
+    comments
+        .iter()
+        .filter_map(
+            |comment| match parse_lingui_directive_raw(comment.text.as_ref()) {
+                Ok(Some(parsed)) => {
+                    Some(apply_directive(parsed, comment.span.lo, &mut accumulated))
+                }
+                Ok(None) => None,
+                Err(message) => {
+                    HANDLER.with(|handler| {
+                        handler.struct_span_err(comment.span, &message).emit();
+                    });
+                    None
+                }
+            },
+        )
+        .collect()
 }
 
-pub(crate) struct DirectiveCollector<'a, C>
-where
-    C: Comments,
-{
-    comments_api: &'a C,
-    seen_positions: HashSet<BytePos>,
-    comments: Vec<Comment>,
-}
+pub fn collect_lingui_directives_from_source(
+    source: &str,
+    start_pos: BytePos,
+) -> Vec<DirectiveEntry> {
+    let mut directives = Vec::new();
+    let mut accumulated = DirectiveValues::default();
+    let bytes = source.as_bytes();
+    let mut index = 0usize;
+    let mut mode = SourceScanMode::Code;
+    let mut template_expr_depths: Vec<usize> = vec![];
 
-impl<'a, C> DirectiveCollector<'a, C>
-where
-    C: Comments,
-{
-    fn new(comments_api: &'a C) -> Self {
-        Self {
-            comments_api,
-            seen_positions: HashSet::new(),
-            comments: vec![],
-        }
-    }
+    while index < bytes.len() {
+        match mode {
+            SourceScanMode::Code => match bytes[index] {
+                b'\'' => {
+                    mode = SourceScanMode::SingleQuoted;
+                    index += 1;
+                }
+                b'"' => {
+                    mode = SourceScanMode::DoubleQuoted;
+                    index += 1;
+                }
+                b'`' => {
+                    mode = SourceScanMode::TemplateText;
+                    index += 1;
+                }
+                b'/' if bytes.get(index + 1) == Some(&b'/') => {
+                    let comment_start = BytePos(start_pos.0 + index as u32);
+                    let content_start = index + 2;
+                    index = content_start;
 
-    fn record_for_span(&mut self, span: Span) {
-        if span.is_dummy() {
-            return;
-        }
+                    while index < bytes.len() && bytes[index] != b'\n' {
+                        index += 1;
+                    }
 
-        if let Some(comments) = self.comments_api.get_leading(span.lo()) {
-            for comment in comments {
-                if self.seen_positions.insert(comment.span.lo) {
-                    self.comments.push(comment);
+                    parse_source_directive(
+                        source[content_start..index].trim(),
+                        Span::new(comment_start, BytePos(start_pos.0 + index as u32)),
+                        &mut accumulated,
+                        &mut directives,
+                    );
+                }
+                b'/' if bytes.get(index + 1) == Some(&b'*') => {
+                    let comment_start = BytePos(start_pos.0 + index as u32);
+                    let content_start = index + 2;
+                    index = content_start;
+
+                    while index + 1 < bytes.len()
+                        && !(bytes[index] == b'*' && bytes[index + 1] == b'/')
+                    {
+                        index += 1;
+                    }
+
+                    let content_end = index;
+                    if index + 1 < bytes.len() {
+                        index += 2;
+                    } else {
+                        index = bytes.len();
+                    }
+
+                    parse_block_directives(
+                        &source[content_start..content_end],
+                        comment_start,
+                        &mut accumulated,
+                        &mut directives,
+                    );
+                }
+                b'{' => {
+                    if let Some(depth) = template_expr_depths.last_mut() {
+                        *depth += 1;
+                    }
+                    index += 1;
+                }
+                b'}' => {
+                    if let Some(depth) = template_expr_depths.last_mut() {
+                        if *depth == 0 {
+                            template_expr_depths.pop();
+                            mode = SourceScanMode::TemplateText;
+                        } else {
+                            *depth -= 1;
+                        }
+                    }
+                    index += 1;
+                }
+                _ => {
+                    index += 1;
+                }
+            },
+            SourceScanMode::SingleQuoted => {
+                if bytes[index] == b'\\' {
+                    index = (index + 2).min(bytes.len());
+                } else {
+                    if bytes[index] == b'\'' {
+                        mode = SourceScanMode::Code;
+                    }
+                    index += 1;
                 }
             }
+            SourceScanMode::DoubleQuoted => {
+                if bytes[index] == b'\\' {
+                    index = (index + 2).min(bytes.len());
+                } else {
+                    if bytes[index] == b'"' {
+                        mode = SourceScanMode::Code;
+                    }
+                    index += 1;
+                }
+            }
+            SourceScanMode::TemplateText => match bytes[index] {
+                b'\\' => {
+                    index = (index + 2).min(bytes.len());
+                }
+                b'`' => {
+                    mode = SourceScanMode::Code;
+                    index += 1;
+                }
+                b'$' if bytes.get(index + 1) == Some(&b'{') => {
+                    template_expr_depths.push(0);
+                    mode = SourceScanMode::Code;
+                    index += 2;
+                }
+                _ => {
+                    index += 1;
+                }
+            },
+        }
+    }
+
+    directives
+}
+
+enum SourceScanMode {
+    Code,
+    SingleQuoted,
+    DoubleQuoted,
+    TemplateText,
+}
+
+fn parse_source_directive(
+    text: &str,
+    span: Span,
+    accumulated: &mut DirectiveValues,
+    directives: &mut Vec<DirectiveEntry>,
+) {
+    if !is_lingui_directive_prefix(text) {
+        return;
+    }
+
+    match parse_lingui_directive_raw(text) {
+        Ok(Some(parsed)) => directives.push(apply_directive(parsed, span.lo, accumulated)),
+        Ok(None) => {}
+        Err(message) => {
+            HANDLER.with(|handler| handler.struct_span_err(span, &message).emit());
         }
     }
 }
 
-impl<C> Visit for DirectiveCollector<'_, C>
-where
-    C: Comments,
-{
-    fn visit_expr(&mut self, expr: &Expr) {
-        self.record_for_span(expr.span());
-        expr.visit_children_with(self);
-    }
+fn apply_directive(
+    parsed: ParsedDirective,
+    pos: BytePos,
+    accumulated: &mut DirectiveValues,
+) -> DirectiveEntry {
+    let mut values = if parsed.reset {
+        DirectiveValues::default()
+    } else {
+        accumulated.clone()
+    };
 
-    fn visit_module_item(&mut self, module_item: &ModuleItem) {
-        self.record_for_span(module_item.span());
-        module_item.visit_children_with(self);
-    }
+    values.apply_update(parsed.values);
+    *accumulated = values.clone();
 
-    fn visit_stmt(&mut self, stmt: &Stmt) {
-        self.record_for_span(stmt.span());
-        stmt.visit_children_with(self);
+    DirectiveEntry { pos, values }
+}
+
+fn parse_block_directives(
+    content: &str,
+    comment_start: BytePos,
+    accumulated: &mut DirectiveValues,
+    directives: &mut Vec<DirectiveEntry>,
+) {
+    let mut line_offset = 0u32;
+
+    for segment in content.split_inclusive('\n') {
+        let line_with_cr = segment.strip_suffix('\n').unwrap_or(segment);
+        let line = line_with_cr.trim_end_matches('\r');
+        let trimmed = line.trim_start();
+        let leading_ws = (line.len() - trimmed.len()) as u32;
+
+        if line_offset == 0 {
+            parse_source_directive(
+                trimmed,
+                Span::new(
+                    comment_start,
+                    BytePos(comment_start.0 + 2 + line_with_cr.len() as u32),
+                ),
+                accumulated,
+                directives,
+            );
+        } else if let Some(after_star) = trimmed.strip_prefix('*') {
+            let text = after_star.trim_start();
+            let marker_pos = BytePos(comment_start.0 + 2 + line_offset + leading_ws);
+
+            parse_source_directive(
+                text,
+                Span::new(
+                    marker_pos,
+                    BytePos(comment_start.0 + 2 + line_offset + line_with_cr.len() as u32),
+                ),
+                accumulated,
+                directives,
+            );
+        }
+
+        line_offset += segment.len() as u32;
     }
 }
 
@@ -311,6 +429,7 @@ where
 mod tests {
     use super::*;
     use swc_core::common::comments::CommentKind;
+    use swc_core::common::Span;
 
     fn make_comment(text: &str, lo: u32) -> Comment {
         Comment {
@@ -375,6 +494,56 @@ mod tests {
                     id_prefix: None,
                 }
             ))
+        );
+    }
+
+    #[test]
+    fn collect_from_source_should_handle_crlf_block_comments() {
+        let directives = collect_lingui_directives_from_source(
+            "/* lingui-set context=\"ctx\" */\r\nconst msg = t`Hello`;\r\n",
+            BytePos(10),
+        );
+
+        assert_eq!(
+            directives,
+            vec![DirectiveEntry {
+                pos: BytePos(10),
+                values: DirectiveValues {
+                    context: Some("ctx".into()),
+                    comment: None,
+                    id_prefix: None,
+                },
+            }]
+        );
+    }
+
+    #[test]
+    fn collect_from_source_should_ignore_template_text_that_looks_like_comment() {
+        let directives = collect_lingui_directives_from_source(
+            "const msg = `\n// lingui-set context=\"ctx\"\n`;\n",
+            BytePos(10),
+        );
+
+        assert_eq!(directives, vec![]);
+    }
+
+    #[test]
+    fn collect_from_source_should_support_starred_block_comment_lines() {
+        let directives = collect_lingui_directives_from_source(
+            "/**\n * lingui-set context=\"ctx\"\n */\nconst msg = t`Hello`;\n",
+            BytePos(10),
+        );
+
+        assert_eq!(
+            directives,
+            vec![DirectiveEntry {
+                pos: BytePos(15),
+                values: DirectiveValues {
+                    context: Some("ctx".into()),
+                    comment: None,
+                    id_prefix: None,
+                },
+            }]
         );
     }
 

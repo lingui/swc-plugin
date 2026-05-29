@@ -37,7 +37,7 @@ pub struct MacroCtx {
     pub should_add_uselingui_import: bool,
 
     pub options: LinguiOptions,
-    pub comment_directives: Vec<DirectiveEntry>,
+    pub directives: Vec<DirectiveEntry>,
     pub runtime_idents: RuntimeIdents,
 }
 
@@ -66,12 +66,12 @@ impl MacroCtx {
         }
     }
 
-    pub fn set_comment_directives(&mut self, directives: Vec<DirectiveEntry>) {
-        self.comment_directives = directives;
+    pub fn set_directives(&mut self, directives: Vec<DirectiveEntry>) {
+        self.directives = directives;
     }
 
     pub fn get_comment_directive(&self, pos: BytePos) -> Option<&DirectiveValues> {
-        find_directive_for_pos(&self.comment_directives, pos)
+        find_directive_for_pos(&self.directives, pos)
     }
 
     /// is given ident exported from @lingui/macro? and one of choice functions?
