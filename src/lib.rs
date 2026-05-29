@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use swc_core::common::{SourceMapper, Span, Spanned, SyntaxContext, DUMMY_SP};
+use swc_core::common::{BytePos, SourceMapper, Span, Spanned, SyntaxContext, DUMMY_SP};
 
 use swc_core::common::comments::*;
 use swc_core::ecma::utils::private_ident;
@@ -11,8 +11,9 @@ use swc_core::{
         visit::{Fold, FoldWith, VisitWith},
     },
     plugin::{
-        metadata::TransformPluginMetadataContextKind, plugin_transform,
-        proxies::TransformPluginProgramMetadata,
+        metadata::TransformPluginMetadataContextKind,
+        plugin_transform,
+        proxies::{PluginSourceMapProxy, TransformPluginProgramMetadata},
     },
 };
 
@@ -31,7 +32,7 @@ use crate::macro_utils::*;
 use crate::options::*;
 use ast_utils::*;
 use builder::*;
-use comment_directive::{collect_lingui_directives, collect_lingui_directives_from_source};
+use comment_directive::collect_lingui_directives_from_source;
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
 
@@ -52,6 +53,11 @@ impl Fold for IdentReplacer {
     }
 }
 
+pub enum DirectiveSource {
+    Text { start_pos: BytePos, source: String },
+    SourceMap(PluginSourceMapProxy),
+}
+
 pub struct LinguiMacroFolder<C>
 where
     C: Comments + Clone,
@@ -59,6 +65,7 @@ where
     has_lingui_macro_imports: bool,
     ctx: MacroCtx,
     comments: Option<C>,
+    directive_source: Option<DirectiveSource>,
 }
 
 impl<C> LinguiMacroFolder<C>
@@ -70,6 +77,48 @@ where
             has_lingui_macro_imports: false,
             ctx: MacroCtx::new(options),
             comments,
+            directive_source: None,
+        }
+    }
+
+    pub fn with_directive_source(
+        mut self,
+        directive_source: DirectiveSource,
+    ) -> LinguiMacroFolder<C> {
+        self.directive_source = Some(directive_source);
+        self
+    }
+
+    fn ensure_source_directives(&mut self, module_items: &[ModuleItem]) {
+        if !self.ctx.directives.is_empty() {
+            return;
+        }
+
+        let Some(directive_source) = self.directive_source.take() else {
+            return;
+        };
+
+        match directive_source {
+            DirectiveSource::Text { start_pos, source } => {
+                self.ctx
+                    .set_directives(collect_lingui_directives_from_source(&source, start_pos));
+            }
+            DirectiveSource::SourceMap(source_map) => {
+                let Some(last_item) = module_items.last() else {
+                    return;
+                };
+
+                let file = source_map.lookup_char_pos(module_items[0].span().lo).file;
+                let file_span = Span::new(file.start_pos, last_item.span().hi);
+
+                if let Ok(source) = source_map.span_to_snippet(file_span) {
+                    self.ctx
+                        .set_directives(collect_lingui_directives_from_source(
+                            &source,
+                            file_span.lo,
+                        ));
+                }
+            }
         }
     }
 
@@ -388,8 +437,7 @@ where
             return n;
         }
 
-        self.ctx
-            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
+        self.ensure_source_directives(&n);
 
         let mut insert_index: usize = 0;
         let mut index = 0;
@@ -562,37 +610,8 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
             .unwrap_or_default(),
     );
 
-    let mut folder = LinguiMacroFolder::new(config, metadata.comments);
-    let program_span = program.span();
-    let file = metadata.source_map.lookup_char_pos(program_span.lo).file;
-    let file_span = Span::new(file.start_pos, program_span.hi);
-
-    if let Ok(source) = metadata.source_map.span_to_snippet(file_span) {
-        let start_line = metadata.source_map.lookup_char_pos(file_span.lo).line;
-        let line_starts = collect_line_starts(file_span.lo, &source);
-        let directives = collect_lingui_directives_from_source(&source, start_line);
-
-        folder
-            .ctx
-            .set_source_directives(directives, line_starts, start_line);
-    }
+    let mut folder = LinguiMacroFolder::new(config, metadata.comments)
+        .with_directive_source(DirectiveSource::SourceMap(metadata.source_map));
 
     program.fold_with(&mut folder)
-}
-
-fn collect_line_starts(
-    start: swc_core::common::BytePos,
-    source: &str,
-) -> Vec<swc_core::common::BytePos> {
-    let mut line_starts = vec![start];
-    let mut offset = start.0;
-
-    for byte in source.bytes() {
-        offset += 1;
-        if byte == b'\n' {
-            line_starts.push(swc_core::common::BytePos(offset));
-        }
-    }
-
-    line_starts
 }
