@@ -1,6 +1,6 @@
 import binding = require('../binding')
 import type {ParserConfig} from "@swc/types"
-import type {ExtractorType} from "@lingui/conf"
+import type {ExtractedMessage, ExtractorCtx, ExtractorType} from "@lingui/conf"
 import {LinguiMacroOptions, mapOptions} from "./macro-src/map-options"
 
 export type {LinguiMacroOptions};
@@ -34,6 +34,19 @@ export function extractMessagesFromFiles(filePaths: string[], options?: Extracto
   return binding.extractMessagesFromFiles(filePaths, toBuffer(options || {}))
 }
 
+const mapMessage = (msg: binding.ExtractedMessage): ExtractedMessage => {
+  return {
+    id: msg.id,
+    origin: msg.origin
+      ? [msg.origin.filename, msg.origin.line, msg.origin.column]
+      : undefined,
+    placeholders: msg.placeholders,
+    context: msg.context,
+    comment: msg.comment,
+    message: msg.message,
+  };
+}
+
 /**
  * Creates pluggable SWC Lingui Extractor implementation.
  *
@@ -48,7 +61,13 @@ export function extractMessagesFromFiles(filePaths: string[], options?: Extracto
  *
  * Macro options automatically inherited from the Lingui Config.
  */
-export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorType {
+export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorType & {
+  extractFromFiles: (
+    filenames: string[],
+    onMessageExtracted: (msg: ExtractedMessage) => void,
+    ctx: ExtractorCtx,
+  ) => Promise<void>
+} {
   const matchRe = new RegExp(
     "\\.(" +
     [".ts", ".mts", ".cts", ".tsx", ".js", ".mjs", ".cjs", ".jsx"]
@@ -70,18 +89,22 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
       })
 
       messages.forEach((msg) => {
-        onMessageExtracted({
-          id: msg.id,
-          origin: msg.origin
-            ? [msg.origin.filename, msg.origin.line, msg.origin.column]
-            : undefined,
-          placeholders: msg.placeholders,
-          context: msg.context,
-          comment: msg.comment,
-          message: msg.message,
-        })
+        onMessageExtracted(mapMessage(msg))
       })
     },
+
+    async extractFromFiles(filenames: string[],
+                           onMessageExtracted: (msg: ExtractedMessage) => void,
+                           ctx: ExtractorCtx) {
+      const {messages} = await extractMessagesFromFiles(filenames, {
+        ...options,
+        macro: mapOptions(ctx.linguiConfig)
+      })
+
+      messages.forEach((msg) => {
+        onMessageExtracted(mapMessage(msg))
+      })
+    }
   }
 }
 
