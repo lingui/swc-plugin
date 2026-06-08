@@ -1,0 +1,79 @@
+---
+source: tests/imports.rs
+assertion_line: 139
+---
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+
+declare module "x" {
+  interface I {
+    a: string;
+  }
+}
+
+const afterModule = <Trans>after module</Trans>;
+
+declare global {
+  interface Window {
+    b: string;
+  }
+}
+
+const afterGlobal = t`after global`;
+
+declare namespace Foo {
+  interface I {
+    c: string;
+  }
+}
+
+const afterDeclareNamespace = <Trans>after declare namespace</Trans>;
+
+namespace Bar {
+  export interface I {
+    d: string;
+  }
+}
+
+const afterNamespace = t`after namespace`;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+import { i18n as $_i18n } from "@lingui/core";
+declare module "x" {
+    interface I {
+        a: string;
+    }
+}
+const afterModule = <Trans_ {.../*i18n*/ {
+    id: "gO7Edk",
+    message: "after module"
+}}/>;
+declare global {
+    interface Window {
+        b: string;
+    }
+}
+const afterGlobal = $_i18n._(/*i18n*/ {
+    id: "qJmedi",
+    message: "after global"
+});
+declare namespace Foo {
+    interface I {
+        c: string;
+    }
+}
+const afterDeclareNamespace = <Trans_ {.../*i18n*/ {
+    id: "uSbi7L",
+    message: "after declare namespace"
+}}/>;
+namespace Bar {
+    export interface I {
+        d: string;
+    }
+}
+const afterNamespace = $_i18n._(/*i18n*/ {
+    id: "GorFLG",
+    message: "after namespace"
+});
