@@ -411,6 +411,63 @@ import { Trans } from "@lingui/react/macro";
     assert_eq!(messages[0].message, Some("Hello <0>world</0>!".to_string()));
 }
 
+#[test]
+fn test_extracts_messages_after_ts_module_declarations() {
+    let code = r#"
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+
+declare module "x" {
+  interface I {
+    a: string;
+  }
+}
+
+const afterModule = <Trans>after module</Trans>;
+
+declare global {
+  interface Window {
+    b: string;
+  }
+}
+
+const afterGlobal = t`after global`;
+
+declare namespace Foo {
+  interface I {
+    c: string;
+  }
+}
+
+const afterDeclareNamespace = <Trans>after declare namespace</Trans>;
+
+namespace Bar {
+  export interface I {
+    d: string;
+  }
+}
+
+const afterNamespace = t`after namespace`;
+    "#;
+
+    let (messages, warnings) = extract_and_sort(code, "test.tsx");
+
+    assert_no_warnings(&warnings);
+    assert_eq!(messages.len(), 4);
+    assert_eq!(
+        messages
+            .iter()
+            .filter_map(|message| message.message.as_deref())
+            .collect::<Vec<_>>(),
+        vec![
+            "after module",
+            "after global",
+            "after declare namespace",
+            "after namespace"
+        ]
+    );
+}
+
 // ============================================================================
 // Snapshot Testing Framework
 // ============================================================================
