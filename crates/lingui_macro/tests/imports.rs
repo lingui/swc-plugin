@@ -135,3 +135,43 @@ to!(
     ;<Trans>Hello!</Trans>
   "#
 );
+
+to!(
+    should_transform_messages_after_ts_module_declarations,
+    r#"
+import { t } from "@lingui/core/macro";
+import { Trans } from "@lingui/react/macro";
+
+declare module "x" {
+  interface I {
+    a: string;
+  }
+}
+
+const afterModule = <Trans>after module</Trans>;
+
+declare global {
+  interface Window {
+    b: string;
+  }
+}
+
+const afterGlobal = t`after global`;
+
+declare namespace Foo {
+  interface I {
+    c: string;
+  }
+}
+
+const afterDeclareNamespace = <Trans>after declare namespace</Trans>;
+
+namespace Bar {
+  export interface I {
+    d: string;
+  }
+}
+
+const afterNamespace = t`after namespace`;
+     "#
+);
