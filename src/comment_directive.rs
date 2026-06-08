@@ -1,7 +1,5 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
-#[cfg(test)]
-use swc_core::common::comments::Comment;
 use swc_core::common::{BytePos, Span};
 use swc_core::plugin::errors::HANDLER;
 
@@ -78,20 +76,7 @@ fn parse_value_update(value: &str) -> DirectiveValueUpdate {
     }
 }
 
-#[cfg(test)]
-pub(crate) fn parse_lingui_directive(
-    comment_value: &str,
-) -> Result<Option<(bool, DirectiveValues)>, String> {
-    parse_lingui_directive_raw(comment_value).map(|parsed| {
-        parsed.map(|parsed| {
-            let mut values = DirectiveValues::default();
-            values.apply_update(parsed.values);
-            (parsed.reset, values)
-        })
-    })
-}
-
-fn parse_lingui_directive_raw(comment_value: &str) -> Result<Option<ParsedDirective>, String> {
+fn parse_lingui_directive(comment_value: &str) -> Result<Option<ParsedDirective>, String> {
     let trimmed = comment_value.trim();
 
     let Some(directive_match) = DIRECTIVE_RE.captures(trimmed) else {
@@ -183,29 +168,6 @@ pub fn find_directive_for_pos(
     } else {
         Some(&directives[lo - 1].values)
     }
-}
-
-#[cfg(test)]
-pub fn collect_lingui_directives_from_comments(comments: &[Comment]) -> Vec<DirectiveEntry> {
-    let mut accumulated = DirectiveValues::default();
-
-    comments
-        .iter()
-        .filter_map(
-            |comment| match parse_lingui_directive_raw(comment.text.as_ref()) {
-                Ok(Some(parsed)) => {
-                    Some(apply_directive(parsed, comment.span.lo, &mut accumulated))
-                }
-                Ok(None) => None,
-                Err(message) => {
-                    HANDLER.with(|handler| {
-                        handler.struct_span_err(comment.span, &message).emit();
-                    });
-                    None
-                }
-            },
-        )
-        .collect()
 }
 
 pub fn collect_lingui_directives_from_source(
@@ -356,7 +318,7 @@ fn parse_source_directive(
         return;
     }
 
-    match parse_lingui_directive_raw(text) {
+    match parse_lingui_directive(text) {
         Ok(Some(parsed)) => directives.push(apply_directive(parsed, span.lo, accumulated)),
         Ok(None) => {}
         Err(message) => {
@@ -428,16 +390,6 @@ fn parse_block_directives(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use swc_core::common::comments::CommentKind;
-    use swc_core::common::Span;
-
-    fn make_comment(text: &str, lo: u32) -> Comment {
-        Comment {
-            kind: CommentKind::Block,
-            span: Span::new(BytePos(lo), BytePos(lo + text.len() as u32)),
-            text: text.into(),
-        }
-    }
 
     #[test]
     fn parse_should_parse_multiple_keys() {
@@ -447,14 +399,14 @@ mod tests {
 
         assert_eq!(
             parsed,
-            Some((
-                false,
-                DirectiveValues {
-                    context: Some("ctx".into()),
-                    comment: Some("cmt".into()),
-                    id_prefix: Some("p.".into()),
+            Some(ParsedDirective {
+                reset: false,
+                values: DirectiveUpdate {
+                    context: Some(DirectiveValueUpdate::Set("ctx".into())),
+                    comment: Some(DirectiveValueUpdate::Set("cmt".into())),
+                    id_prefix: Some(DirectiveValueUpdate::Set("p.".into())),
                 }
-            ))
+            })
         );
     }
 
@@ -486,14 +438,14 @@ mod tests {
 
         assert_eq!(
             parsed,
-            Some((
-                false,
-                DirectiveValues {
-                    context: None,
-                    comment: Some("note".into()),
+            Some(ParsedDirective {
+                reset: false,
+                values: DirectiveUpdate {
+                    context: Some(DirectiveValueUpdate::Unset),
+                    comment: Some(DirectiveValueUpdate::Set("note".into())),
                     id_prefix: None,
                 }
-            ))
+            })
         );
     }
 
@@ -549,18 +501,21 @@ mod tests {
 
     #[test]
     fn collect_should_merge_and_reset_directives() {
-        let directives = collect_lingui_directives_from_comments(&[
-            make_comment(r#" lingui-set context="ctx1" "#, 10),
-            make_comment(" not a directive", 20),
-            make_comment(r#" lingui-set comment="cmt" "#, 30),
-            make_comment(r#" lingui-reset context="ctx2" "#, 40),
-        ]);
+        let directives = collect_lingui_directives_from_source(
+            r#"
+      // lingui-set context="ctx1"
+      // not a directive
+      // lingui-set comment="cmt"
+      // lingui-reset context="ctx2"
+      "#,
+            BytePos(10),
+        );
 
         assert_eq!(
             directives,
             vec![
                 DirectiveEntry {
-                    pos: BytePos(10),
+                    pos: BytePos(17),
                     values: DirectiveValues {
                         context: Some("ctx1".into()),
                         comment: None,
@@ -568,7 +523,7 @@ mod tests {
                     },
                 },
                 DirectiveEntry {
-                    pos: BytePos(30),
+                    pos: BytePos(77),
                     values: DirectiveValues {
                         context: Some("ctx1".into()),
                         comment: Some("cmt".into()),
@@ -576,7 +531,7 @@ mod tests {
                     },
                 },
                 DirectiveEntry {
-                    pos: BytePos(40),
+                    pos: BytePos(111),
                     values: DirectiveValues {
                         context: Some("ctx2".into()),
                         comment: None,

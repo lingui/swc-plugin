@@ -107,7 +107,9 @@ where
                     return;
                 };
 
-                let file = source_map.lookup_char_pos(module_items[0].span().lo).file;
+                let file = source_map
+                    .lookup_char_pos(module_items.first().span().lo)
+                    .file;
                 let file_span = Span::new(file.start_pos, last_item.span().hi);
 
                 if let Ok(source) = source_map.span_to_snippet(file_span) {
