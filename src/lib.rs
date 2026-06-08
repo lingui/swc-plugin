@@ -28,7 +28,6 @@ mod tokens;
 
 use crate::generate_id::*;
 use crate::macro_utils::*;
-use crate::options::*;
 use ast_utils::*;
 use builder::*;
 use comment_directive::collect_lingui_directives;
@@ -371,13 +370,8 @@ impl<C> Fold for LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
-    fn fold_module_items(&mut self, mut n: Vec<ModuleItem>) -> Vec<ModuleItem> {
-        let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
-        let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
-        let (use_lingui_source, use_lingui_export) =
-            self.ctx.options.runtime_modules.use_lingui.clone();
-
-        self.has_lingui_macro_imports = n.iter().any(|m| {
+    fn fold_module(&mut self, mut node: Module) -> Module {
+        self.has_lingui_macro_imports = node.body.iter().any(|m| {
             matches!(m,
                 ModuleItem::ModuleDecl(ModuleDecl::Import(imp))
                 if self.ctx.options.macro_packages.contains(&imp.src.value.to_string_lossy())
@@ -385,16 +379,16 @@ where
         });
 
         if !self.has_lingui_macro_imports {
-            return n;
+            return node;
         }
 
         self.ctx
-            .set_comment_directives(collect_lingui_directives(&n, &self.comments));
+            .set_comment_directives(collect_lingui_directives(&node, &self.comments));
 
         let mut insert_index: usize = 0;
         let mut index = 0;
 
-        n.retain(|m| {
+        node.body.retain(|m| {
             if let ModuleItem::ModuleDecl(ModuleDecl::Import(imp)) = m {
                 // drop macro imports
                 if self
@@ -413,10 +407,12 @@ where
             true
         });
 
-        n = n.fold_children_with(self);
+        node = node.fold_children_with(self);
 
         if self.ctx.should_add_18n_import {
-            n.insert(
+            let (i18n_source, i18n_export) = self.ctx.options.runtime_modules.i18n.clone();
+
+            node.body.insert(
                 insert_index,
                 create_import(
                     i18n_source.into(),
@@ -427,7 +423,9 @@ where
         }
 
         if self.ctx.should_add_trans_import {
-            n.insert(
+            let (trans_source, trans_export) = self.ctx.options.runtime_modules.trans.clone();
+
+            node.body.insert(
                 insert_index,
                 create_import(
                     trans_source.into(),
@@ -438,7 +436,10 @@ where
         }
 
         if self.ctx.should_add_uselingui_import {
-            n.insert(
+            let (use_lingui_source, use_lingui_export) =
+                self.ctx.options.runtime_modules.use_lingui.clone();
+
+            node.body.insert(
                 insert_index,
                 create_import(
                     use_lingui_source.into(),
@@ -448,7 +449,7 @@ where
             );
         }
 
-        n
+        node
     }
     fn fold_arrow_expr(&mut self, n: ArrowExpr) -> ArrowExpr {
         // If no package that we care about is imported, skip the following
@@ -544,7 +545,8 @@ where
 }
 
 pub use self::options::{
-    DescriptorFields, LinguiOptions, MacroPackagesConfig, RuntimeModulesConfigMapNormalized,
+    DescriptorFields, LinguiJsOptions, LinguiOptions, MacroPackagesConfig, RuntimeModulesConfigMap,
+    RuntimeModulesConfigMapNormalized,
 };
 
 #[plugin_transform]
