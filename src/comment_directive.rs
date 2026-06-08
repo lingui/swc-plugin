@@ -18,10 +18,15 @@ pub struct DirectiveValues {
     pub id_prefix: Option<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct LinguiCommentDirectives {
+    directives: Vec<DirectiveEntry>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DirectiveEntry {
-    pub pos: BytePos,
-    pub values: DirectiveValues,
+struct DirectiveEntry {
+    pos: BytePos,
+    values: DirectiveValues,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -41,6 +46,22 @@ struct DirectiveUpdate {
 struct ParsedDirective {
     reset: bool,
     values: DirectiveUpdate,
+}
+
+impl LinguiCommentDirectives {
+    pub fn from_source_text(source: &str, start_pos: BytePos) -> Self {
+        Self {
+            directives: collect_lingui_directives_from_source(source, start_pos),
+        }
+    }
+
+    pub fn find_for_pos(&self, pos: BytePos) -> Option<&DirectiveValues> {
+        find_directive_for_pos(&self.directives, pos)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.directives.is_empty()
+    }
 }
 
 impl DirectiveValues {
@@ -143,10 +164,7 @@ fn parse_lingui_directive(comment_value: &str) -> Result<Option<ParsedDirective>
     Ok(Some(ParsedDirective { reset, values }))
 }
 
-pub fn find_directive_for_pos(
-    directives: &[DirectiveEntry],
-    pos: BytePos,
-) -> Option<&DirectiveValues> {
+fn find_directive_for_pos(directives: &[DirectiveEntry], pos: BytePos) -> Option<&DirectiveValues> {
     if directives.is_empty() {
         return None;
     }
@@ -170,10 +188,7 @@ pub fn find_directive_for_pos(
     }
 }
 
-pub fn collect_lingui_directives_from_source(
-    source: &str,
-    start_pos: BytePos,
-) -> Vec<DirectiveEntry> {
+fn collect_lingui_directives_from_source(source: &str, start_pos: BytePos) -> Vec<DirectiveEntry> {
     let mut directives = Vec::new();
     let mut accumulated = DirectiveValues::default();
     let bytes = source.as_bytes();

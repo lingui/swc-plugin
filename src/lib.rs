@@ -31,7 +31,7 @@ use crate::generate_id::*;
 use crate::macro_utils::*;
 use ast_utils::*;
 use builder::*;
-use comment_directive::collect_lingui_directives_from_source;
+use comment_directive::LinguiCommentDirectives;
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
 
@@ -93,6 +93,7 @@ where
             return;
         }
 
+
         let Some(directive_source) = self.directive_source.take() else {
             return;
         };
@@ -100,7 +101,7 @@ where
         match directive_source {
             DirectiveSource::Text { start_pos, source } => {
                 self.ctx
-                    .set_directives(collect_lingui_directives_from_source(&source, start_pos));
+                    .set_directives(LinguiCommentDirectives::from_source_text(&source, start_pos));
             }
             DirectiveSource::SourceMap(source_map) => {
                 let Some(last_item) = module_items.last() else {
@@ -114,7 +115,7 @@ where
 
                 if let Ok(source) = source_map.span_to_snippet(file_span) {
                     self.ctx
-                        .set_directives(collect_lingui_directives_from_source(
+                        .set_directives(LinguiCommentDirectives::from_source_text(
                             &source,
                             file_span.lo,
                         ));
