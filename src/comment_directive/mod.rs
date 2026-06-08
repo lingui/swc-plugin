@@ -1,5 +1,8 @@
+mod source_scanner;
+
 use once_cell::sync::Lazy;
 use regex::Regex;
+use source_scanner::{scan_source_comments, CommentKind};
 use swc_core::common::{BytePos, Span};
 use swc_core::plugin::errors::HANDLER;
 
@@ -143,8 +146,8 @@ fn parse_lingui_directive(comment_value: &str) -> Result<Option<ParsedDirective>
             "idPrefix" => values.id_prefix = Some(update),
             _ => {
                 return Err(format!(
-                    "`{directive_name}` directive has unknown param \"{key}\". Valid params: context, comment, idPrefix"
-                ));
+          "`{directive_name}` directive has unknown param \"{key}\". Valid params: context, comment, idPrefix"
+        ));
             }
         }
     }
@@ -157,8 +160,8 @@ fn parse_lingui_directive(comment_value: &str) -> Result<Option<ParsedDirective>
 
     if !has_params && !reset {
         return Err(format!(
-            "`{directive_name}` directive requires at least one param. Valid params: context, comment, idPrefix"
-        ));
+      "`{directive_name}` directive requires at least one param. Valid params: context, comment, idPrefix"
+    ));
     }
 
     Ok(Some(ParsedDirective { reset, values }))
@@ -189,138 +192,38 @@ fn find_directive_for_pos(directives: &[DirectiveEntry], pos: BytePos) -> Option
 }
 
 fn collect_lingui_directives_from_source(source: &str, start_pos: BytePos) -> Vec<DirectiveEntry> {
+    if !source.contains("lingui-set") && !source.contains("lingui-reset") {
+        return vec![];
+    }
+
     let mut directives = Vec::new();
     let mut accumulated = DirectiveValues::default();
-    let bytes = source.as_bytes();
-    let mut index = 0usize;
-    let mut mode = SourceScanMode::Code;
-    let mut template_expr_depths: Vec<usize> = vec![];
 
-    while index < bytes.len() {
-        match mode {
-            SourceScanMode::Code => match bytes[index] {
-                b'\'' => {
-                    mode = SourceScanMode::SingleQuoted;
-                    index += 1;
-                }
-                b'"' => {
-                    mode = SourceScanMode::DoubleQuoted;
-                    index += 1;
-                }
-                b'`' => {
-                    mode = SourceScanMode::TemplateText;
-                    index += 1;
-                }
-                b'/' if bytes.get(index + 1) == Some(&b'/') => {
-                    let comment_start = BytePos(start_pos.0 + index as u32);
-                    let content_start = index + 2;
-                    index = content_start;
+    for comment in scan_source_comments(source) {
+        let comment_start = BytePos(start_pos.0 + comment.byte_offset as u32);
 
-                    while index < bytes.len() && bytes[index] != b'\n' {
-                        index += 1;
-                    }
-
-                    parse_source_directive(
-                        source[content_start..index].trim(),
-                        Span::new(comment_start, BytePos(start_pos.0 + index as u32)),
-                        &mut accumulated,
-                        &mut directives,
-                    );
-                }
-                b'/' if bytes.get(index + 1) == Some(&b'*') => {
-                    let comment_start = BytePos(start_pos.0 + index as u32);
-                    let content_start = index + 2;
-                    index = content_start;
-
-                    while index + 1 < bytes.len()
-                        && !(bytes[index] == b'*' && bytes[index + 1] == b'/')
-                    {
-                        index += 1;
-                    }
-
-                    let content_end = index;
-                    if index + 1 < bytes.len() {
-                        index += 2;
-                    } else {
-                        index = bytes.len();
-                    }
-
-                    parse_block_directives(
-                        &source[content_start..content_end],
-                        comment_start,
-                        &mut accumulated,
-                        &mut directives,
-                    );
-                }
-                b'{' => {
-                    if let Some(depth) = template_expr_depths.last_mut() {
-                        *depth += 1;
-                    }
-                    index += 1;
-                }
-                b'}' => {
-                    if let Some(depth) = template_expr_depths.last_mut() {
-                        if *depth == 0 {
-                            template_expr_depths.pop();
-                            mode = SourceScanMode::TemplateText;
-                        } else {
-                            *depth -= 1;
-                        }
-                    }
-                    index += 1;
-                }
-                _ => {
-                    index += 1;
-                }
-            },
-            SourceScanMode::SingleQuoted => {
-                if bytes[index] == b'\\' {
-                    index = (index + 2).min(bytes.len());
-                } else {
-                    if bytes[index] == b'\'' {
-                        mode = SourceScanMode::Code;
-                    }
-                    index += 1;
-                }
+        match comment.kind {
+            CommentKind::Line => {
+                let content_end = BytePos(comment_start.0 + 2 + comment.content.len() as u32);
+                parse_source_directive(
+                    comment.content.trim(),
+                    Span::new(comment_start, content_end),
+                    &mut accumulated,
+                    &mut directives,
+                );
             }
-            SourceScanMode::DoubleQuoted => {
-                if bytes[index] == b'\\' {
-                    index = (index + 2).min(bytes.len());
-                } else {
-                    if bytes[index] == b'"' {
-                        mode = SourceScanMode::Code;
-                    }
-                    index += 1;
-                }
+            CommentKind::Block => {
+                parse_block_directives(
+                    comment.content,
+                    comment_start,
+                    &mut accumulated,
+                    &mut directives,
+                );
             }
-            SourceScanMode::TemplateText => match bytes[index] {
-                b'\\' => {
-                    index = (index + 2).min(bytes.len());
-                }
-                b'`' => {
-                    mode = SourceScanMode::Code;
-                    index += 1;
-                }
-                b'$' if bytes.get(index + 1) == Some(&b'{') => {
-                    template_expr_depths.push(0);
-                    mode = SourceScanMode::Code;
-                    index += 2;
-                }
-                _ => {
-                    index += 1;
-                }
-            },
         }
     }
 
     directives
-}
-
-enum SourceScanMode {
-    Code,
-    SingleQuoted,
-    DoubleQuoted,
-    TemplateText,
 }
 
 fn parse_source_directive(
