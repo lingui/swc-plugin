@@ -93,7 +93,6 @@ where
             return;
         }
 
-
         let Some(directive_source) = self.directive_source.take() else {
             return;
         };
@@ -101,7 +100,9 @@ where
         match directive_source {
             DirectiveSource::Text { start_pos, source } => {
                 self.ctx
-                    .set_directives(LinguiCommentDirectives::from_source_text(&source, start_pos));
+                    .set_directives(LinguiCommentDirectives::from_source_text(
+                        &source, start_pos,
+                    ));
             }
             DirectiveSource::SourceMap(source_map) => {
                 let Some(last_item) = module_items.last() else {

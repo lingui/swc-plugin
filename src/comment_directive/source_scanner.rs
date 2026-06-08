@@ -137,10 +137,7 @@ mod tests {
 
     #[test]
     fn single_line_comment() {
-        assert_eq!(
-            line_comments("// hello world"),
-            vec![(0, " hello world")]
-        );
+        assert_eq!(line_comments("// hello world"), vec![(0, " hello world")]);
     }
 
     #[test]
@@ -162,19 +159,13 @@ mod tests {
 
     #[test]
     fn single_block_comment() {
-        assert_eq!(
-            block_comments("/* block */"),
-            vec![(0, " block ")]
-        );
+        assert_eq!(block_comments("/* block */"), vec![(0, " block ")]);
     }
 
     #[test]
     fn multiline_block_comment() {
         let source = "/* line1\n   line2 */";
-        assert_eq!(
-            block_comments(source),
-            vec![(0, " line1\n   line2 ")]
-        );
+        assert_eq!(block_comments(source), vec![(0, " line1\n   line2 ")]);
     }
 
     #[test]
@@ -194,10 +185,7 @@ mod tests {
     #[test]
     fn ignores_comment_syntax_in_double_quoted_string() {
         assert_eq!(all_comments(r#"const x = "// not a comment";"#), vec![]);
-        assert_eq!(
-            all_comments(r#"const x = "/* not a comment */";"#),
-            vec![]
-        );
+        assert_eq!(all_comments(r#"const x = "/* not a comment */";"#), vec![]);
     }
 
     #[test]
@@ -208,7 +196,10 @@ mod tests {
 
     #[test]
     fn handles_escaped_quotes_in_single_quoted_string() {
-        assert_eq!(all_comments(r"const x = 'it\'s'; // after"), vec![(19, " after")]);
+        assert_eq!(
+            all_comments(r"const x = 'it\'s'; // after"),
+            vec![(19, " after")]
+        );
     }
 
     #[test]
@@ -291,10 +282,7 @@ mod tests {
 
     #[test]
     fn block_comment_with_star_inside() {
-        assert_eq!(
-            block_comments("/* a * b */"),
-            vec![(0, " a * b ")]
-        );
+        assert_eq!(block_comments("/* a * b */"), vec![(0, " a * b ")]);
     }
 
     #[test]
@@ -327,9 +315,6 @@ mod tests {
     #[test]
     fn string_containing_backslash_n_is_not_newline() {
         // The literal text \n in a string (escaped), not a real newline
-        assert_eq!(
-            all_comments("const x = '\\n'; // yes"),
-            vec![(16, " yes")]
-        );
+        assert_eq!(all_comments("const x = '\\n'; // yes"), vec![(16, " yes")]);
     }
 }
