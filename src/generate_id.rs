@@ -4,7 +4,7 @@ use sha2::{Digest, Sha256};
 pub fn generate_message_id(message: &str, context: &str, use_lingui_v5: bool) -> String {
     let mut hasher = Sha256::new();
     hasher.update(message.as_bytes());
-    hasher.update(&[0x1F]); // UNIT_SEPARATOR
+    hasher.update([0x1F]); // UNIT_SEPARATOR
     hasher.update(context.as_bytes());
 
     let result = hasher.finalize();
