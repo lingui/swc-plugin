@@ -137,7 +137,8 @@ pub fn extract_messages(
         },
     };
 
-    let lingui_macro = LinguiMacroFolder::new(lingui_options, Some(&comments as &dyn Comments));
+    let lingui_macro =
+        LinguiMacroFolder::new(lingui_options, Some(&comments as &dyn Comments), source_map);
 
     let globals = Globals::default();
 

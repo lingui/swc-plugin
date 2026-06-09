@@ -1,8 +1,6 @@
 use crate::ast_utils::{get_jsx_attr, get_jsx_attr_value_as_string};
 use crate::macro_utils::MacroCtx;
 use crate::tokens::{CaseOrOffset, ChoiceCase, IcuChoice, MsgToken, TagOpening};
-use once_cell::sync::Lazy;
-use regex::Regex;
 use swc_core::common::DUMMY_SP;
 use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
@@ -23,26 +21,39 @@ impl<'a> TransJSXVisitor<'a> {
     }
 }
 
-static PLURAL_OPTIONS_WHITELIST: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(_[\d\w]+|zero|one|two|few|many|other)").unwrap());
-static NUM_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\d+)").unwrap());
-static WORD_OPTION: Lazy<Regex> = Lazy::new(|| Regex::new(r"_(\w+)").unwrap());
-
-// const pluralRuleRe = /(_[\d\w]+|zero|one|two|few|many|other)/
-// const jsx2icuExactChoice = (value: string) => value.replace(/_(\d+)/, "=$1").replace(/_(\w+)/, "$1")
-
-static TRIM_START: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[ ]+").unwrap());
-static TRIM_END: Lazy<Regex> = Lazy::new(|| Regex::new(r"[ ]+$").unwrap());
-
 // taken from babel repo -> packages/babel-types/src/utils/react/cleanJSXElementLiteralChild.ts
+fn split_lines(value: &str) -> Vec<&str> {
+    let mut lines = Vec::new();
+    let mut start = 0;
+    let bytes = value.as_bytes();
+    let len = bytes.len();
+    let mut i = 0;
+
+    while i < len {
+        if bytes[i] == b'\r' {
+            lines.push(&value[start..i]);
+            if i + 1 < len && bytes[i + 1] == b'\n' {
+                i += 1;
+            }
+            start = i + 1;
+        } else if bytes[i] == b'\n' {
+            lines.push(&value[start..i]);
+            start = i + 1;
+        }
+        i += 1;
+    }
+
+    lines.push(&value[start..]);
+    lines
+}
+
 fn clean_jsx_element_literal_child(value: &str) -> String {
-    let lines: Vec<&str> = Regex::new(r"\r\n|\n|\r").unwrap().split(value).collect();
     let mut last_non_empty_line = 0;
 
-    let re_non_space = Regex::new(r"[^\t ]").unwrap();
+    let lines = split_lines(value);
 
     for (i, line) in lines.iter().enumerate() {
-        if re_non_space.is_match(line) {
+        if line.bytes().any(|b| b != b'\t' && b != b' ') {
             last_non_empty_line = i;
         }
     }
@@ -55,16 +66,16 @@ fn clean_jsx_element_literal_child(value: &str) -> String {
         let is_last_non_empty_line = i == last_non_empty_line;
 
         // replace rendered whitespace tabs with spaces
-        let mut trimmed_line = line.replace("\t", " ");
+        let mut trimmed_line = line.replace('\t', " ");
 
         // trim whitespace touching a newline
         if !is_first_line {
-            trimmed_line = TRIM_START.replace(&trimmed_line, "").to_string();
+            trimmed_line = trimmed_line.trim_start_matches(' ').to_string();
         }
 
         // trim whitespace touching an endline
         if !is_last_line {
-            trimmed_line = TRIM_END.replace(&trimmed_line, "").to_string();
+            trimmed_line = trimmed_line.trim_end_matches(' ').to_string();
         }
 
         if !trimmed_line.is_empty() {
@@ -80,14 +91,23 @@ fn clean_jsx_element_literal_child(value: &str) -> String {
 }
 
 fn is_allowed_plural_option(key: &str) -> Option<Atom> {
-    if PLURAL_OPTIONS_WHITELIST.is_match(key) {
-        let key = NUM_OPTION.replace(key, "=$1");
-        let key = WORD_OPTION.replace(&key, "$1");
-
-        return Some(key.to_string().into());
+    match key {
+        "zero" | "one" | "two" | "few" | "many" | "other" => Some(key.into()),
+        _ if key.starts_with('_') && key.len() > 1 => {
+            let suffix = &key[1..];
+            if suffix.bytes().all(|b| b.is_ascii_digit()) {
+                Some(format!("={suffix}").into())
+            } else if suffix
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || b == b'_')
+            {
+                Some(suffix.into())
+            } else {
+                None
+            }
+        }
+        _ => None,
     }
-
-    None
 }
 
 impl TransJSXVisitor<'_> {

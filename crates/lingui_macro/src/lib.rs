@@ -1,5 +1,6 @@
 use std::collections::HashSet;
-use swc_core::common::{Span, Spanned, SyntaxContext, DUMMY_SP};
+use swc_core::common::sync::Lrc;
+use swc_core::common::{SourceMapper, Span, Spanned, SyntaxContext, DUMMY_SP};
 
 use swc_core::common::comments::*;
 use swc_core::ecma::utils::private_ident;
@@ -30,7 +31,7 @@ use crate::generate_id::*;
 use crate::macro_utils::*;
 use ast_utils::*;
 use builder::*;
-use comment_directive::collect_lingui_directives;
+use comment_directive::LinguiCommentDirectives;
 use js_macro_folder::JsMacroFolder;
 use jsx_visitor::TransJSXVisitor;
 
@@ -58,17 +59,44 @@ where
     has_lingui_macro_imports: bool,
     ctx: MacroCtx,
     comments: Option<C>,
+    source_map: Lrc<dyn SourceMapper>,
 }
 
 impl<C> LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
-    pub fn new(options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
+    pub fn new(
+        options: LinguiOptions,
+        comments: Option<C>,
+        source_map: Lrc<dyn SourceMapper>,
+    ) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
             ctx: MacroCtx::new(options),
             comments,
+            source_map,
+        }
+    }
+
+    fn ensure_source_directives(&mut self, module_span: Span) {
+        if !self.ctx.directives.is_empty() {
+            return;
+        }
+
+        if module_span.is_dummy() {
+            return;
+        }
+
+        let file = self.source_map.lookup_char_pos(module_span.lo).file;
+        let file_span = Span::new(file.start_pos, module_span.hi);
+
+        if let Ok(source) = self.source_map.span_to_snippet(file_span) {
+            self.ctx
+                .set_directives(LinguiCommentDirectives::from_source_text(
+                    &source,
+                    file_span.lo,
+                ));
         }
     }
 
@@ -382,8 +410,7 @@ where
             return node;
         }
 
-        self.ctx
-            .set_comment_directives(collect_lingui_directives(&node, &self.comments));
+        self.ensure_source_directives(node.span);
 
         let mut insert_index: usize = 0;
         let mut index = 0;
@@ -564,5 +591,11 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
             .unwrap_or_default(),
     );
 
-    program.fold_with(&mut LinguiMacroFolder::new(config, metadata.comments))
+    let mut folder = LinguiMacroFolder::new(
+        config,
+        metadata.comments,
+        Lrc::new(metadata.source_map) as Lrc<dyn SourceMapper>,
+    );
+
+    program.fold_with(&mut folder)
 }

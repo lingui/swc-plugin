@@ -1,15 +1,12 @@
-use once_cell::sync::Lazy;
-use regex::Regex;
-use std::collections::HashSet;
-use swc_core::common::comments::{Comment, Comments};
-use swc_core::common::{BytePos, Span, Spanned};
-use swc_core::ecma::ast::*;
-use swc_core::ecma::visit::{Visit, VisitWith};
+mod source_scanner;
+
+use source_scanner::{scan_source_comments, CommentKind};
+use swc_core::common::{BytePos, Span};
 use swc_core::plugin::errors::HANDLER;
 
-static DIRECTIVE_RE: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^(lingui-(?:set|reset))(?:\s|$)(.*)").unwrap());
-static TOKEN_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\s+|(\w+)(?:="([^"]*)")?"#).unwrap());
+fn is_lingui_directive_prefix(comment: &str) -> bool {
+    comment.starts_with("lingui-set") || comment.starts_with("lingui-reset")
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct DirectiveValues {
@@ -18,10 +15,15 @@ pub struct DirectiveValues {
     pub id_prefix: Option<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct LinguiCommentDirectives {
+    directives: Vec<DirectiveEntry>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DirectiveEntry {
-    pub pos: BytePos,
-    pub values: DirectiveValues,
+struct DirectiveEntry {
+    pos: BytePos,
+    values: DirectiveValues,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,11 +45,20 @@ struct ParsedDirective {
     values: DirectiveUpdate,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct RawDirectiveEntry {
-    pos: BytePos,
-    reset: bool,
-    values: DirectiveUpdate,
+impl LinguiCommentDirectives {
+    pub fn from_source_text(source: &str, start_pos: BytePos) -> Self {
+        Self {
+            directives: collect_lingui_directives_from_source(source, start_pos),
+        }
+    }
+
+    pub fn find_for_pos(&self, pos: BytePos) -> Option<&DirectiveValues> {
+        find_directive_for_pos(&self.directives, pos)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.directives.is_empty()
+    }
 }
 
 impl DirectiveValues {
@@ -83,55 +94,78 @@ fn parse_value_update(value: &str) -> DirectiveValueUpdate {
     }
 }
 
-#[cfg(test)]
-pub(crate) fn parse_lingui_directive(
-    comment_value: &str,
-) -> Result<Option<(bool, DirectiveValues)>, String> {
-    parse_lingui_directive_raw(comment_value).map(|parsed| {
-        parsed.map(|parsed| {
-            let mut values = DirectiveValues::default();
-            values.apply_update(parsed.values);
-            (parsed.reset, values)
-        })
-    })
-}
-
-fn parse_lingui_directive_raw(comment_value: &str) -> Result<Option<ParsedDirective>, String> {
+fn parse_lingui_directive(comment_value: &str) -> Result<Option<ParsedDirective>, String> {
     let trimmed = comment_value.trim();
 
-    let Some(directive_match) = DIRECTIVE_RE.captures(trimmed) else {
+    let (directive_name, rest) = if let Some(rest) = trimmed.strip_prefix("lingui-set") {
+        ("lingui-set", rest)
+    } else if let Some(rest) = trimmed.strip_prefix("lingui-reset") {
+        ("lingui-reset", rest)
+    } else {
         return Ok(None);
     };
 
-    let directive_name = directive_match.get(1).unwrap().as_str();
-    let reset = directive_name == "lingui-reset";
-    let rest = directive_match
-        .get(2)
-        .map(|m| m.as_str().trim())
-        .unwrap_or_default();
+    if !rest.is_empty() && !rest.starts_with(char::is_whitespace) {
+        return Ok(None);
+    }
 
-    let mut consumed = 0usize;
+    let reset = directive_name == "lingui-reset";
+    let rest = rest.trim();
+
     let mut values = DirectiveUpdate::default();
     let mut has_params = false;
+    let mut pos = 0;
+    let rest_bytes = rest.as_bytes();
 
-    for capture in TOKEN_RE.captures_iter(rest) {
-        let full = capture.get(0).unwrap();
-        if full.start() != consumed {
+    while pos < rest_bytes.len() {
+        // skip whitespace
+        while pos < rest_bytes.len() && rest_bytes[pos].is_ascii_whitespace() {
+            pos += 1;
+        }
+        if pos >= rest_bytes.len() {
+            break;
+        }
+
+        // parse key (word chars)
+        let key_start = pos;
+        while pos < rest_bytes.len()
+            && (rest_bytes[pos].is_ascii_alphanumeric() || rest_bytes[pos] == b'_')
+        {
+            pos += 1;
+        }
+        if pos == key_start {
             return Err(format!(
                 "`{directive_name}` directive has invalid syntax: {trimmed}"
             ));
         }
-        consumed = full.end();
+        let key = &rest[key_start..pos];
 
-        let Some(key) = capture.get(1).map(|m| m.as_str()) else {
-            continue;
-        };
-
-        let Some(value) = capture.get(2).map(|m| m.as_str()) else {
+        // expect ="..."
+        if pos >= rest_bytes.len() || rest_bytes[pos] != b'=' {
             return Err(format!(
                 "`{directive_name}` directive: \"{key}\" requires a value, e.g. {key}=\"...\""
             ));
-        };
+        }
+        pos += 1; // skip '='
+
+        if pos >= rest_bytes.len() || rest_bytes[pos] != b'"' {
+            return Err(format!(
+                "`{directive_name}` directive: \"{key}\" requires a value, e.g. {key}=\"...\""
+            ));
+        }
+        pos += 1; // skip opening '"'
+
+        let value_start = pos;
+        while pos < rest_bytes.len() && rest_bytes[pos] != b'"' {
+            pos += 1;
+        }
+        if pos >= rest_bytes.len() {
+            return Err(format!(
+                "`{directive_name}` directive has invalid syntax: {trimmed}"
+            ));
+        }
+        let value = &rest[value_start..pos];
+        pos += 1; // skip closing '"'
 
         has_params = true;
         let update = parse_value_update(value);
@@ -148,12 +182,6 @@ fn parse_lingui_directive_raw(comment_value: &str) -> Result<Option<ParsedDirect
         }
     }
 
-    if consumed != rest.len() {
-        return Err(format!(
-            "`{directive_name}` directive has invalid syntax: {trimmed}"
-        ));
-    }
-
     if !has_params && !reset {
         return Err(format!(
             "`{directive_name}` directive requires at least one param. Valid params: context, comment, idPrefix"
@@ -163,55 +191,7 @@ fn parse_lingui_directive_raw(comment_value: &str) -> Result<Option<ParsedDirect
     Ok(Some(ParsedDirective { reset, values }))
 }
 
-pub fn collect_lingui_directives_from_comments(comments: &[Comment]) -> Vec<DirectiveEntry> {
-    let mut directives: Vec<RawDirectiveEntry> = comments
-        .iter()
-        .filter_map(
-            |comment| match parse_lingui_directive_raw(comment.text.as_ref()) {
-                Ok(Some(parsed)) => Some(RawDirectiveEntry {
-                    pos: comment.span.lo,
-                    reset: parsed.reset,
-                    values: parsed.values,
-                }),
-                Ok(None) => None,
-                Err(message) => {
-                    HANDLER.with(|handler| {
-                        handler.struct_span_err(comment.span, &message).emit();
-                    });
-                    None
-                }
-            },
-        )
-        .collect();
-
-    directives.sort_by_key(|directive| directive.pos);
-
-    let mut accumulated = DirectiveValues::default();
-
-    directives
-        .into_iter()
-        .map(|directive| {
-            let mut values = if directive.reset {
-                DirectiveValues::default()
-            } else {
-                accumulated.clone()
-            };
-
-            values.apply_update(directive.values);
-            accumulated = values.clone();
-
-            DirectiveEntry {
-                pos: directive.pos,
-                values,
-            }
-        })
-        .collect()
-}
-
-pub fn find_directive_for_pos(
-    directives: &[DirectiveEntry],
-    pos: BytePos,
-) -> Option<&DirectiveValues> {
+fn find_directive_for_pos(directives: &[DirectiveEntry], pos: BytePos) -> Option<&DirectiveValues> {
     if directives.is_empty() {
         return None;
     }
@@ -235,90 +215,57 @@ pub fn find_directive_for_pos(
     }
 }
 
-pub(crate) fn collect_lingui_directives<C: Comments, N>(
-    node: &N,
-    comments: &Option<C>,
-) -> Vec<DirectiveEntry>
-where
-    for<'a> N: VisitWith<DirectiveCollector<'a, C>>,
-{
-    let Some(comments) = comments.as_ref() else {
+fn collect_lingui_directives_from_source(source: &str, start_pos: BytePos) -> Vec<DirectiveEntry> {
+    if !source.contains("lingui-set") && !source.contains("lingui-reset") {
         return vec![];
-    };
-
-    let mut collector = DirectiveCollector::new(comments);
-    node.visit_with(&mut collector);
-    collect_lingui_directives_from_comments(&collector.comments)
-}
-
-pub(crate) struct DirectiveCollector<'a, C>
-where
-    C: Comments,
-{
-    comments_api: &'a C,
-    seen_positions: HashSet<BytePos>,
-    comments: Vec<Comment>,
-}
-
-impl<'a, C> DirectiveCollector<'a, C>
-where
-    C: Comments,
-{
-    fn new(comments_api: &'a C) -> Self {
-        Self {
-            comments_api,
-            seen_positions: HashSet::new(),
-            comments: vec![],
-        }
     }
 
-    fn record_for_span(&mut self, span: Span) {
-        if span.is_dummy() {
-            return;
+    let mut directives = Vec::new();
+    let mut accumulated = DirectiveValues::default();
+
+    for comment in scan_source_comments(source) {
+        let comment_start = BytePos(start_pos.0 + comment.byte_offset as u32);
+        let trimmed = comment.content.trim();
+
+        if !is_lingui_directive_prefix(trimmed) {
+            continue;
         }
 
-        if let Some(comments) = self.comments_api.get_leading(span.lo()) {
-            for comment in comments {
-                if self.seen_positions.insert(comment.span.lo) {
-                    self.comments.push(comment);
-                }
+        let content_end = match comment.kind {
+            CommentKind::Line => BytePos(comment_start.0 + 2 + comment.content.len() as u32),
+            CommentKind::Block => BytePos(comment_start.0 + 2 + comment.content.len() as u32 + 2),
+        };
+        let span = Span::new(comment_start, content_end);
+
+        match parse_lingui_directive(trimmed) {
+            Ok(Some(parsed)) => {
+                let mut values = if parsed.reset {
+                    DirectiveValues::default()
+                } else {
+                    accumulated.clone()
+                };
+
+                values.apply_update(parsed.values);
+                accumulated = values.clone();
+
+                directives.push(DirectiveEntry {
+                    pos: comment_start,
+                    values,
+                })
+            }
+            Ok(None) => {}
+            Err(message) => {
+                HANDLER.with(|handler| handler.struct_span_err(span, &message).emit());
             }
         }
     }
-}
 
-impl<C> Visit for DirectiveCollector<'_, C>
-where
-    C: Comments,
-{
-    fn visit_expr(&mut self, expr: &Expr) {
-        self.record_for_span(expr.span());
-        expr.visit_children_with(self);
-    }
-
-    fn visit_module_item(&mut self, module_item: &ModuleItem) {
-        self.record_for_span(module_item.span());
-        module_item.visit_children_with(self);
-    }
-
-    fn visit_stmt(&mut self, stmt: &Stmt) {
-        self.record_for_span(stmt.span());
-        stmt.visit_children_with(self);
-    }
+    directives
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use swc_core::common::comments::CommentKind;
-
-    fn make_comment(text: &str, lo: u32) -> Comment {
-        Comment {
-            kind: CommentKind::Block,
-            span: Span::new(BytePos(lo), BytePos(lo + text.len() as u32)),
-            text: text.into(),
-        }
-    }
 
     #[test]
     fn parse_should_parse_multiple_keys() {
@@ -328,14 +275,14 @@ mod tests {
 
         assert_eq!(
             parsed,
-            Some((
-                false,
-                DirectiveValues {
-                    context: Some("ctx".into()),
-                    comment: Some("cmt".into()),
-                    id_prefix: Some("p.".into()),
+            Some(ParsedDirective {
+                reset: false,
+                values: DirectiveUpdate {
+                    context: Some(DirectiveValueUpdate::Set("ctx".into())),
+                    comment: Some(DirectiveValueUpdate::Set("cmt".into())),
+                    id_prefix: Some(DirectiveValueUpdate::Set("p.".into())),
                 }
-            ))
+            })
         );
     }
 
@@ -367,31 +314,64 @@ mod tests {
 
         assert_eq!(
             parsed,
-            Some((
-                false,
-                DirectiveValues {
-                    context: None,
-                    comment: Some("note".into()),
+            Some(ParsedDirective {
+                reset: false,
+                values: DirectiveUpdate {
+                    context: Some(DirectiveValueUpdate::Unset),
+                    comment: Some(DirectiveValueUpdate::Set("note".into())),
                     id_prefix: None,
                 }
-            ))
+            })
         );
     }
 
     #[test]
+    fn collect_from_source_should_handle_crlf_block_comments() {
+        let directives = collect_lingui_directives_from_source(
+            "/* lingui-set context=\"ctx\" */\r\nconst msg = t`Hello`;\r\n",
+            BytePos(10),
+        );
+
+        assert_eq!(
+            directives,
+            vec![DirectiveEntry {
+                pos: BytePos(10),
+                values: DirectiveValues {
+                    context: Some("ctx".into()),
+                    comment: None,
+                    id_prefix: None,
+                },
+            }]
+        );
+    }
+
+    #[test]
+    fn collect_from_source_should_ignore_template_text_that_looks_like_comment() {
+        let directives = collect_lingui_directives_from_source(
+            "const msg = `\n// lingui-set context=\"ctx\"\n`;\n",
+            BytePos(10),
+        );
+
+        assert_eq!(directives, vec![]);
+    }
+
+    #[test]
     fn collect_should_merge_and_reset_directives() {
-        let directives = collect_lingui_directives_from_comments(&[
-            make_comment(r#" lingui-set context="ctx1" "#, 10),
-            make_comment(" not a directive", 20),
-            make_comment(r#" lingui-set comment="cmt" "#, 30),
-            make_comment(r#" lingui-reset context="ctx2" "#, 40),
-        ]);
+        let directives = collect_lingui_directives_from_source(
+            r#"
+      // lingui-set context="ctx1"
+      // not a directive
+      // lingui-set comment="cmt"
+      // lingui-reset context="ctx2"
+      "#,
+            BytePos(10),
+        );
 
         assert_eq!(
             directives,
             vec![
                 DirectiveEntry {
-                    pos: BytePos(10),
+                    pos: BytePos(17),
                     values: DirectiveValues {
                         context: Some("ctx1".into()),
                         comment: None,
@@ -399,7 +379,7 @@ mod tests {
                     },
                 },
                 DirectiveEntry {
-                    pos: BytePos(30),
+                    pos: BytePos(77),
                     values: DirectiveValues {
                         context: Some("ctx1".into()),
                         comment: Some("cmt".into()),
@@ -407,7 +387,7 @@ mod tests {
                     },
                 },
                 DirectiveEntry {
-                    pos: BytePos(40),
+                    pos: BytePos(111),
                     values: DirectiveValues {
                         context: Some("ctx2".into()),
                         comment: None,

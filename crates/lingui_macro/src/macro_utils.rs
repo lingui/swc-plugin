@@ -1,5 +1,5 @@
 use crate::ast_utils::*;
-use crate::comment_directive::{find_directive_for_pos, DirectiveEntry, DirectiveValues};
+use crate::comment_directive::{DirectiveValues, LinguiCommentDirectives};
 use crate::tokens::*;
 use crate::LinguiOptions;
 use std::collections::{HashMap, HashSet};
@@ -37,7 +37,7 @@ pub struct MacroCtx {
     pub should_add_uselingui_import: bool,
 
     pub options: LinguiOptions,
-    pub comment_directives: Vec<DirectiveEntry>,
+    pub directives: LinguiCommentDirectives,
     pub runtime_idents: RuntimeIdents,
 }
 
@@ -66,12 +66,12 @@ impl MacroCtx {
         }
     }
 
-    pub fn set_comment_directives(&mut self, directives: Vec<DirectiveEntry>) {
-        self.comment_directives = directives;
+    pub fn set_directives(&mut self, directives: LinguiCommentDirectives) {
+        self.directives = directives;
     }
 
     pub fn get_comment_directive(&self, pos: BytePos) -> Option<&DirectiveValues> {
-        find_directive_for_pos(&self.comment_directives, pos)
+        self.directives.find_for_pos(pos)
     }
 
     /// is given ident exported from @lingui/macro? and one of choice functions?
