@@ -5,6 +5,48 @@ import {LinguiMacroOptions, mapOptions} from "./macro-src/map-options"
 
 export type {LinguiMacroOptions};
 
+export type TransformOptions = {
+  /**
+   * The same options as in `jsc.parser` in `.swcrc`
+   * https://swc.rs/docs/configuration/compilation#jscparser
+   *
+   * The syntax (ecmascript/typescript) and jsx support is automatically inferred from the filename,
+   * you don't need to specify it manually
+   */
+  parser?: ParserConfig
+  /**
+   * Options for Lingui Macro
+   */
+  macro?: LinguiMacroOptions
+  /**
+   * External source map JSON string. If not provided, inline source maps in the code are used.
+   */
+  sourceMap?: string
+}
+
+export type TransformResult = {
+  code: string
+  map?: string
+}
+
+/**
+ * Transform source code by applying the Lingui macro transformation.
+ *
+ * This is a minimal SWC + Lingui transformer built as a single native library
+ * for optimal performance. It only transforms Lingui macros and keeps everything
+ * else as-is.
+ *
+ * Parser options are automatically inferred from the filename (.ts, .tsx, .js, .jsx, etc.)
+ *
+ * @param code - The source code to transform
+ * @param filename - The filename (used for parser inference and source maps)
+ * @param options - Optional transform options
+ * @returns Promise resolving to transformed code and source map
+ */
+export function transform(code: string, filename: string, options?: TransformOptions): Promise<TransformResult> {
+  return binding.transform(code, filename, options ? toBuffer(options) : undefined)
+}
+
 export type ExtractorOptions = {
   /**
    * The same options as in `jsc.parser` in `.swcrc`

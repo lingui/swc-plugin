@@ -1211,12 +1211,17 @@ name = "lingui_swc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "data-encoding",
  "lingui_extractor",
+ "lingui_macro",
  "napi",
  "napi-build",
  "napi-derive",
  "rayon",
+ "serde",
+ "serde_json",
  "swc_core",
+ "swc_sourcemap",
 ]
 
 [[package]]

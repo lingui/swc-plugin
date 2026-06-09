@@ -9,6 +9,8 @@ use std::fs;
 
 use swc_core::node::get_deserialized;
 
+mod transform;
+
 /// Task for extracting messages asynchronously
 pub struct ExtractMessagesTask {
   source_code: String,
