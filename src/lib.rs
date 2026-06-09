@@ -64,28 +64,24 @@ where
     has_lingui_macro_imports: bool,
     ctx: MacroCtx,
     comments: Option<C>,
-    directive_source: Option<DirectiveSource>,
+    directive_source: DirectiveSource,
 }
 
 impl<C> LinguiMacroFolder<C>
 where
     C: Comments + Clone,
 {
-    pub fn new(options: LinguiOptions, comments: Option<C>) -> LinguiMacroFolder<C> {
+    pub fn new(
+        options: LinguiOptions,
+        comments: Option<C>,
+        directive_source: DirectiveSource,
+    ) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
             ctx: MacroCtx::new(options),
             comments,
-            directive_source: None,
+            directive_source,
         }
-    }
-
-    pub fn with_directive_source(
-        mut self,
-        directive_source: DirectiveSource,
-    ) -> LinguiMacroFolder<C> {
-        self.directive_source = Some(directive_source);
-        self
     }
 
     fn ensure_source_directives(&mut self, module_items: &[ModuleItem]) {
@@ -93,15 +89,11 @@ where
             return;
         }
 
-        let Some(directive_source) = self.directive_source.take() else {
-            return;
-        };
-
-        match directive_source {
+        match &self.directive_source {
             DirectiveSource::Text { start_pos, source } => {
                 self.ctx
                     .set_directives(LinguiCommentDirectives::from_source_text(
-                        &source, start_pos,
+                        source, *start_pos,
                     ));
             }
             DirectiveSource::SourceMap(source_map) => {
@@ -616,8 +608,11 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
             .unwrap_or_default(),
     );
 
-    let mut folder = LinguiMacroFolder::new(config, metadata.comments)
-        .with_directive_source(DirectiveSource::SourceMap(metadata.source_map));
+    let mut folder = LinguiMacroFolder::new(
+        config,
+        metadata.comments,
+        DirectiveSource::SourceMap(metadata.source_map),
+    );
 
     program.fold_with(&mut folder)
 }

@@ -134,11 +134,12 @@ macro_rules! to {
                     lingui_macro_plugin::LinguiMacroFolder::new(
                         Default::default(),
                         Some(comments.clone()),
-                    )
-                    .with_directive_source(lingui_macro_plugin::DirectiveSource::Text {
+                      lingui_macro_plugin::DirectiveSource::Text {
                         start_pos,
                         source: source.clone(),
-                    }),
+                    }
+                    )
+
                 )
             })
             .expect("Transform produced unexpected errors");
@@ -160,11 +161,12 @@ macro_rules! to {
                     lingui_macro_plugin::LinguiMacroFolder::new(
                         options.clone(),
                         Some(comments.clone()),
-                    )
-                    .with_directive_source(lingui_macro_plugin::DirectiveSource::Text {
+                      lingui_macro_plugin::DirectiveSource::Text {
                         start_pos,
                         source: source.clone(),
-                    }),
+                    }
+                    )
+
                 )
             })
             .expect("Transform produced unexpected errors");
@@ -190,11 +192,11 @@ macro_rules! to_panic {
                     lingui_macro_plugin::LinguiMacroFolder::new(
                         options.clone(),
                         Some(comments.clone()),
-                    )
-                    .with_directive_source(lingui_macro_plugin::DirectiveSource::Text {
+                      lingui_macro_plugin::DirectiveSource::Text {
                         start_pos,
                         source: source.clone(),
-                    }),
+                    })
+
                 )
             })
             .expect_err("Expected transform to produce an error, but it succeeded");
