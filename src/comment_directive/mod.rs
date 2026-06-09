@@ -201,108 +201,42 @@ fn collect_lingui_directives_from_source(source: &str, start_pos: BytePos) -> Ve
 
     for comment in scan_source_comments(source) {
         let comment_start = BytePos(start_pos.0 + comment.byte_offset as u32);
+        let trimmed = comment.content.trim();
 
-        match comment.kind {
-            CommentKind::Line => {
-                let content_end = BytePos(comment_start.0 + 2 + comment.content.len() as u32);
-                parse_source_directive(
-                    comment.content.trim(),
-                    Span::new(comment_start, content_end),
-                    &mut accumulated,
-                    &mut directives,
-                );
+        if !is_lingui_directive_prefix(trimmed) {
+            continue;
+        }
+
+        let content_end = match comment.kind {
+            CommentKind::Line => BytePos(comment_start.0 + 2 + comment.content.len() as u32),
+            CommentKind::Block => BytePos(comment_start.0 + 2 + comment.content.len() as u32 + 2),
+        };
+        let span = Span::new(comment_start, content_end);
+
+        match parse_lingui_directive(trimmed) {
+            Ok(Some(parsed)) => {
+                let mut values = if parsed.reset {
+                    DirectiveValues::default()
+                } else {
+                    accumulated.clone()
+                };
+
+                values.apply_update(parsed.values);
+                accumulated = values.clone();
+
+                directives.push(DirectiveEntry {
+                    pos: comment_start,
+                    values,
+                })
             }
-            CommentKind::Block => {
-                parse_block_directives(
-                    comment.content,
-                    comment_start,
-                    &mut accumulated,
-                    &mut directives,
-                );
+            Ok(None) => {}
+            Err(message) => {
+                HANDLER.with(|handler| handler.struct_span_err(span, &message).emit());
             }
         }
     }
 
     directives
-}
-
-fn parse_source_directive(
-    text: &str,
-    span: Span,
-    accumulated: &mut DirectiveValues,
-    directives: &mut Vec<DirectiveEntry>,
-) {
-    if !is_lingui_directive_prefix(text) {
-        return;
-    }
-
-    match parse_lingui_directive(text) {
-        Ok(Some(parsed)) => directives.push(apply_directive(parsed, span.lo, accumulated)),
-        Ok(None) => {}
-        Err(message) => {
-            HANDLER.with(|handler| handler.struct_span_err(span, &message).emit());
-        }
-    }
-}
-
-fn apply_directive(
-    parsed: ParsedDirective,
-    pos: BytePos,
-    accumulated: &mut DirectiveValues,
-) -> DirectiveEntry {
-    let mut values = if parsed.reset {
-        DirectiveValues::default()
-    } else {
-        accumulated.clone()
-    };
-
-    values.apply_update(parsed.values);
-    *accumulated = values.clone();
-
-    DirectiveEntry { pos, values }
-}
-
-fn parse_block_directives(
-    content: &str,
-    comment_start: BytePos,
-    accumulated: &mut DirectiveValues,
-    directives: &mut Vec<DirectiveEntry>,
-) {
-    let mut line_offset = 0u32;
-
-    for segment in content.split_inclusive('\n') {
-        let line_with_cr = segment.strip_suffix('\n').unwrap_or(segment);
-        let line = line_with_cr.trim_end_matches('\r');
-        let trimmed = line.trim_start();
-        let leading_ws = (line.len() - trimmed.len()) as u32;
-
-        if line_offset == 0 {
-            parse_source_directive(
-                trimmed,
-                Span::new(
-                    comment_start,
-                    BytePos(comment_start.0 + 2 + line_with_cr.len() as u32),
-                ),
-                accumulated,
-                directives,
-            );
-        } else if let Some(after_star) = trimmed.strip_prefix('*') {
-            let text = after_star.trim_start();
-            let marker_pos = BytePos(comment_start.0 + 2 + line_offset + leading_ws);
-
-            parse_source_directive(
-                text,
-                Span::new(
-                    marker_pos,
-                    BytePos(comment_start.0 + 2 + line_offset + line_with_cr.len() as u32),
-                ),
-                accumulated,
-                directives,
-            );
-        }
-
-        line_offset += segment.len() as u32;
-    }
 }
 
 #[cfg(test)]
@@ -395,26 +329,6 @@ mod tests {
         );
 
         assert_eq!(directives, vec![]);
-    }
-
-    #[test]
-    fn collect_from_source_should_support_starred_block_comment_lines() {
-        let directives = collect_lingui_directives_from_source(
-            "/**\n * lingui-set context=\"ctx\"\n */\nconst msg = t`Hello`;\n",
-            BytePos(10),
-        );
-
-        assert_eq!(
-            directives,
-            vec![DirectiveEntry {
-                pos: BytePos(15),
-                values: DirectiveValues {
-                    context: Some("ctx".into()),
-                    comment: None,
-                    id_prefix: None,
-                },
-            }]
-        );
     }
 
     #[test]
