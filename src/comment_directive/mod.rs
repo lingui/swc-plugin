@@ -1,14 +1,8 @@
 mod source_scanner;
 
-use once_cell::sync::Lazy;
-use regex::Regex;
 use source_scanner::{scan_source_comments, CommentKind};
 use swc_core::common::{BytePos, Span};
 use swc_core::plugin::errors::HANDLER;
-
-static DIRECTIVE_RE: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"^(lingui-(?:set|reset))(?:\s|$)(.*)").unwrap());
-static TOKEN_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"\s+|(\w+)(?:="([^"]*)")?"#).unwrap());
 
 fn is_lingui_directive_prefix(comment: &str) -> bool {
     comment.starts_with("lingui-set") || comment.starts_with("lingui-reset")
@@ -103,39 +97,75 @@ fn parse_value_update(value: &str) -> DirectiveValueUpdate {
 fn parse_lingui_directive(comment_value: &str) -> Result<Option<ParsedDirective>, String> {
     let trimmed = comment_value.trim();
 
-    let Some(directive_match) = DIRECTIVE_RE.captures(trimmed) else {
+    let (directive_name, rest) = if let Some(rest) = trimmed.strip_prefix("lingui-set") {
+        ("lingui-set", rest)
+    } else if let Some(rest) = trimmed.strip_prefix("lingui-reset") {
+        ("lingui-reset", rest)
+    } else {
         return Ok(None);
     };
 
-    let directive_name = directive_match.get(1).unwrap().as_str();
-    let reset = directive_name == "lingui-reset";
-    let rest = directive_match
-        .get(2)
-        .map(|m| m.as_str().trim())
-        .unwrap_or_default();
+    if !rest.is_empty() && !rest.starts_with(char::is_whitespace) {
+        return Ok(None);
+    }
 
-    let mut consumed = 0usize;
+    let reset = directive_name == "lingui-reset";
+    let rest = rest.trim();
+
     let mut values = DirectiveUpdate::default();
     let mut has_params = false;
+    let mut pos = 0;
+    let rest_bytes = rest.as_bytes();
 
-    for capture in TOKEN_RE.captures_iter(rest) {
-        let full = capture.get(0).unwrap();
-        if full.start() != consumed {
+    while pos < rest_bytes.len() {
+        // skip whitespace
+        while pos < rest_bytes.len() && rest_bytes[pos].is_ascii_whitespace() {
+            pos += 1;
+        }
+        if pos >= rest_bytes.len() {
+            break;
+        }
+
+        // parse key (word chars)
+        let key_start = pos;
+        while pos < rest_bytes.len()
+            && (rest_bytes[pos].is_ascii_alphanumeric() || rest_bytes[pos] == b'_')
+        {
+            pos += 1;
+        }
+        if pos == key_start {
             return Err(format!(
                 "`{directive_name}` directive has invalid syntax: {trimmed}"
             ));
         }
-        consumed = full.end();
+        let key = &rest[key_start..pos];
 
-        let Some(key) = capture.get(1).map(|m| m.as_str()) else {
-            continue;
-        };
-
-        let Some(value) = capture.get(2).map(|m| m.as_str()) else {
+        // expect ="..."
+        if pos >= rest_bytes.len() || rest_bytes[pos] != b'=' {
             return Err(format!(
                 "`{directive_name}` directive: \"{key}\" requires a value, e.g. {key}=\"...\""
             ));
-        };
+        }
+        pos += 1; // skip '='
+
+        if pos >= rest_bytes.len() || rest_bytes[pos] != b'"' {
+            return Err(format!(
+                "`{directive_name}` directive: \"{key}\" requires a value, e.g. {key}=\"...\""
+            ));
+        }
+        pos += 1; // skip opening '"'
+
+        let value_start = pos;
+        while pos < rest_bytes.len() && rest_bytes[pos] != b'"' {
+            pos += 1;
+        }
+        if pos >= rest_bytes.len() {
+            return Err(format!(
+                "`{directive_name}` directive has invalid syntax: {trimmed}"
+            ));
+        }
+        let value = &rest[value_start..pos];
+        pos += 1; // skip closing '"'
 
         has_params = true;
         let update = parse_value_update(value);
@@ -146,22 +176,16 @@ fn parse_lingui_directive(comment_value: &str) -> Result<Option<ParsedDirective>
             "idPrefix" => values.id_prefix = Some(update),
             _ => {
                 return Err(format!(
-          "`{directive_name}` directive has unknown param \"{key}\". Valid params: context, comment, idPrefix"
-        ));
+                    "`{directive_name}` directive has unknown param \"{key}\". Valid params: context, comment, idPrefix"
+                ));
             }
         }
     }
 
-    if consumed != rest.len() {
-        return Err(format!(
-            "`{directive_name}` directive has invalid syntax: {trimmed}"
-        ));
-    }
-
     if !has_params && !reset {
         return Err(format!(
-      "`{directive_name}` directive requires at least one param. Valid params: context, comment, idPrefix"
-    ));
+            "`{directive_name}` directive requires at least one param. Valid params: context, comment, idPrefix"
+        ));
     }
 
     Ok(Some(ParsedDirective { reset, values }))

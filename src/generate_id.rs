@@ -1,11 +1,11 @@
 use data_encoding::{BASE64, BASE64URL};
 use sha2::{Digest, Sha256};
 
-const UNIT_SEPARATOR: &char = &'\u{001F}';
-
 pub fn generate_message_id(message: &str, context: &str, use_lingui_v5: bool) -> String {
     let mut hasher = Sha256::new();
-    hasher.update(format!("{message}{UNIT_SEPARATOR}{context}"));
+    hasher.update(message.as_bytes());
+    hasher.update(&[0x1F]); // UNIT_SEPARATOR
+    hasher.update(context.as_bytes());
 
     let result = hasher.finalize();
 

@@ -10,10 +10,34 @@ use swc_core::{
     ecma::ast::*,
 };
 
-static NUMERIC_REGEX: once_cell::sync::Lazy<regex::Regex> =
-    once_cell::sync::Lazy::new(|| regex::Regex::new(r"^\d+$").unwrap());
-static VALID_NAME_REGEX: once_cell::sync::Lazy<regex::Regex> =
-    once_cell::sync::Lazy::new(|| regex::Regex::new(r"^[a-zA-Z_]([\w.-]*\w)?$").unwrap());
+fn is_numeric(s: &str) -> bool {
+    !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())
+}
+
+fn is_valid_placeholder_name(s: &str) -> bool {
+    if s.is_empty() {
+        return false;
+    }
+
+    let bytes = s.as_bytes();
+    let first = bytes[0];
+    if !(first.is_ascii_alphabetic() || first == b'_') {
+        return false;
+    }
+
+    if bytes.len() == 1 {
+        return true;
+    }
+
+    let last = bytes[bytes.len() - 1];
+    if !(last.is_ascii_alphanumeric() || last == b'_') {
+        return false;
+    }
+
+    bytes[1..bytes.len() - 1]
+        .iter()
+        .all(|&b| b.is_ascii_alphanumeric() || b == b'_' || b == b'.' || b == b'-')
+}
 
 fn dedup_values(mut v: Vec<ValueWithPlaceholder>) -> Vec<ValueWithPlaceholder> {
     let mut uniques = HashSet::new();
@@ -195,14 +219,14 @@ impl<'a> MessageBuilder<'a> {
         }
 
         let name = if let Some(n) = base_name {
-            if NUMERIC_REGEX.is_match(&n) {
+            if is_numeric(&n) {
                 swc_core::plugin::errors::HANDLER.with(|h| {
                     h.struct_span_err(
                         el.span,
                         &format!("Placeholder name `{n}` is not allowed because it conflicts with auto-generated numeric placeholders. Use a non-numeric name instead."),
                     ).emit();
                 });
-            } else if !VALID_NAME_REGEX.is_match(&n) {
+            } else if !is_valid_placeholder_name(&n) {
                 swc_core::plugin::errors::HANDLER.with(|h| {
                     h.struct_span_err(
                         el.span,
