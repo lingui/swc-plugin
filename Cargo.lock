@@ -792,8 +792,6 @@ version = "6.3.0"
 dependencies = [
  "data-encoding",
  "insta",
- "once_cell",
- "regex",
  "serde",
  "serde_json",
  "sha2 0.11.0",
