@@ -15,8 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Uses values from rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: 'wasm32-wasip1'
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -30,15 +31,15 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - uses: Swatinem/rust-cache@v2
-
       - name: Install npm CLI
         run: npm install -g npm@latest
 
       - name: Build and publish 'latest' tag
+        working-directory: packages/lingui-macro
         if: ${{ github.event.action == 'released' }}
         run: npm publish
 
       - name: Build and publish 'next' tag
+        working-directory: packages/lingui-macro
         if: ${{ github.event.action == 'prereleased' }}
         run: npm publish --tag next

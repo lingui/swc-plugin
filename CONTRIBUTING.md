@@ -10,7 +10,7 @@ rustup target add wasm32-wasip1
 
 ## Testing
 
-Tests use [insta](https://insta.rs) snapshot testing. Test macros are defined in `tests/common/mod.rs`:
+Tests use [insta](https://insta.rs) snapshot testing. Test macros are defined in `crates/lingui_macro/tests/common/mod.rs`:
 - `to!(test_name, "input code")` — transform with default options
 - `to!(test_name, options, "input code")` — transform with custom options
 - `to_panic!(test_name, options, "input code")` — expect compilation error (error message captured in snapshot)
@@ -58,16 +58,16 @@ cargo clippy --all-targets --all-features -- -D warnings
 # (alias for `cargo build --target wasm32-wasip1`)
 cargo build-wasi --release
 ```
-Then wasm binary would be on the path: `./target/wasm32-wasip1/release/lingui_macro_plugin.wasm`
+Then wasm binary would be on the path: `./target/wasm32-wasip1/release/lingui_macro.wasm`
 
-You can check it in your own project or in the `examples/nextjs-13` example in this repo by specifying full path to the WASM binary:
+You can check it in your own project by specifying full path to the WASM binary:
 
 ```ts
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
     swcPlugins: [
-      ['/Users/tim/projects/lingui-macro-plugin/target/wasm32-wasip1/release/lingui_macro_plugin.wasm', {}],
+      ['/path/to/swc-plugin/target/wasm32-wasip1/release/lingui_macro.wasm', {}],
     ],
   },
 };

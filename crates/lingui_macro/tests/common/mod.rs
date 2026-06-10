@@ -131,7 +131,7 @@ macro_rules! to {
             let source = common::dedent($input);
             let output = common::transform(source.as_str(), |comments, cm| {
                 swc_core::ecma::visit::fold_pass(
-                    lingui_macro_plugin::LinguiMacroFolder::new(
+                    lingui_macro::LinguiMacroFolder::new(
                         Default::default(),
                         Some(comments.clone()),
                         cm as swc_core::common::sync::Lrc<dyn swc_core::common::SourceMapper>,
@@ -149,12 +149,12 @@ macro_rules! to {
     ($name:ident, $options:expr, $input:expr) => {
         #[test]
         fn $name() {
-            let options: lingui_macro_plugin::LinguiOptions = $options;
+            let options: lingui_macro::LinguiOptions = $options;
             let source = common::dedent($input);
 
             let output = common::transform(source.as_str(), |comments, cm| {
                 swc_core::ecma::visit::fold_pass(
-                    lingui_macro_plugin::LinguiMacroFolder::new(
+                    lingui_macro::LinguiMacroFolder::new(
                         options.clone(),
                         Some(comments.clone()),
                         cm as swc_core::common::sync::Lrc<dyn swc_core::common::SourceMapper>,
@@ -177,11 +177,11 @@ macro_rules! to_panic {
     ($name:ident, $options:expr, $input:expr) => {
         #[test]
         fn $name() {
-            let options: lingui_macro_plugin::LinguiOptions = $options;
+            let options: lingui_macro::LinguiOptions = $options;
             let source = common::dedent($input);
             let err = common::transform(source.as_str(), |comments, cm| {
                 swc_core::ecma::visit::fold_pass(
-                    lingui_macro_plugin::LinguiMacroFolder::new(
+                    lingui_macro::LinguiMacroFolder::new(
                         options.clone(),
                         Some(comments.clone()),
                         cm as swc_core::common::sync::Lrc<dyn swc_core::common::SourceMapper>,

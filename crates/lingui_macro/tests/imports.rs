@@ -106,8 +106,8 @@ to!(
 
 to!(
     should_transform_custom_core_macro_package,
-    lingui_macro_plugin::LinguiOptions {
-        macro_packages: lingui_macro_plugin::MacroPackagesConfig {
+    lingui_macro::LinguiOptions {
+        macro_packages: lingui_macro::MacroPackagesConfig {
             core: vec!["@acme/core/macro".into()],
             jsx: vec!["@lingui/macro".into(), "@lingui/react/macro".into()],
         },
@@ -122,8 +122,8 @@ to!(
 
 to!(
     should_transform_custom_jsx_macro_package,
-    lingui_macro_plugin::LinguiOptions {
-        macro_packages: lingui_macro_plugin::MacroPackagesConfig {
+    lingui_macro::LinguiOptions {
+        macro_packages: lingui_macro::MacroPackagesConfig {
             core: vec!["@lingui/macro".into(), "@lingui/core/macro".into()],
             jsx: vec!["@acme/react/macro".into()],
         },

@@ -1,0 +1,63 @@
+{
+  "name": "@lingui/swc-plugin",
+  "version": "6.3.0",
+  "description": "A SWC Plugin for LinguiJS",
+  "author": {
+    "name": "Timofei Iatsenko",
+    "email": "timiatsenko@gmail.com"
+  },
+  "repository": "lingui/swc-plugin",
+  "type": "module",
+  "bugs": "https://github.com/lingui/swc-plugin/issues",
+  "license": "MIT",
+  "keywords": [
+    "swc-plugin",
+    "swc",
+    "nextjs",
+    "lingui",
+    "lingui-js",
+    "icu",
+    "message-format",
+    "i18n",
+    "internationalization"
+  ],
+  "main": "./lingui_macro.wasm",
+  "exports": {
+    ".": "./lingui_macro.wasm",
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "default": "./dist/options.js"
+    }
+  },
+  "scripts": {
+    "prepublishOnly": "yarn build:ts && yarn build:wasm",
+    "build:ts": "tsc -p tsconfig.build.json",
+    "build:wasm": "cargo build -p lingui_macro --target wasm32-wasip1 --release && cp ../../target/wasm32-wasip1/release/lingui_macro.wasm lingui_macro.wasm",
+    "test:e2e": "yarn build:wasm && vitest run"
+  },
+  "files": [
+    "README.md",
+    "dist/",
+    "lingui_macro.wasm"
+  ],
+  "dependencies": {
+    "@lingui/conf": "5 || 6"
+  },
+  "peerDependencies": {
+    "@lingui/core": "5 || 6"
+  },
+  "peerDependenciesMeta": {
+    "@swc/core": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@swc/core": "^1.15.33",
+    "@types/node": "22.13.14",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
+  }
+}

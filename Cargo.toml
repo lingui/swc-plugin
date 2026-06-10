@@ -1,33 +1,16 @@
-[package]
-name = "lingui_macro_plugin"
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
 version = "6.3.0"
 edition = "2021"
-
-[lib]
-crate-type = ["cdylib", 'rlib']
 
 [profile.release]
 codegen-units = 1
 lto = false
 opt-level = 3
 
-[dependencies]
-data-encoding = "2.11.0"
-sha2 = "0.11.0"
-serde = "1.0.228"
-serde_json = "1.0.149"
-swc_core = { version = "66.0.3", features = [
-  "ecma_plugin_transform",
-  "ecma_utils",
-  "ecma_visit",
-  "ecma_ast",
-  "ecma_parser",
-  "ecma_codegen",
-  "common",
-] }
-# .cargo/config defines few alias to build plugin.
-# cargo build-wasi generates wasm-wasi32 binary
-# cargo build-wasm32 generates wasm32-unknown-unknown binary.
-
-[dev-dependencies]
+[workspace.dependencies]
+swc_core = { version = "66.0.3", default-features = false }
 insta = { version = "1.47.2", features = ["serde"] }
