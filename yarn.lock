@@ -88,7 +88,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lingui/conf@npm:5 || 6":
+"@lingui/conf@npm:^6.2.0":
   version: 6.2.0
   resolution: "@lingui/conf@npm:6.2.0"
   dependencies:
@@ -104,7 +104,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@lingui/swc-plugin@workspace:packages/lingui-macro"
   dependencies:
-    "@lingui/conf": "npm:5 || 6"
+    "@lingui/conf": "npm:^6.2.0"
     "@swc/core": "npm:^1.15.33"
     "@types/node": "npm:22.13.14"
     typescript: "npm:^6.0.3"
