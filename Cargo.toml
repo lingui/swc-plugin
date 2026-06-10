@@ -9,7 +9,7 @@ edition = "2021"
 [profile.release]
 codegen-units = 1
 lto = false
-opt-level = "s"
+opt-level = 3
 
 [workspace.dependencies]
 swc_core = { version = "66.0.3", default-features = false }
