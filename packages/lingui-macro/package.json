@@ -56,7 +56,6 @@
     }
   },
   "devDependencies": {
-    "@lingui/conf": "^6.2.0",
     "@swc/core": "^1.15.33",
     "@types/node": "22.13.14",
     "typescript": "^6.0.3",
