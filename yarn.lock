@@ -313,7 +313,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lingui/conf@npm:5 || 6, @lingui/conf@npm:^6.0.1":
+"@lingui/conf@npm:^6.0.1":
   version: 6.1.0
   resolution: "@lingui/conf@npm:6.1.0"
   dependencies:
@@ -325,11 +325,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lingui/conf@npm:^6.2.0":
+  version: 6.2.0
+  resolution: "@lingui/conf@npm:6.2.0"
+  dependencies:
+    jest-validate: "npm:^29.4.3"
+    jiti: "npm:^2.5.1"
+    lilconfig: "npm:^3.1.3"
+    normalize-path: "npm:^3.0.0"
+  checksum: 10c0/a388b6b7ea76346ae520132fc38e67ea302dc4a97bcc23ebce0d53cf7d5592dd23e674023c1aa9aed80e323ea0cd2ad40fb54e3c67b4219555b33208a7fe6f06
+  languageName: node
+  linkType: hard
+
 "@lingui/swc-plugin@workspace:packages/lingui-macro":
   version: 0.0.0-use.local
   resolution: "@lingui/swc-plugin@workspace:packages/lingui-macro"
   dependencies:
-    "@lingui/conf": "npm:5 || 6"
+    "@lingui/conf": "npm:^6.2.0"
     "@swc/core": "npm:^1.15.33"
     "@types/node": "npm:22.13.14"
     typescript: "npm:^6.0.3"

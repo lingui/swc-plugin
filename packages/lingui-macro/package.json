@@ -33,7 +33,7 @@
     "prepublishOnly": "yarn build:ts && yarn build:wasm",
     "build:ts": "tsc -p tsconfig.build.json",
     "build:wasm": "cargo build -p lingui_macro --target wasm32-wasip1 --release && cp ../../target/wasm32-wasip1/release/lingui_macro.wasm lingui_macro.wasm",
-    "test:e2e": "cargo build-wasi && vitest run",
+    "test:e2e": "yarn build:wasm && vitest run",
     "postinstall": "yarn build:ts"
   },
   "files": [
@@ -57,6 +57,7 @@
     }
   },
   "devDependencies": {
+    "@lingui/conf": "^6.2.0",
     "@swc/core": "^1.15.33",
     "@types/node": "22.13.14",
     "typescript": "^6.0.3",
