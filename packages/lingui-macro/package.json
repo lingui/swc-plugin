@@ -36,7 +36,6 @@
     "test:e2e": "yarn build:wasm && vitest run"
   },
   "files": [
-    "LICENSE",
     "README.md",
     "dist/",
     "lingui_macro.wasm"
