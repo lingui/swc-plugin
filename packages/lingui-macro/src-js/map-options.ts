@@ -1,4 +1,4 @@
-import {getConfig, LinguiConfigNormalized} from "@lingui/conf"
+import type {LinguiConfigNormalized} from "@lingui/conf" with {"resolution-mode": "import"}
 
 export type RuntimeModuleConfig = readonly [modulePath: string, exportName?: string];
 
@@ -39,47 +39,12 @@ export type LinguiMacroOptions = {
 }
 
 /** Makes all properties in `T` optional, recursing into nested objects but preserving tuples/arrays as-is. */
-type DeepPartial<T> = {
+export type DeepPartial<T> = {
   [Key in keyof T]?: T[Key] extends readonly unknown[]
     ? T[Key]
     : T[Key] extends object
       ? DeepPartial<T[Key]>
       : T[Key]
-}
-
-/** Controls how the Lingui config is located and loaded. */
-export type GetConfigOptions = {
-  /** Working directory for config discovery. Defaults to `process.cwd()`. */
-  cwd?: string
-  /** Explicit path to a Lingui config file, bypassing discovery. */
-  configPath?: string
-  /** Skip schema validation of the loaded config. */
-  skipValidation?: boolean
-}
-
-/**
- * Loads the Lingui config, maps relevant options to the SWC plugin format,
- * and returns a ready-to-use `["@lingui/swc-plugin", options]` tuple.
- *
- * @example
- * ```js
- * // next.config.js
- * const nextConfig = {
- *   experimental: {
- *     swcPlugins: [linguiMacroSwcPlugin()],
- *   },
- * };
- * ```
- *
- * @param overrides - Plugin options merged over values derived from the Lingui config.
- * @param configOptions - Controls how the Lingui config is discovered or loaded.
- */
-export function linguiMacroSwcPlugin(overrides?: DeepPartial<LinguiMacroOptions>, configOptions: GetConfigOptions = {}): [wasmPackage: string, config: LinguiMacroOptions] {
-  const config = getConfig(
-    configOptions,
-  )
-
-  return ["@lingui/swc-plugin", mapOptions(config, overrides)];
 }
 
 /**

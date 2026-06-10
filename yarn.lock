@@ -89,20 +89,20 @@ __metadata:
   linkType: hard
 
 "@lingui/conf@npm:5 || 6":
-  version: 6.0.1
-  resolution: "@lingui/conf@npm:6.0.1"
+  version: 6.2.0
+  resolution: "@lingui/conf@npm:6.2.0"
   dependencies:
     jest-validate: "npm:^29.4.3"
     jiti: "npm:^2.5.1"
     lilconfig: "npm:^3.1.3"
     normalize-path: "npm:^3.0.0"
-  checksum: 10c0/9ede35666ab2f797d191bedfb09e98a7874eafdbd75679bc85f574deceba46e049ffd15f094e49860a715bb51045d0e154e7bb322e05e88193c2a8dff8d3e538
+  checksum: 10c0/a388b6b7ea76346ae520132fc38e67ea302dc4a97bcc23ebce0d53cf7d5592dd23e674023c1aa9aed80e323ea0cd2ad40fb54e3c67b4219555b33208a7fe6f06
   languageName: node
   linkType: hard
 
-"@lingui/swc-plugin@workspace:.":
+"@lingui/swc-plugin@workspace:packages/lingui-macro":
   version: 0.0.0-use.local
-  resolution: "@lingui/swc-plugin@workspace:."
+  resolution: "@lingui/swc-plugin@workspace:packages/lingui-macro"
   dependencies:
     "@lingui/conf": "npm:5 || 6"
     "@swc/core": "npm:^1.15.33"
@@ -1427,6 +1427,12 @@ __metadata:
   checksum: 10c0/628327a6e3122c0b62880f1c87d54095394e5138a6af2e6e7b2f67ef4c4b11f1421db68c9a5bb4e1be161465a863ab4f68f15076ce895cd4bb3d0ba18a3b20b1
   languageName: node
   linkType: hard
+
+"root-workspace-0b6124@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "root-workspace-0b6124@workspace:."
+  languageName: unknown
+  linkType: soft
 
 "safer-buffer@npm:>= 2.1.2 < 3.0.0":
   version: 2.1.2

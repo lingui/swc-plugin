@@ -8,7 +8,9 @@ hello
 <Trans>
 hello
 </Trans>;
-<Trans>hello</Trans>;
+<Trans>
+hello
+</Trans>;
 
 ↓ ↓ ↓ ↓ ↓ ↓
 

@@ -1,4 +1,4 @@
-use lingui_macro_plugin::LinguiOptions;
+use lingui_macro::LinguiOptions;
 
 #[macro_use]
 mod common;

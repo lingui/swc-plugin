@@ -2,7 +2,7 @@ import {describe, expect, it} from 'vitest'
 import {transform, transformFile} from '@swc/core'
 import {resolve} from 'path'
 
-const wasmPath = resolve(import.meta.dirname, '../target/wasm32-wasip1/release/lingui_macro_plugin.wasm')
+const wasmPath = resolve(import.meta.dirname, '../lingui_macro.wasm')
 
 async function transformWithSwc(filePath: string, envName?: string) {
   return transformFile(filePath, {

@@ -1,4 +1,4 @@
-name: CI
+name: CI - SWC Macro Plugin
 
 on:
   pull_request:
@@ -23,10 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Uses values from rust-toolchain.toml
       - uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - uses: Swatinem/rust-cache@v2
+        with:
+          target: 'wasm32-wasip1'
 
       - name: Check formatting
         run: cargo fmt --check
@@ -57,12 +56,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Setup Rust
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: 'wasm32-wasip1'
 
-      - uses: Swatinem/rust-cache@v2
-
-      # Setup Node.js with corepack
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -74,4 +71,5 @@ jobs:
         run: yarn install
 
       - name: Run E2E test
+        working-directory: ./packages/lingui-macro
         run: yarn test:e2e
