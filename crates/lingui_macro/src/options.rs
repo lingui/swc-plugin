@@ -32,6 +32,7 @@ impl DescriptorFields {
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
+    #[serde(default)]
     pub runtime_modules: Option<RuntimeModulesConfigMap>,
     pub core_package: Option<Vec<String>>,
     #[serde(default)]
@@ -310,12 +311,7 @@ mod lib_tests {
 
     #[test]
     fn test_macro_package_defaults() {
-        let config = serde_json::from_str::<LinguiJsOptions>(
-            r#"{
-                "runtimeModules": {}
-               }"#,
-        )
-        .unwrap();
+        let config = serde_json::from_str::<LinguiJsOptions>(r#"{}"#).unwrap();
 
         let options = config.into_options("development");
         assert_eq!(
@@ -338,8 +334,7 @@ mod lib_tests {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "corePackage": ["@acme/core/macro"],
-                "jsxPackage": ["@acme/react/macro"],
-                "runtimeModules": {}
+                "jsxPackage": ["@acme/react/macro"]
                }"#,
         )
         .unwrap();
@@ -362,8 +357,7 @@ mod lib_tests {
     fn test_id_prefix_leader_config() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "idPrefixLeader": ".",
-                "runtimeModules": {}
+                "idPrefixLeader": "."
                }"#,
         )
         .unwrap();
@@ -376,8 +370,7 @@ mod lib_tests {
     fn test_descriptor_fields_config() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "descriptorFields": "id-only",
-                "runtimeModules": {}
+                "descriptorFields": "id-only"
                }"#,
         )
         .unwrap();
@@ -390,8 +383,7 @@ mod lib_tests {
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "descriptorFields": "all",
-                "runtimeModules": {}
+                "descriptorFields": "all"
                }"#,
         )
         .unwrap();
@@ -401,8 +393,7 @@ mod lib_tests {
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "descriptorFields": "message",
-                "runtimeModules": {}
+                "descriptorFields": "message"
                }"#,
         )
         .unwrap();
@@ -416,22 +407,12 @@ mod lib_tests {
 
     #[test]
     fn test_descriptor_fields_auto_default() {
-        let config = serde_json::from_str::<LinguiJsOptions>(
-            r#"{
-                "runtimeModules": {}
-               }"#,
-        )
-        .unwrap();
+        let config = serde_json::from_str::<LinguiJsOptions>(r#"{}"#).unwrap();
 
         let options = config.into_options("development");
         assert!(matches!(options.descriptor_fields, DescriptorFields::All));
 
-        let config = serde_json::from_str::<LinguiJsOptions>(
-            r#"{
-                "runtimeModules": {}
-               }"#,
-        )
-        .unwrap();
+        let config = serde_json::from_str::<LinguiJsOptions>(r#"{}"#).unwrap();
 
         let options = config.into_options("production");
         assert!(matches!(
@@ -465,8 +446,7 @@ mod lib_tests {
     fn test_descriptor_fields_explicit_auto() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "descriptorFields": "auto",
-                "runtimeModules": {}
+                "descriptorFields": "auto"
                }"#,
         )
         .unwrap();
@@ -476,8 +456,7 @@ mod lib_tests {
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "descriptorFields": "auto",
-                "runtimeModules": {}
+                "descriptorFields": "auto"
                }"#,
         )
         .unwrap();
@@ -493,8 +472,7 @@ mod lib_tests {
     fn test_use_lingui_v5_id_generation_config() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "useLinguiV5IdGeneration": true,
-                "runtimeModules": {}
+                "useLinguiV5IdGeneration": true
                }"#,
         )
         .unwrap();
@@ -504,8 +482,7 @@ mod lib_tests {
 
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "useLinguiV5IdGeneration": false,
-                "runtimeModules": {}
+                "useLinguiV5IdGeneration": false
                }"#,
         )
         .unwrap();
@@ -516,6 +493,31 @@ mod lib_tests {
 
     #[test]
     fn test_use_lingui_v5_id_generation_default() {
+        let config = serde_json::from_str::<LinguiJsOptions>(r#"{}"#).unwrap();
+
+        let options = config.into_options("development");
+        assert!(!options.use_lingui_v5_id_generation);
+
+        let config = serde_json::from_str::<LinguiJsOptions>(r#"{}"#).unwrap();
+
+        let options = config.into_options("production");
+        assert!(!options.use_lingui_v5_id_generation);
+    }
+
+    #[test]
+    fn test_empty_config() {
+        let config = serde_json::from_str::<LinguiJsOptions>(r#"{}"#).unwrap();
+
+        let options = config.into_options("development");
+        assert_eq!(
+            options.runtime_modules,
+            RuntimeModulesConfigMapNormalized::default()
+        );
+        assert_eq!(options.macro_packages, MacroPackagesConfig::default());
+    }
+
+    #[test]
+    fn test_runtime_modules_fully_optional() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
                 "runtimeModules": {}
@@ -524,16 +526,35 @@ mod lib_tests {
         .unwrap();
 
         let options = config.into_options("development");
-        assert!(!options.use_lingui_v5_id_generation);
+        assert_eq!(
+            options.runtime_modules,
+            RuntimeModulesConfigMapNormalized::default()
+        );
+    }
 
+    #[test]
+    fn test_runtime_modules_partial() {
         let config = serde_json::from_str::<LinguiJsOptions>(
             r#"{
-                "runtimeModules": {}
+                "runtimeModules": {
+                    "i18n": ["my-core", "myI18n"]
+                }
                }"#,
         )
         .unwrap();
 
-        let options = config.into_options("production");
-        assert!(!options.use_lingui_v5_id_generation);
+        let options = config.into_options("development");
+        assert_eq!(
+            options.runtime_modules.i18n,
+            ("my-core".into(), "myI18n".into())
+        );
+        assert_eq!(
+            options.runtime_modules.trans,
+            ("@lingui/react".into(), "Trans".into())
+        );
+        assert_eq!(
+            options.runtime_modules.use_lingui,
+            ("@lingui/react".into(), "useLingui".into())
+        );
     }
 }

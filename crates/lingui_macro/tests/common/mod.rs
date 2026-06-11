@@ -177,7 +177,6 @@ macro_rules! to_panic {
     ($name:ident, $options:expr, $input:expr) => {
         #[test]
         fn $name() {
-
             let options: lingui_macro::LinguiOptions = $options;
             let source = common::dedent($input);
             let err = common::transform(source.as_str(), |comments, cm| {
