@@ -34,6 +34,7 @@ impl DescriptorFields {
 pub struct LinguiJsOptions {
     #[serde(default)]
     pub runtime_modules: Option<RuntimeModulesConfigMap>,
+    #[serde(default)]
     pub core_package: Option<Vec<String>>,
     #[serde(default)]
     pub jsx_package: Option<Vec<String>>,
