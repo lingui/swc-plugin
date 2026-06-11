@@ -13,10 +13,10 @@ export type LinguiMacroOptions = {
   /** Default placeholder names for JSX tags when no explicit placeholder attribute is present. */
   jsxPlaceholderDefaults?: Record<string, string>
   /** Overrides the runtime imports used by the plugin. Unlike the Babel macro configuration, must be passed as an object. */
-  runtimeModules: {
-    i18n: RuntimeModuleConfig
-    Trans: RuntimeModuleConfig
-    useLingui: RuntimeModuleConfig
+  runtimeModules?: {
+    i18n?: RuntimeModuleConfig
+    Trans?: RuntimeModuleConfig
+    useLingui?: RuntimeModuleConfig
   }
   /**
    * Compatibility option for using the v6 SWC plugin with `@lingui/cli@5.*`.
