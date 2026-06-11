@@ -6,7 +6,11 @@
     "name": "Timofei Iatsenko",
     "email": "timiatsenko@gmail.com"
   },
-  "repository": "lingui/swc-plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lingui/swc-plugin.git",
+    "directory": "packages/lingui-macro"
+  },
   "type": "module",
   "bugs": "https://github.com/lingui/swc-plugin/issues",
   "license": "MIT",
