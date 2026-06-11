@@ -29,39 +29,39 @@ impl DescriptorFields {
     }
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
     #[serde(default)]
-    runtime_modules: Option<RuntimeModulesConfigMap>,
+    pub runtime_modules: Option<RuntimeModulesConfigMap>,
     #[serde(default)]
-    core_package: Option<Vec<String>>,
+    pub core_package: Option<Vec<String>>,
     #[serde(default)]
-    jsx_package: Option<Vec<String>>,
+    pub jsx_package: Option<Vec<String>>,
     #[serde(default)]
-    descriptor_fields: Option<DescriptorFields>,
+    pub descriptor_fields: Option<DescriptorFields>,
     #[serde(default)]
-    use_lingui_v5_id_generation: Option<bool>,
+    pub use_lingui_v5_id_generation: Option<bool>,
     #[serde(default)]
-    use_jsdoc_i18n_comment: Option<bool>,
+    pub use_jsdoc_i18n_comment: Option<bool>,
     #[serde(default)]
-    id_prefix_leader: Option<String>,
+    pub id_prefix_leader: Option<String>,
     #[serde(default)]
-    jsx_placeholder_attribute: Option<String>,
+    pub jsx_placeholder_attribute: Option<String>,
     #[serde(default)]
-    jsx_placeholder_defaults: Option<HashMap<String, String>>,
+    pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-struct RuntimeModulesConfig(String, #[serde(default)] Option<String>);
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
+pub struct RuntimeModulesConfig(pub String, #[serde(default)] pub Option<String>);
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct RuntimeModulesConfigMap {
-    i18n: Option<RuntimeModulesConfig>,
+    pub i18n: Option<RuntimeModulesConfig>,
     #[serde(alias = "Trans")]
-    trans: Option<RuntimeModulesConfig>,
-    use_lingui: Option<RuntimeModulesConfig>,
+    pub trans: Option<RuntimeModulesConfig>,
+    pub use_lingui: Option<RuntimeModulesConfig>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]

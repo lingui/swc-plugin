@@ -1,5 +1,5 @@
 ---
-source: tests/lingui_directive.rs
+source: crates/lingui_macro/tests/lingui_directive.rs
 ---
 import { Select } from "@lingui/react/macro";
 /* lingui-set context="my context" */

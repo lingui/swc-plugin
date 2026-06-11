@@ -1,5 +1,5 @@
 ---
-source: tests/imports.rs
+source: crates/lingui_macro/tests/imports.rs
 ---
 import { plural } from "@lingui/core/macro";
 import { t } from "./custom-t";

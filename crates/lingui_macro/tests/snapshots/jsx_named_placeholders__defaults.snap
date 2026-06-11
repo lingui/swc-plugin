@@ -1,9 +1,9 @@
 ---
-source: tests/jsx_named_placeholders.rs
+source: crates/lingui_macro/tests/jsx_named_placeholders.rs
 info:
   jsx_placeholder_defaults:
-    a: link
     em: em
+    a: link
 ---
 import { Trans } from "@lingui/react/macro";
 <Trans>

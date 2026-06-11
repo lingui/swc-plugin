@@ -1,5 +1,5 @@
 ---
-source: tests/runtime_config.rs
+source: crates/lingui_macro/tests/runtime_config.rs
 info:
   runtime_modules:
     i18n:

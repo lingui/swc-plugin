@@ -1,6 +1,5 @@
 ---
-source: tests/imports.rs
-assertion_line: 139
+source: crates/lingui_macro/tests/imports.rs
 ---
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";

@@ -1,5 +1,5 @@
 ---
-source: tests/jsx_named_placeholders.rs
+source: crates/lingui_macro/tests/jsx_named_placeholders.rs
 info: {}
 ---
 import { Trans } from "@lingui/react/macro";
