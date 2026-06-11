@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/lingui_directive.rs
+source: tests/lingui_directive.rs
 ---
 import { Plural } from "@lingui/react/macro";
 /* lingui-set context="my context" */

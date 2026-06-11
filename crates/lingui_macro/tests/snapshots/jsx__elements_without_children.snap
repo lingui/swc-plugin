@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/jsx.rs
+source: tests/jsx.rs
 ---
 import { Trans } from "@lingui/react/macro";
 <Trans>{<br />}</Trans>;

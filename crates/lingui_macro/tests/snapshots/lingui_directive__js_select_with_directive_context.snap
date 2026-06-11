@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/lingui_directive.rs
+source: tests/lingui_directive.rs
 ---
 import { select } from "@lingui/core/macro";
 /* lingui-set context="my context" */

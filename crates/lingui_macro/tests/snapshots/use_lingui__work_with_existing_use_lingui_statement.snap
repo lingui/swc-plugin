@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/use_lingui.rs
+source: tests/use_lingui.rs
 ---
 import { useLingui as useLinguiMacro } from '@lingui/react/macro';
 import { useLingui } from '@lingui/react';

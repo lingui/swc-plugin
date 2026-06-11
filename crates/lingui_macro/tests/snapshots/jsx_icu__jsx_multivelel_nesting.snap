@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/jsx_icu.rs
+source: tests/jsx_icu.rs
 ---
 import { Trans, Plural } from '@lingui/macro';
 

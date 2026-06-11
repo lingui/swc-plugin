@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/imports.rs
+source: tests/imports.rs
 ---
 import { Plural } from "@lingui/react/macro";
 import { Select } from "./my-select-cmp";

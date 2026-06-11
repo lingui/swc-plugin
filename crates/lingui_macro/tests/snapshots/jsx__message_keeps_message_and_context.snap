@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/jsx.rs
+source: tests/jsx.rs
 info:
   descriptor_fields: message
 ---

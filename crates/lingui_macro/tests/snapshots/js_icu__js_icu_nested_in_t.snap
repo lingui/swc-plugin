@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/js_icu.rs
+source: tests/js_icu.rs
 ---
 import { t, selectOrdinal } from '@lingui/macro'
 

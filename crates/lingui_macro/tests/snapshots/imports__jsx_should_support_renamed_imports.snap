@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/imports.rs
+source: tests/imports.rs
 ---
 import { Trans as I18nTrans, Plural as I18nPlural } from "@lingui/react/macro";
 

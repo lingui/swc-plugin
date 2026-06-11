@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/js_icu.rs
+source: tests/js_icu.rs
 ---
 import { plural, select, selectOrdinal } from "@lingui/core/macro";
 const messagePlural = plural(count, {

@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/jsx_named_placeholders.rs
+source: tests/jsx_named_placeholders.rs
 info:
   jsx_placeholder_attribute: _t
 ---

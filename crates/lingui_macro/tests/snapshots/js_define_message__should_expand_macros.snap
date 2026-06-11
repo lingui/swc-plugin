@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/js_define_message.rs
+source: tests/js_define_message.rs
 ---
 import { defineMessage, plural, arg } from '@lingui/macro';
 const message = defineMessage({

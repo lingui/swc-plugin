@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/js_t.rs
+source: tests/js_t.rs
 ---
 import { t } from '@lingui/core/macro';
   t`Multiline\
