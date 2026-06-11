@@ -1,5 +1,5 @@
 ---
-source: tests/imports.rs
+source: crates/lingui_macro/tests/imports.rs
 ---
 import { t as i18nT, plural as i18nPlural } from "@lingui/core/macro";
 

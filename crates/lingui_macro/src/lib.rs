@@ -222,7 +222,7 @@ where
             props: message_descriptor_props,
         });
 
-        add_i18n_comment(&self.comments, message_descriptor.span());
+        add_i18n_comment(&self.comments, message_descriptor.span(), self.ctx.options.use_jsdoc_i18n_comment);
 
         let mut attrs = vec![JSXAttrOrSpread::SpreadElement(SpreadElement {
             dot3_token: DUMMY_SP,

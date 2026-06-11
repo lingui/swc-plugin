@@ -255,3 +255,15 @@ to!(
      });
      "#
 );
+
+to!(
+    js_should_use_jsdoc_i18n_comment,
+    LinguiOptions {
+        use_jsdoc_i18n_comment: true,
+        ..Default::default()
+    },
+    r#"
+     import { t } from '@lingui/core/macro'
+     t`Hello World`
+     "#
+);

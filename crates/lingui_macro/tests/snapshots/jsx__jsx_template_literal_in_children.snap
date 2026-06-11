@@ -1,5 +1,5 @@
 ---
-source: tests/jsx.rs
+source: crates/lingui_macro/tests/jsx.rs
 ---
 import { Trans } from "@lingui/react/macro";
 <Trans>{`Hello ${foo} and ${bar}`}</Trans>

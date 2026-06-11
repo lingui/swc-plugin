@@ -1,5 +1,5 @@
 ---
-source: tests/imports.rs
+source: crates/lingui_macro/tests/imports.rs
 info:
   macro_packages:
     core:

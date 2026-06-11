@@ -1,12 +1,15 @@
 ---
 source: crates/lingui_macro/tests/js_t.rs
+info:
+  use_jsdoc_i18n_comment: true
 ---
 import { t } from '@lingui/core/macro'
-const msg = t({ id: `msgId` })
+t`Hello World`
 
 ↓ ↓ ↓ ↓ ↓ ↓
 
 import { i18n as $_i18n } from "@lingui/core";
-const msg = $_i18n._(/*i18n*/ {
-    id: "msgId"
+$_i18n._(/** i18n */ {
+    id: "mY42CM",
+    message: "Hello World"
 });
