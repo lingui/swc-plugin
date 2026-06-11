@@ -1,5 +1,5 @@
 ---
-source: tests/jsx_icu.rs
+source: crates/lingui_macro/tests/jsx_icu.rs
 ---
 import { SelectOrdinal } from "@lingui/react/macro";
 

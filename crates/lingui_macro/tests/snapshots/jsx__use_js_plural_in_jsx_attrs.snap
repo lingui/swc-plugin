@@ -1,5 +1,5 @@
 ---
-source: tests/jsx.rs
+source: crates/lingui_macro/tests/jsx.rs
 ---
 import { plural } from '@lingui/core/macro';
 <a href="/about" title={plural(count, {

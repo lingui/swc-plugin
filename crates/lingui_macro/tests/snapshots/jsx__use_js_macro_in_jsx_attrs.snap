@@ -1,5 +1,5 @@
 ---
-source: tests/jsx.rs
+source: crates/lingui_macro/tests/jsx.rs
 ---
 import { t } from '@lingui/core/macro';
 import { Trans } from '@lingui/react/macro';

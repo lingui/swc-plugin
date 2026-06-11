@@ -1,5 +1,5 @@
 ---
-source: tests/imports.rs
+source: crates/lingui_macro/tests/imports.rs
 ---
 "use client";
  import { t } from "@lingui/core/macro"
