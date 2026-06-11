@@ -1,5 +1,5 @@
 ---
-source: tests/jsx.rs
+source: crates/lingui_macro/tests/jsx.rs
 ---
 import { Trans } from "@lingui/react/macro";
 const exp2 = <Trans comment="Translators Comment" context="Message Context" i18n="i18n" component={(p) => <div>{p.translation}</div>} render={(v) => v}>Refresh inbox</Trans>;
