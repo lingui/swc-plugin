@@ -43,6 +43,8 @@ pub struct LinguiJsOptions {
     #[serde(default)]
     pub use_lingui_v5_id_generation: Option<bool>,
     #[serde(default)]
+    pub use_jsdoc_i18n_comment: Option<bool>,
+    #[serde(default)]
     pub id_prefix_leader: Option<String>,
     #[serde(default)]
     pub jsx_placeholder_attribute: Option<String>,
@@ -117,6 +119,7 @@ impl LinguiJsOptions {
         LinguiOptions {
             descriptor_fields,
             use_lingui_v5_id_generation: self.use_lingui_v5_id_generation.unwrap_or(false),
+            use_jsdoc_i18n_comment: self.use_jsdoc_i18n_comment.unwrap_or(false),
             id_prefix_leader: self.id_prefix_leader.clone(),
             jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
             jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
@@ -186,6 +189,8 @@ pub struct LinguiOptions {
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
     #[serde(skip_serializing_if = "is_default")]
     pub use_lingui_v5_id_generation: bool,
+    #[serde(skip_serializing_if = "is_default")]
+    pub use_jsdoc_i18n_comment: bool,
 }
 
 impl Default for LinguiOptions {
@@ -193,6 +198,7 @@ impl Default for LinguiOptions {
         LinguiOptions {
             descriptor_fields: DescriptorFields::All,
             use_lingui_v5_id_generation: false,
+            use_jsdoc_i18n_comment: false,
             id_prefix_leader: None,
             jsx_placeholder_attribute: None,
             jsx_placeholder_defaults: None,
@@ -243,6 +249,7 @@ mod lib_tests {
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+                use_jsdoc_i18n_comment: None,
             }
         )
     }
@@ -274,6 +281,7 @@ mod lib_tests {
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+                use_jsdoc_i18n_comment: None,
                 core_package: None,
                 jsx_package: None,
             }
@@ -306,6 +314,7 @@ mod lib_tests {
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+                use_jsdoc_i18n_comment: None,
             }
         )
     }
