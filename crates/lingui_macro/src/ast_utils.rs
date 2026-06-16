@@ -224,14 +224,18 @@ pub fn create_import(source: Atom, imported: IdentName, local: IdentName) -> Mod
     }))
 }
 
-pub fn add_i18n_comment<C: Comments>(comments: &Option<C>, span: Span) {
+pub fn add_i18n_comment<C: Comments>(comments: &Option<C>, span: Span, use_jsdoc: bool) {
     if let Some(comments) = &comments {
         comments.add_leading(
             span.lo,
             Comment {
                 kind: CommentKind::Block,
                 span: DUMMY_SP,
-                text: atom!("i18n"),
+                text: if use_jsdoc {
+                    atom!("* i18n ")
+                } else {
+                    atom!("i18n")
+                },
             },
         );
     }

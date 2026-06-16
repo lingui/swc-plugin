@@ -75,7 +75,7 @@ where
 
         let message_descriptor = Expr::Object(ObjectLit { span, props });
 
-        add_i18n_comment(self.comments, span);
+        add_i18n_comment(self.comments, span, self.ctx.options.use_jsdoc_i18n_comment);
 
         message_descriptor
     }
@@ -212,7 +212,7 @@ where
                 props: new_props,
             }));
 
-            add_i18n_comment(self.comments, span);
+            add_i18n_comment(self.comments, span, self.ctx.options.use_jsdoc_i18n_comment);
 
             return message_descriptor;
         }

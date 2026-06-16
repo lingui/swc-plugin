@@ -36,6 +36,14 @@ export type LinguiMacroOptions = {
   descriptorFields?: 'auto' | 'all' | 'id-only' | 'message'
   /** Restricts directive-based `idPrefix` to explicit ids starting with this leader string. When omitted, `idPrefix` is prepended to all explicit static ids. */
   idPrefixLeader?: string
+  /**
+   * Emits the extraction marker as a JSDoc comment (`/** i18n *\/`) instead of a regular block comment (`/* i18n *\/`).
+   * JSDoc comments survive bundler code generation (e.g. Rolldown), ensuring the extractor can still locate messages in bundled output.
+   *
+   * - `false` (default) — `/* i18n *\/` (compatible with all `@lingui/cli` versions).
+   * - `true` — `/** i18n *\/` (requires `@lingui/cli` >= 6.4.0).
+   */
+  useJsdocI18nComment?: boolean
 }
 
 /** Makes all properties in `T` optional, recursing into nested objects but preserving tuples/arrays as-is. */
