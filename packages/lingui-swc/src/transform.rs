@@ -104,7 +104,7 @@ fn do_transform(
 
   let module = parser
     .parse_module()
-    .map_err(|e| format!("Parse error: {:?}", e))?;
+    .map_err(|e| format!("Parse error: {e:?}"))?;
 
   let program = swc_core::ecma::ast::Program::Module(module);
 
@@ -144,10 +144,10 @@ fn do_transform(
         };
         emitter
           .emit_program(&program)
-          .map_err(|e| format!("Emit error: {:?}", e))?;
+          .map_err(|e| format!("Emit error: {e:?}"))?;
       }
 
-      let output_code = String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {:?}", e))?;
+      let output_code = String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {e:?}"))?;
 
       let output_source_map = cm.build_source_map(
         &src_map_buf,
@@ -158,10 +158,10 @@ fn do_transform(
       let mut map_buf = Vec::new();
       output_source_map
         .to_writer(&mut map_buf)
-        .map_err(|e| format!("Source map write error: {:?}", e))?;
+        .map_err(|e| format!("Source map write error: {e:?}"))?;
 
       let map_string =
-        String::from_utf8(map_buf).map_err(|e| format!("Source map UTF-8 error: {:?}", e))?;
+        String::from_utf8(map_buf).map_err(|e| format!("Source map UTF-8 error: {e:?}"))?;
 
       Ok(TransformResult {
         code: output_code,
@@ -207,7 +207,7 @@ impl Task for TransformTask {
       TransformOptionsInternal::default()
     } else {
       serde_json::from_str(&self.options)
-        .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid options: {}", e)))?
+        .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid options: {e}")))?
     };
 
     let input_source_map = match &options.source_map {

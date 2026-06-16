@@ -111,7 +111,7 @@ pub fn extract_messages(
 
     let module = parser
         .parse_module()
-        .map_err(|e| format!("Parse error: {:?}", e))?;
+        .map_err(|e| format!("Parse error: {e:?}"))?;
 
     let program = Program::Module(module);
 
