@@ -282,6 +282,50 @@ const withContext = /*i18n*/{id: "Some id", context: "Context1"};
 }
 
 #[test]
+fn test_string_literal_with_jsdoc_i18n_comment() {
+    let code = r#"
+const a = /**i18n*/'Message1';
+const b = /** i18n */'Message2';
+const c = /**  i18n  */'Message3';
+    "#;
+
+    let (messages, warnings) = extract_and_sort(code, "test.js");
+    assert_no_warnings(&warnings);
+    assert_eq!(messages.len(), 3);
+    assert_eq!(messages[0].id, "Message1");
+    assert_eq!(messages[1].id, "Message2");
+    assert_eq!(messages[2].id, "Message3");
+}
+
+#[test]
+fn test_message_descriptor_with_jsdoc_i18n_comment() {
+    let code = r#"
+const a = /**i18n*/{id: "Message1"};
+const b = /** i18n */{id: "Message2"};
+    "#;
+
+    let (messages, warnings) = extract_and_sort(code, "test.js");
+    assert_no_warnings(&warnings);
+    assert_eq!(messages.len(), 2);
+    assert_eq!(messages[0].id, "Message1");
+    assert_eq!(messages[1].id, "Message2");
+}
+
+#[test]
+fn test_i18n_comment_with_extra_spaces() {
+    let code = r#"
+const a = /* i18n */'Message1';
+const b = /*  i18n  */'Message2';
+    "#;
+
+    let (messages, warnings) = extract_and_sort(code, "test.js");
+    assert_no_warnings(&warnings);
+    assert_eq!(messages.len(), 2);
+    assert_eq!(messages[0].id, "Message1");
+    assert_eq!(messages[1].id, "Message2");
+}
+
+#[test]
 fn test_message_descriptor_template_literal() {
     let code = r#"
 const msg = /*i18n*/{id: `Message`};

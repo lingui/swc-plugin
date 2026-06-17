@@ -54,9 +54,15 @@ pub struct ExtractionResult {
 const I18N_OBJECT: &str = "i18n";
 
 /// Check if a node has a specific leading comment
+/// Handles both regular block comments (`/* i18n */`) and JSDoc-style (`/** i18n */`)
 fn has_comment(comments: &dyn Comments, span: Span, comment_text: &str) -> bool {
     if let Some(leading) = comments.get_leading(span.lo) {
-        return leading.iter().any(|c| c.text.trim() == comment_text);
+        return leading.iter().any(|c| {
+            let text = c.text.trim();
+            // Handle JSDoc-style comments where text starts with '*'
+            let text = text.strip_prefix('*').map(|s| s.trim()).unwrap_or(text);
+            text == comment_text
+        });
     }
     false
 }
