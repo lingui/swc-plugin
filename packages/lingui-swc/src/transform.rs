@@ -162,7 +162,11 @@ fn do_transform(
             cm.clone(),
             "\n",
             &mut buf,
-            if generate_maps { Some(&mut src_map_buf) } else { None },
+            if generate_maps {
+              Some(&mut src_map_buf)
+            } else {
+              None
+            },
           ),
         };
         emitter
