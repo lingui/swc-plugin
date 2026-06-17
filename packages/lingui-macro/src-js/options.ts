@@ -1,8 +1,8 @@
 import {getConfig} from "@lingui/conf"
-import {mapOptions, DeepPartial, LinguiMacroOptions} from "./map-options"
+import {mapOptions, DeepPartial, LinguiMacroOptions} from "./map-options.js"
 
-export type {RuntimeModuleConfig, LinguiMacroOptions} from "./map-options"
-export {mapOptions} from "./map-options"
+export type {RuntimeModuleConfig, LinguiMacroOptions} from "./map-options.js"
+export {mapOptions} from "./map-options.js"
 
 /** Controls how the Lingui config is located and loaded. */
 export type GetConfigOptions = {
