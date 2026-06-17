@@ -43,13 +43,27 @@ pub struct TransformResult {
   pub map: Option<String>,
 }
 
+#[derive(Clone, Deserialize)]
+#[serde(untagged)]
+enum SourceMapsOption {
+  Bool(bool),
+  Str(String),
+}
+
+impl Default for SourceMapsOption {
+  fn default() -> Self {
+    SourceMapsOption::Bool(true)
+  }
+}
+
 #[derive(Default, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TransformOptionsInternal {
   pub parser: Option<Syntax>,
   #[serde(default, rename = "macro")]
   pub macro_options: Option<LinguiJsOptions>,
-  pub source_map: Option<String>,
+  #[serde(default)]
+  pub source_maps: SourceMapsOption,
 }
 
 fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {
@@ -81,6 +95,7 @@ fn do_transform(
   parser_syntax: Option<Syntax>,
   macro_options: Option<LinguiJsOptions>,
   input_source_map: Option<sourcemap::SourceMap>,
+  source_maps: &SourceMapsOption,
 ) -> std::result::Result<TransformResult, String> {
   let error_buffer = Arc::new(Mutex::new(String::new()));
   let cm: Lrc<SourceMap> = Default::default();
@@ -132,6 +147,9 @@ fn do_transform(
         .apply(hygiene::hygiene())
         .apply(fixer::fixer(Some(&comments)));
 
+      let generate_maps = !matches!(source_maps, SourceMapsOption::Bool(false));
+      let inline_maps = matches!(source_maps, SourceMapsOption::Str(ref s) if s == "inline");
+
       let mut buf = Vec::new();
       let mut src_map_buf: Vec<(BytePos, LineCol)> = Vec::new();
 
@@ -140,14 +158,26 @@ fn do_transform(
           cfg: Default::default(),
           cm: cm.clone(),
           comments: Some(&comments),
-          wr: JsWriter::new(cm.clone(), "\n", &mut buf, Some(&mut src_map_buf)),
+          wr: JsWriter::new(
+            cm.clone(),
+            "\n",
+            &mut buf,
+            if generate_maps { Some(&mut src_map_buf) } else { None },
+          ),
         };
         emitter
           .emit_program(&program)
           .map_err(|e| format!("Emit error: {e:?}"))?;
       }
 
-      let output_code = String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {e:?}"))?;
+      let mut output_code = String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {e:?}"))?;
+
+      if !generate_maps {
+        return Ok(TransformResult {
+          code: output_code,
+          map: None,
+        });
+      }
 
       let output_source_map = cm.build_source_map(
         &src_map_buf,
@@ -155,18 +185,32 @@ fn do_transform(
         CustomSourceMapConfig { filename },
       );
 
-      let mut map_buf = Vec::new();
-      output_source_map
-        .to_writer(&mut map_buf)
-        .map_err(|e| format!("Source map write error: {e:?}"))?;
+      if inline_maps {
+        let data_url = output_source_map
+          .to_data_url()
+          .map_err(|e| format!("Source map encode error: {e:?}"))?;
+        output_code.push_str("\n//# sourceMappingURL=");
+        output_code.push_str(&data_url);
+        output_code.push('\n');
 
-      let map_string =
-        String::from_utf8(map_buf).map_err(|e| format!("Source map UTF-8 error: {e:?}"))?;
+        Ok(TransformResult {
+          code: output_code,
+          map: None,
+        })
+      } else {
+        let mut map_buf = Vec::new();
+        output_source_map
+          .to_writer(&mut map_buf)
+          .map_err(|e| format!("Source map write error: {e:?}"))?;
 
-      Ok(TransformResult {
-        code: output_code,
-        map: Some(map_string),
-      })
+        let map_string =
+          String::from_utf8(map_buf).map_err(|e| format!("Source map UTF-8 error: {e:?}"))?;
+
+        Ok(TransformResult {
+          code: output_code,
+          map: Some(map_string),
+        })
+      }
     })
   });
 
@@ -210,9 +254,10 @@ impl Task for TransformTask {
         .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid options: {e}")))?
     };
 
-    let input_source_map = match &options.source_map {
-      Some(sm) => sourcemap::SourceMap::from_slice(sm.as_bytes()).ok(),
-      None => extract_inline_sourcemap(&self.code),
+    let input_source_map = if matches!(options.source_maps, SourceMapsOption::Bool(false)) {
+      None
+    } else {
+      extract_inline_sourcemap(&self.code)
     };
 
     do_transform(
@@ -221,6 +266,7 @@ impl Task for TransformTask {
       options.parser,
       options.macro_options,
       input_source_map,
+      &options.source_maps,
     )
     .map_err(|e| Error::new(Status::GenericFailure, e))
   }

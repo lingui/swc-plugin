@@ -130,22 +130,47 @@ const msg = t\`Hello\`;
     expect(outputMap.sources).toContain('original.ts')
   })
 
-  test('handles external source map passed in options', async () => {
-    const code = `import { t } from '@lingui/core/macro';\nconst msg = t\`Hi\`;\n`
-    const externalMap = JSON.stringify({
-      version: 3,
-      sources: ['src/original.ts'],
-      names: [],
-      mappings: 'AAAA;AACA',
-      sourcesContent: ['// original source content']
-    })
 
-    const result = await transform(code, 'test.ts', {sourceMap: externalMap})
+  test('sourceMaps: true returns map in result', async () => {
+    const code = `
+import { t } from '@lingui/core/macro';
+const msg = t\`Hello\`;
+`
+    const result = await transform(code, 'test.ts', {sourceMaps: true})
 
-    expect(result.code).not.toContain('@lingui/core/macro')
     expect(result.map).toBeDefined()
-    const outputMap = JSON.parse(result.map!)
-    expect(outputMap.sources).toContain('src/original.ts')
+    const map = JSON.parse(result.map!)
+    expect(map.version).toBe(3)
+    expect(result.code).not.toContain('sourceMappingURL')
+  })
+
+  test('sourceMaps: false disables source maps', async () => {
+    const code = `
+import { t } from '@lingui/core/macro';
+const msg = t\`Hello\`;
+`
+    const result = await transform(code, 'test.ts', {sourceMaps: false})
+
+    expect(result.map).toBeUndefined()
+    expect(result.code).not.toContain('sourceMappingURL')
+  })
+
+  test('sourceMaps: "inline" appends source map to code', async () => {
+    const code = `
+import { t } from '@lingui/core/macro';
+const msg = t\`Hello\`;
+`
+    const result = await transform(code, 'test.ts', {sourceMaps: "inline"})
+
+    expect(result.map).toBeUndefined()
+    expect(result.code).toContain('//# sourceMappingURL=data:application/json;charset=utf-8;base64,')
+
+    // extract and verify the inline map
+    const match = result.code.match(/sourceMappingURL=data:application\/json;charset=utf-8;base64,(.+)/)
+    expect(match).toBeTruthy()
+    const decoded = JSON.parse(Buffer.from(match![1], 'base64').toString())
+    expect(decoded.version).toBe(3)
+    expect(decoded.sources).toContain('test.ts')
   })
 
   test('throws on parse errors', async () => {

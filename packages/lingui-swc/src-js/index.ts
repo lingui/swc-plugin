@@ -19,9 +19,12 @@ export type TransformOptions = {
    */
   macro?: LinguiMacroOptions
   /**
-   * External source map JSON string. If not provided, inline source maps in the code are used.
+   * Controls source map generation:
+   * - `true` (default) — source map returned in `result.map`
+   * - `"inline"` — source map appended to code as a base64 data URL, `result.map` is undefined
+   * - `false` — no source map generated, `result.map` is undefined
    */
-  sourceMap?: string
+  sourceMaps?: "inline" | boolean
 }
 
 export type TransformResult = {
