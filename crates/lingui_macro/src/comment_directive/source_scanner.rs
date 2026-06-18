@@ -71,6 +71,12 @@ pub fn scan_source_comments(source: &str) -> Vec<SourceComment<'_>> {
     // whether a `<` opens a JSX element (expression position) or is a
     // comparison / TS generic (after a value).
     let mut last_sig = 0u8;
+    // Whether the last significant identifier was an expression-starting keyword
+    // (e.g. `return`, `yield`). Tracked forward — rather than re-scanned
+    // backward from each `<` — so that comments between the keyword and the `<`
+    // (`return /* c */ <div>`) are transparently skipped, since comment bytes
+    // never update this flag. Only consulted when `last_sig` is identifier-like.
+    let mut prev_is_expr_keyword = false;
 
     while index < bytes.len() {
         match stack.last_mut().expect("scanner stack is never empty") {
@@ -139,15 +145,29 @@ pub fn scan_source_comments(source: &str) -> Vec<SourceComment<'_>> {
                     last_sig = b'}';
                     index += 1;
                 }
-                b'<' if is_jsx_tag_start(bytes, index, last_sig) => {
+                b'<' if is_jsx_tag_start(bytes, index, last_sig, prev_is_expr_keyword) => {
                     stack.push(Ctx::JsxTag);
                     index += 1;
+                }
+                b if is_ident_byte(b) => {
+                    // Consume the whole identifier/number run and record whether
+                    // it is an expression-starting keyword. A keyword reached via
+                    // member access (`obj.return`) is a property name, not the
+                    // keyword, so it does not count.
+                    let start = index;
+                    while index < bytes.len() && is_ident_byte(bytes[index]) {
+                        index += 1;
+                    }
+                    last_sig = bytes[index - 1];
+                    prev_is_expr_keyword = !preceded_by_dot(bytes, start)
+                        && is_expression_keyword(&bytes[start..index]);
                 }
                 b' ' | b'\t' | b'\r' | b'\n' => {
                     index += 1;
                 }
                 other => {
                     last_sig = other;
+                    prev_is_expr_keyword = false;
                     index += 1;
                 }
             },
@@ -174,13 +194,12 @@ pub fn scan_source_comments(source: &str) -> Vec<SourceComment<'_>> {
                     index += 1;
                 }
                 b',' | b';' => {
-                    // Not a real JSX tag (e.g. a TS generic such as `<T, U>`):
-                    // treat the `<` as an operator and resume scanning as code.
+                    // Not a real JSX tag (e.g. a TS generic such as `<T, U>`).
+                    // Pop only the tentative tag frame, returning to the actual
+                    // surrounding context (the code frame that saw the `<`,
+                    // which may itself be a JSX expression container with its own
+                    // brace depth), and re-scan this byte there.
                     stack.pop();
-                    stack.push(Ctx::Code {
-                        brace_depth: 0,
-                        jsx_expr: false,
-                    });
                 }
                 _ => {
                     index += 1;
@@ -257,14 +276,15 @@ fn is_value_ending(b: u8) -> bool {
 }
 
 /// Whether the `<` at `index` (in code context) opens a JSX element. Requires an
-/// expression position (per `last_sig`) and a following tag-name char or `>`
-/// (fragment). This matches `.tsx` semantics, where a bare `<T>` is JSX and a
-/// generic arrow must be written `<T,>` (handled by the `,` bail in `JsxTag`).
+/// expression position and a following tag-name char or `>` (fragment). This
+/// matches `.tsx` semantics, where a bare `<T>` is JSX and a generic arrow must
+/// be written `<T,>` (handled by the `,` bail in `JsxTag`).
 ///
-/// When the preceding byte is identifier-like it is normally a value (so `<` is
-/// a comparison/generic), unless that identifier is an expression-starting
-/// keyword such as `return` — handled by inspecting the full preceding word.
-fn is_jsx_tag_start(bytes: &[u8], index: usize, last_sig: u8) -> bool {
+/// `last_sig` is the preceding significant byte; `prev_is_expr_keyword` is set by
+/// the caller when that byte ends an expression-starting keyword (e.g. `return`).
+/// When the preceding byte is identifier-like it is normally a value (so `<` is a
+/// comparison/generic) — unless it was such a keyword.
+fn is_jsx_tag_start(bytes: &[u8], index: usize, last_sig: u8, prev_is_expr_keyword: bool) -> bool {
     let next_is_tag = match bytes.get(index + 1) {
         Some(&b) => b.is_ascii_alphabetic() || b == b'_' || b == b'$' || b == b'>',
         None => false,
@@ -280,29 +300,18 @@ fn is_jsx_tag_start(bytes: &[u8], index: usize, last_sig: u8) -> bool {
     // The preceding byte ends a value. Only an identifier ending might actually
     // be an expression-starting keyword (e.g. `return`); other value endings
     // (`)`, `]`, `.`, quotes) never are.
-    if !is_ident_byte(last_sig) {
-        return false;
-    }
-
-    is_expression_keyword(preceding_word(bytes, index))
+    is_ident_byte(last_sig) && prev_is_expr_keyword
 }
 
-/// The identifier immediately preceding `index`, skipping whitespace. Returns an
-/// empty slice if the preceding token is not a bare identifier (e.g. a member
-/// access like `obj.return`, which is a property name, not the keyword).
-fn preceding_word(bytes: &[u8], index: usize) -> &[u8] {
-    let mut end = index;
-    while end > 0 && matches!(bytes[end - 1], b' ' | b'\t' | b'\r' | b'\n') {
-        end -= 1;
+/// Whether the identifier starting at `start` is reached via member access
+/// (`obj.return`), in which case it is a property name, not a keyword. Skips
+/// whitespace so `obj. return` is also recognised as a property access.
+fn preceded_by_dot(bytes: &[u8], start: usize) -> bool {
+    let mut i = start;
+    while i > 0 && matches!(bytes[i - 1], b' ' | b'\t' | b'\r' | b'\n') {
+        i -= 1;
     }
-    let mut start = end;
-    while start > 0 && is_ident_byte(bytes[start - 1]) {
-        start -= 1;
-    }
-    if start > 0 && bytes[start - 1] == b'.' {
-        return &[];
-    }
-    &bytes[start..end]
+    i > 0 && bytes[i - 1] == b'.'
 }
 
 fn skip_string_literal(bytes: &[u8], start: usize) -> usize {
@@ -585,6 +594,33 @@ mod tests {
         // quoted text after it is a normal string literal (not JSX text).
         let source = "const a = myreturn<x; const b = 'hi';\n// real";
         assert_eq!(line_comments(source), vec![(38, " real")]);
+    }
+
+    #[test]
+    fn keyword_property_access_is_not_treated_as_jsx() {
+        // `obj.return` is a property access (a value), so `<` is a comparison,
+        // not a JSX open tag.
+        let source = "const a = obj.return<x; const b = 'hi';\n// real";
+        assert_eq!(line_comments(source), vec![(40, " real")]);
+    }
+
+    #[test]
+    fn jsx_after_keyword_separated_by_comment_is_detected() {
+        // A comment between the keyword and the `<` must not defeat keyword
+        // detection (it is trivia and does not update the tracked keyword flag).
+        let source = "function f() { return /* c */ <div>'</div>; }\n// real";
+        assert_eq!(all_comments(source), vec![(22, " c "), (46, " real")]);
+    }
+
+    #[test]
+    fn generic_arrow_inside_jsx_expression_does_not_leak_context() {
+        // `<T,>` inside a JSX expression container is a generic arrow, not a
+        // nested element. Bailing must return to *that container* so its closing
+        // `}` returns to JSX children. Otherwise the lone backtick in the JSX
+        // text below would be treated as a template opener in stray code and run
+        // away to EOF, swallowing the comment.
+        let source = "const x = <p>{(<T,>(v)=>v)}`</p>;\n// real";
+        assert_eq!(line_comments(source), vec![(34, " real")]);
     }
 
     #[test]
