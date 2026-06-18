@@ -210,6 +210,7 @@ impl MacroCtx {
                     format: format.into(),
                     value: icu_value,
                     cases,
+                    value_pos: 0,
                 })]);
             } else {
                 // todo passed not an ObjectLiteral,

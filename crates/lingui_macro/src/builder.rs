@@ -357,26 +357,51 @@ impl<'a> MessageBuilder<'a> {
     }
 
     fn push_icu(&mut self, icu: IcuChoice) {
-        let value_placeholder = self.push_exp(icu.value);
-        let method = icu.format;
-        self.push_msg(&format!("{{{value_placeholder}, {method},"));
+        let IcuChoice {
+            value,
+            format: method,
+            cases,
+            value_pos,
+        } = icu;
 
-        for choice in icu.cases {
+        // The value placeholder is always emitted first (`{value, plural, ...}`),
+        // but its numeric index must be allocated in source order relative to the
+        // cases. Render the cases into `tail` so they can follow the value in the
+        // output, while index allocation happens as each case is processed.
+        let mut value = Some(value);
+        let mut value_placeholder: Option<String> = None;
+        let mut tail = String::new();
+
+        for (i, choice) in cases.into_iter().enumerate() {
+            if i == value_pos {
+                value_placeholder = Some(self.push_exp(value.take().unwrap()));
+            }
+
             match choice {
                 // produce offset:{number}
                 CaseOrOffset::Offset(val) => {
-                    self.push_msg(&format!(" offset:{val}"));
+                    tail.push_str(&format!(" offset:{val}"));
                 }
                 CaseOrOffset::Case(choice) => {
                     let key = choice.key;
 
-                    self.push_msg(&format!(" {key} {{"));
+                    // Render the case body into `self.message`, then split it off
+                    // so it can be placed after the value. Index allocation
+                    // (numeric_index / values_indexed) persists across the split.
+                    let body_start = self.message.len();
                     self.process_tokens(choice.tokens);
-                    self.push_msg("}");
+                    let body = self.message.split_off(body_start);
+                    tail.push_str(&format!(" {key} {{{body}}}"));
                 }
             }
         }
 
-        self.push_msg("}");
+        // `value_pos` may equal `cases.len()` (value is the last/only attribute).
+        let value_placeholder = match value_placeholder {
+            Some(placeholder) => placeholder,
+            None => self.push_exp(value.take().unwrap()),
+        };
+
+        self.push_msg(&format!("{{{value_placeholder}, {method},{tail}}}"));
     }
 }

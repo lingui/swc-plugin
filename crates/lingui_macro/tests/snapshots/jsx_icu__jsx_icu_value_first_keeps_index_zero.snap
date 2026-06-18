@@ -1,0 +1,18 @@
+---
+source: crates/lingui_macro/tests/jsx_icu.rs
+---
+import { Plural } from "@lingui/react/macro";
+
+const x = <Plural value={items.length} one={`${a.b} glass`} other="many" />
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+const x = <Trans_ {.../*i18n*/ {
+    id: "1D4idA",
+    values: {
+        0: items.length,
+        1: a.b
+    },
+    message: "{0, plural, one {{1} glass} other {many}}"
+}}/>;

@@ -265,3 +265,26 @@ import { Trans } from "@lingui/react/macro";
 </Trans>;
      "#
 );
+
+// Regression: numeric placeholder indices must be allocated in source-attribute
+// order. Here a non-identifier `value` appears AFTER an option that contains a
+// numeric-indexed expression, so the option's expression takes index 0 and the
+// value takes index 1 — matching the reference (JS) macro.
+to!(
+    jsx_icu_value_index_follows_source_order,
+    r##"
+       import { Plural } from "@lingui/react/macro";
+
+       const x = <Plural one={`${a.b} glass`} value={items.length} other="many" />
+     "##
+);
+
+// Counterpart with the conventional value-first ordering: value takes index 0.
+to!(
+    jsx_icu_value_first_keeps_index_zero,
+    r##"
+       import { Plural } from "@lingui/react/macro";
+
+       const x = <Plural value={items.length} one={`${a.b} glass`} other="many" />
+     "##
+);

@@ -112,14 +112,25 @@ fn is_allowed_plural_option(key: &str) -> Option<Atom> {
 
 impl TransJSXVisitor<'_> {
     // <Plural /> <Select /> <SelectOrdinal />
-    fn visit_icu_macro(&mut self, el: &JSXOpeningElement, icu_format: &str) -> Vec<CaseOrOffset> {
+    fn visit_icu_macro(
+        &mut self,
+        el: &JSXOpeningElement,
+        icu_format: &str,
+    ) -> (Vec<CaseOrOffset>, usize) {
         let mut choices: Vec<CaseOrOffset> = Vec::new();
+        // Default to the front so a missing `value` attribute keeps the prior
+        // behaviour of allocating the value placeholder before any cases.
+        let mut value_pos = 0;
 
         for attr in &el.attrs {
             if let JSXAttrOrSpread::JSXAttr(attr) = attr {
                 if let Some(attr_value) = &attr.value {
                     if let JSXAttrName::Ident(ident) = &attr.name {
-                        if &ident.sym == "offset" && icu_format != "select" {
+                        if &ident.sym == "value" {
+                            // Remember where the value sits relative to the
+                            // cases so its index is allocated in source order.
+                            value_pos = choices.len();
+                        } else if &ident.sym == "offset" && icu_format != "select" {
                             if let Some(value) = get_jsx_attr_value_as_string(attr_value) {
                                 choices.push(CaseOrOffset::Offset(value.to_string()))
                             } else {
@@ -178,7 +189,7 @@ impl TransJSXVisitor<'_> {
             }
         }
 
-        choices
+        (choices, value_pos)
     }
 }
 
@@ -204,12 +215,13 @@ impl Visit for TransJSXVisitor<'_> {
                     .get_ident_export_name(ident)
                     .unwrap()
                     .to_lowercase();
-                let choices = self.visit_icu_macro(el, &icu_method);
+                let (choices, value_pos) = self.visit_icu_macro(el, &icu_method);
 
                 self.tokens.push(MsgToken::IcuChoice(IcuChoice {
                     cases: choices,
                     format: icu_method.into(),
                     value,
+                    value_pos,
                 }));
 
                 return;
