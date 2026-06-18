@@ -1,0 +1,36 @@
+---
+source: crates/lingui_macro/tests/lingui_directive.rs
+info:
+  id_prefix_leader: "."
+---
+// lingui-set idPrefix="root"
+import type { MessageDescriptor } from '@lingui/core'
+import { msg, t } from '@lingui/core/macro'
+import { Trans } from '@lingui/react/macro'
+
+const X = () => <p>'</p>
+const Y = () => <p>`</p>
+
+// lingui-set idPrefix="different"
+const different = {
+  a: msg({ id: '.a', message: `different a` }),
+  b: msg({ id: '.b', message: `different b` }),
+} as const satisfies Record<string, MessageDescriptor>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+// lingui-set idPrefix="root"
+import type { MessageDescriptor } from '@lingui/core';
+const X = ()=><p>'</p>;
+const Y = ()=><p>`</p>;
+// lingui-set idPrefix="different"
+const different = {
+    a: /*i18n*/ {
+        id: "different.a",
+        message: "different a"
+    },
+    b: /*i18n*/ {
+        id: "different.b",
+        message: "different b"
+    }
+} as const satisfies Record<string, MessageDescriptor>;

@@ -254,6 +254,29 @@ to!(
 );
 
 to!(
+    jsx_trans_with_unclosed_quotes,
+    LinguiOptions {
+        id_prefix_leader: Some(".".into()),
+        ..Default::default()
+    },
+    r#"
+      // lingui-set idPrefix="root"
+      import type { MessageDescriptor } from '@lingui/core'
+      import { msg, t } from '@lingui/core/macro'
+      import { Trans } from '@lingui/react/macro'
+
+      const X = () => <p>'</p>
+      const Y = () => <p>`</p>
+
+      // lingui-set idPrefix="different"
+      const different = {
+        a: msg({ id: '.a', message: `different a` }),
+        b: msg({ id: '.b', message: `different b` }),
+      } as const satisfies Record<string, MessageDescriptor>
+    "#
+);
+
+to!(
     jsx_trans_with_directive_context,
     r#"
        import { Trans } from "@lingui/react/macro";
