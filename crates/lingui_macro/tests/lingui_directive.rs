@@ -254,6 +254,29 @@ to!(
 );
 
 to!(
+    jsx_trans_with_unclosed_quotes,
+    LinguiOptions {
+        id_prefix_leader: Some(".".into()),
+        ..Default::default()
+    },
+    r#"
+      // lingui-set idPrefix="root"
+      import type { MessageDescriptor } from '@lingui/core'
+      import { msg, t } from '@lingui/core/macro'
+      import { Trans } from '@lingui/react/macro'
+
+      const X = () => <p>'</p>
+      const Y = () => <p>`</p>
+
+      // lingui-set idPrefix="different"
+      const different = {
+        a: msg({ id: '.a', message: `different a` }),
+        b: msg({ id: '.b', message: `different b` }),
+      } as const satisfies Record<string, MessageDescriptor>
+    "#
+);
+
+to!(
     jsx_trans_with_directive_context,
     r#"
        import { Trans } from "@lingui/react/macro";
@@ -415,4 +438,52 @@ function App() {
   return msg1 + msg2;
 }
      "#
+);
+
+// --- block-comment directives inside JSX (regressions vs. the regex scanner) ---
+
+to!(
+    jsx_trans_with_block_comment_reset_in_expression_container,
+    r#"
+       import { Trans } from "@lingui/react/macro";
+       /* lingui-set context="header" */
+       const a = <Trans>Title</Trans>;
+       const el = (
+         <div>
+           {/* lingui-reset */}
+           <Trans>Body</Trans>
+         </div>
+       );
+     "#
+);
+
+to!(
+    jsx_trans_with_block_comment_set_in_expression_container,
+    r#"
+       import { Trans } from "@lingui/react/macro";
+       const el = (
+         <div>
+           {/* lingui-set context="section" */}
+           <Trans>Title</Trans>
+         </div>
+       );
+     "#
+);
+
+to!(
+    jsx_block_comment_directive_with_trailing_code,
+    r#"
+       import { Trans } from "@lingui/react/macro";
+       /* lingui-set context="ctx" */ const noop = 1;
+       const el = <Trans>Hello</Trans>;
+     "#
+);
+
+to!(
+    jsdoc_block_comment_directive,
+    r#"
+        import { t } from '@lingui/core/macro';
+        /** lingui-set context="jsdoc" */
+        const msg = t`Hello`
+    "#
 );
