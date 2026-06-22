@@ -145,6 +145,18 @@ to!(
 );
 
 to!(
+    jsx_ph_label_with_nested_plural,
+    r##"
+       import { Trans, Plural, ph } from "@lingui/react/macro";
+
+       const zones = [1, 2]
+       const x = <Trans id="key">
+         {ph({ available: 1 })} of <Plural value={zones.length} one="# zone" other="# zones" /> available
+       </Trans>
+     "##
+);
+
+to!(
     jsx_nested_labels,
     r#"
        import { Trans, ph } from "@lingui/react/macro";
