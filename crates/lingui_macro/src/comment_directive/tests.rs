@@ -131,12 +131,12 @@ fn locate_multiple_directives_in_order() {
 }
 
 #[test]
-fn locate_records_opener_start_offset() {
-    // Opener offset points at the `/` of the introducing comment, even when
-    // preceded by code (e.g. a JSX expression container).
+fn locate_records_comment_start_offset() {
+    // Comment start offset points at the `/` of the introducing comment, even
+    // when preceded by code (e.g. a JSX expression container).
     let dirs = locate_directives("<div>{/* lingui-reset */}</div>");
     assert_eq!(dirs.len(), 1);
-    assert_eq!(dirs[0].opener_start, 6); // position of `/*`
+    assert_eq!(dirs[0].comment_start, 6); // position of `/*`
 }
 
 #[test]

@@ -94,7 +94,7 @@ enum CommentKind {
 #[derive(Debug, PartialEq, Eq)]
 struct LocatedDirective<'a> {
     /// Byte offset of the comment opener (`//`, `/*` or `/**`) introducing it.
-    opener_start: usize,
+    comment_start: usize,
     /// Byte offset just past the comment (after `*/`, the newline, or EOF).
     comment_end: usize,
     reset: bool,
@@ -133,7 +133,7 @@ fn locate_directives(source: &str) -> Vec<LocatedDirective<'_>> {
             }
         }
 
-        let Some((opener_start, kind)) = find_comment_opener(source, keyword) else {
+        let Some((comment_start, kind)) = find_comment_opener(source, keyword) else {
             continue;
         };
 
@@ -149,7 +149,7 @@ fn locate_directives(source: &str) -> Vec<LocatedDirective<'_>> {
         };
 
         out.push(LocatedDirective {
-            opener_start,
+            comment_start,
             comment_end,
             reset,
             params,
@@ -293,7 +293,7 @@ fn collect_lingui_directives_from_source(source: &str, start_pos: BytePos) -> Ve
     let mut accumulated = DirectiveValues::default();
 
     for located in locate_directives(source) {
-        let comment_start = BytePos(start_pos.0 + located.opener_start as u32);
+        let comment_start = BytePos(start_pos.0 + located.comment_start as u32);
 
         match parse_lingui_directive(located.reset, located.params) {
             Ok(parsed) => {
