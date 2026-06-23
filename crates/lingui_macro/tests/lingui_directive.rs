@@ -487,3 +487,15 @@ to!(
         const msg = t`Hello`
     "#
 );
+
+// An invalid directive is reported as a diagnostic (exercises the error branch
+// of the directive collector) rather than silently ignored.
+to_panic!(
+    invalid_directive_reports_diagnostic,
+    Default::default(),
+    r#"
+        import { t } from '@lingui/core/macro';
+        /* lingui-set context */
+        const msg = t`Hello`
+    "#
+);

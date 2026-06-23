@@ -131,12 +131,24 @@ fn locate_multiple_directives_in_order() {
 }
 
 #[test]
-fn locate_records_comment_start_offset() {
-    // Comment start offset points at the `/` of the introducing comment, even
-    // when preceded by code (e.g. a JSX expression container).
-    let dirs = locate_directives("<div>{/* lingui-reset */}</div>");
-    assert_eq!(dirs.len(), 1);
-    assert_eq!(dirs[0].comment_start, 6); // position of `/*`
+fn locate_reports_full_span_and_fields() {
+    // Comment start points at the `/` of the introducing comment (even when
+    // preceded by code), and comment end points just past the closing `*/`.
+    assert_eq!(
+        locate_directives("<div>{/* lingui-reset */}</div>"),
+        vec![LocatedDirective {
+            comment_start: 6, // the `/*`
+            comment_end: 24,  // just past `*/`
+            reset: true,
+            params: " ",
+        }]
+    );
+}
+
+#[test]
+fn locate_ignores_lingui_prefix_not_followed_by_a_directive() {
+    // `lingui-` followed by neither `set` nor `reset` is not a directive.
+    assert_eq!(located("// lingui-format here"), Vec::<(bool, &str)>::new());
 }
 
 #[test]
@@ -261,6 +273,28 @@ fn parse_should_treat_empty_strings_as_unset() {
     );
 }
 
+#[test]
+fn parse_should_reject_missing_equals() {
+    let error = parse_lingui_directive(false, "context")
+        .expect_err("expected parser to reject a key with no `=value`");
+    assert!(error.contains("requires a value"));
+}
+
+#[test]
+fn parse_should_reject_empty_key() {
+    // A param position that does not begin with a word char yields no key.
+    let error = parse_lingui_directive(false, "=\"x\"")
+        .expect_err("expected parser to reject a missing key");
+    assert!(error.contains("invalid syntax"));
+}
+
+#[test]
+fn parse_should_reject_unterminated_value() {
+    let error = parse_lingui_directive(false, "context=\"unterminated")
+        .expect_err("expected parser to reject an unterminated quoted value");
+    assert!(error.contains("invalid syntax"));
+}
+
 // ---------------------------------------------------------------------------
 // collect_lingui_directives_from_source — accumulation + positions
 // ---------------------------------------------------------------------------
@@ -360,6 +394,11 @@ fn collect_reset_then_set_accumulates_from_reset() {
 // ---------------------------------------------------------------------------
 // find_directive_for_pos
 // ---------------------------------------------------------------------------
+
+#[test]
+fn find_returns_none_for_empty_directives() {
+    assert_eq!(find_directive_for_pos(&[], BytePos(5)), None);
+}
 
 #[test]
 fn find_should_return_closest_preceding_directive() {
