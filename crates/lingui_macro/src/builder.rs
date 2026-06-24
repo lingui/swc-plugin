@@ -92,6 +92,8 @@ pub struct MessageBuilder<'a> {
     options: &'a LinguiOptions,
     elements_tracking: Vec<(String, JSXOpeningElement)>,
     element_index: usize,
+    // Counter for auto-generated numeric placeholders
+    numeric_index: usize,
 }
 
 impl<'a> MessageBuilder<'a> {
@@ -105,6 +107,7 @@ impl<'a> MessageBuilder<'a> {
             options,
             elements_tracking: Vec::new(),
             element_index: 0,
+            numeric_index: 0,
         };
 
         builder.process_tokens(tokens);
@@ -292,6 +295,12 @@ impl<'a> MessageBuilder<'a> {
         }
     }
 
+    fn next_numeric_index(&mut self) -> String {
+        let index = self.numeric_index.to_string();
+        self.numeric_index += 1;
+        index
+    }
+
     fn push_exp(&mut self, mut exp: Box<Expr>) -> String {
         exp = expand_ts_as_expr(exp);
 
@@ -334,7 +343,7 @@ impl<'a> MessageBuilder<'a> {
                 }
 
                 // fallback for {...spread} or {}
-                let index = self.values_indexed.len().to_string();
+                let index = self.next_numeric_index();
 
                 self.values_indexed.push(ValueWithPlaceholder {
                     placeholder: index.clone(),
@@ -344,7 +353,7 @@ impl<'a> MessageBuilder<'a> {
                 index
             }
             _ => {
-                let index = self.values_indexed.len().to_string();
+                let index = self.next_numeric_index();
 
                 self.values_indexed.push(ValueWithPlaceholder {
                     placeholder: index.clone(),

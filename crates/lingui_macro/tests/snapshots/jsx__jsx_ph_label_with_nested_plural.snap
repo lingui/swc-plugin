@@ -1,0 +1,25 @@
+---
+source: crates/lingui_macro/tests/jsx.rs
+---
+import { Trans, Plural, ph } from "@lingui/react/macro";
+
+const zones = [1, 2]
+const x = <Trans id="key">
+  {ph({ available: 1 })} of <Plural value={zones.length} one="# zone" other="# zones" /> available
+</Trans>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+const zones = [
+    1,
+    2
+];
+const x = <Trans_ {.../*i18n*/ {
+    id: "key",
+    values: {
+        available: 1,
+        0: zones.length
+    },
+    message: "{available} of {0, plural, one {# zone} other {# zones}} available"
+}}/>;
