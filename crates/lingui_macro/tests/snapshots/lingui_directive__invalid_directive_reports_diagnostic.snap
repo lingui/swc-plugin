@@ -1,0 +1,15 @@
+---
+source: crates/lingui_macro/tests/lingui_directive.rs
+info: {}
+---
+import { t } from '@lingui/core/macro';
+/* lingui-set context */
+const msg = t`Hello`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: `lingui-set` directive: "context" requires a value, e.g. context="..."
+ --> input.tsx:2:1
+  |
+2 | /* lingui-set context */
+  | ^^^^^^^^^^^^^^^^^^^^^^^^

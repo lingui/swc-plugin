@@ -1,0 +1,28 @@
+---
+source: crates/lingui_macro/tests/lingui_directive.rs
+---
+import { Trans } from "@lingui/react/macro";
+/* lingui-set context="header" */
+const a = <Trans>Title</Trans>;
+const el = (
+  <div>
+    {/* lingui-reset */}
+    <Trans>Body</Trans>
+  </div>
+);
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+/* lingui-set context="header" */ const a = <Trans_ {.../*i18n*/ {
+    id: "cxvq4E",
+    message: "Title",
+    context: "header"
+}}/>;
+const el = <div>
+    { /* lingui-reset */ }
+    <Trans_ {.../*i18n*/ {
+    id: "bGQplw",
+    message: "Body"
+}}/>
+  </div>;

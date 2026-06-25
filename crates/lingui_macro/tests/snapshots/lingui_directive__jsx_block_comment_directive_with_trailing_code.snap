@@ -1,0 +1,16 @@
+---
+source: crates/lingui_macro/tests/lingui_directive.rs
+---
+import { Trans } from "@lingui/react/macro";
+/* lingui-set context="ctx" */ const noop = 1;
+const el = <Trans>Hello</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+/* lingui-set context="ctx" */ const noop = 1;
+const el = <Trans_ {.../*i18n*/ {
+    id: "3ZSjnQ",
+    message: "Hello",
+    context: "ctx"
+}}/>;
