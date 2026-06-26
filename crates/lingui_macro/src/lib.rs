@@ -57,7 +57,7 @@ where
     C: Comments + Clone,
 {
     has_lingui_macro_imports: bool,
-    ctx: MacroCtx,
+    ctx: TransformCtx,
     comments: Option<C>,
     source_map: Lrc<dyn SourceMapper>,
 }
@@ -73,7 +73,7 @@ where
     ) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
-            ctx: MacroCtx::new(options),
+            ctx: TransformCtx::new(options),
             comments,
             source_map,
         }
@@ -103,8 +103,8 @@ where
     // <Trans>Message</Trans>
     // <Plural />
     fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
-        self.ctx.reset_expression_index();
-        let mut trans_visitor = TransJSXVisitor::new(&mut self.ctx);
+        let macro_ctx = MacroCtx::new(&mut self.ctx);
+        let mut trans_visitor = TransJSXVisitor::new(macro_ctx);
 
         let message_dscrptr_span: Span;
 

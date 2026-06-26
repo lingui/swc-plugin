@@ -19,7 +19,7 @@ pub struct JsMacroFolder<'a, C>
 where
     C: Comments,
 {
-    pub ctx: &'a mut MacroCtx,
+    pub ctx: &'a mut TransformCtx,
     pub comments: &'a Option<C>,
 }
 
@@ -27,7 +27,7 @@ impl<'a, C> JsMacroFolder<'a, C>
 where
     C: Comments,
 {
-    pub fn new(ctx: &'a mut MacroCtx, comments: &'a Option<C>) -> JsMacroFolder<'a, C> {
+    pub fn new(ctx: &'a mut TransformCtx, comments: &'a Option<C>) -> JsMacroFolder<'a, C> {
         JsMacroFolder { ctx, comments }
     }
 
@@ -153,7 +153,8 @@ where
             }
 
             if let Some(prop) = message_prop {
-                let tokens = self.ctx.try_tokenize_expr(&prop.value).unwrap_or_default();
+                let mut macro_ctx = MacroCtx::new(self.ctx);
+                let tokens = try_tokenize_expr(&mut macro_ctx, &prop.value).unwrap_or_default();
 
                 let parsed = MessageBuilder::parse(tokens, &self.ctx.options);
 
@@ -237,8 +238,8 @@ where
             let (is_t, callee) = self.ctx.is_lingui_t_call_expr(&tagged_tpl.tag);
 
             if is_t {
-                self.ctx.reset_expression_index();
-                let tokens = self.ctx.tokenize_tpl(&tagged_tpl.tpl);
+                let mut macro_ctx = MacroCtx::new(self.ctx);
+                let tokens = tokenize_tpl(&mut macro_ctx, &tagged_tpl.tpl);
                 let tpl_span = tagged_tpl.tpl.span();
                 let expr_span = expr.span();
                 return Expr::Call(
@@ -252,8 +253,8 @@ where
             let span = tagged_tpl.span();
             if let Expr::Ident(ident) = tagged_tpl.tag.as_ref() {
                 if self.ctx.is_define_message_ident(ident) {
-                    self.ctx.reset_expression_index();
-                    let tokens = self.ctx.tokenize_tpl(&tagged_tpl.tpl);
+                    let mut macro_ctx = MacroCtx::new(self.ctx);
+                    let tokens = tokenize_tpl(&mut macro_ctx, &tagged_tpl.tpl);
                     let defaults = self.ctx.get_comment_directive(span.lo).cloned();
                     return self.create_message_descriptor_from_tokens(
                         tokens,
@@ -269,7 +270,6 @@ where
             if match_callee_name(call, |n| self.ctx.is_define_message_ident(n)).is_some()
                 && call.args.len() == 1
             {
-                self.ctx.reset_expression_index();
                 let descriptor = self.update_msg_descriptor_props(
                     call.args.clone().into_iter().next().unwrap().expr,
                     call.span(),
@@ -289,7 +289,6 @@ where
 
             let span = expr.span();
             if is_t && expr.args.len() == 1 {
-                self.ctx.reset_expression_index();
                 let msg_dscrpt_expr = expr.args.into_iter().next().unwrap().expr;
 
                 let msg_dscrpt_expr_span = msg_dscrpt_expr.span();
@@ -301,8 +300,8 @@ where
         }
 
         // plural / selectOrdinal / select
-        self.ctx.reset_expression_index();
-        if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(&expr) {
+        let mut macro_ctx = MacroCtx::new(self.ctx);
+        if let Some(tokens) = try_tokenize_call_expr_as_choice_cmp(&mut macro_ctx, &expr) {
             let msg_dscrptr_span = expr.args.first().map(|arg| arg.span()).unwrap_or(DUMMY_SP);
 
             return self.create_i18n_fn_call_from_tokens(

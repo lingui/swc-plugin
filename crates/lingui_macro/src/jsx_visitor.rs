@@ -1,5 +1,7 @@
 use crate::ast_utils::get_jsx_attr_value_as_string;
-use crate::macro_utils::MacroCtx;
+use crate::macro_utils::{
+    tokenize_expr_to_arg, tokenize_tpl, try_tokenize_call_expr_as_choice_cmp, MacroCtx,
+};
 use crate::tokens::{CaseOrOffset, ChoiceCase, MsgArg, MsgToken, TagOpening};
 use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
@@ -7,11 +9,11 @@ use swc_core::plugin::errors::HANDLER;
 
 pub struct TransJSXVisitor<'a> {
     pub tokens: Vec<MsgToken>,
-    ctx: &'a mut MacroCtx,
+    pub ctx: MacroCtx<'a>,
 }
 
 impl<'a> TransJSXVisitor<'a> {
-    pub fn new(ctx: &'a mut MacroCtx) -> TransJSXVisitor<'a> {
+    pub fn new(ctx: MacroCtx<'a>) -> TransJSXVisitor<'a> {
         TransJSXVisitor {
             tokens: Vec::new(),
             ctx,
@@ -148,7 +150,7 @@ impl TransJSXVisitor<'_> {
                                 ..
                             }) = attr_value
                             {
-                                let token_arg = self.ctx.tokenize_expr_to_arg(exp.clone());
+                                let token_arg = tokenize_expr_to_arg(&mut self.ctx, exp.clone());
                                 value_arg = Some(token_arg)
                             }
                         } else if &ident.sym == "offset" && icu_format != "select" {
@@ -178,19 +180,20 @@ impl TransJSXVisitor<'_> {
                                         )),
                                         // some={`# books ${name}`}
                                         Expr::Tpl(tpl) => {
-                                            tokens.extend(self.ctx.tokenize_tpl(tpl));
+                                            tokens.extend(tokenize_tpl(&mut self.ctx, tpl));
                                         }
-                                        // some={`<Books />`}
-                                        Expr::JSXElement(exp) => {
-                                            let mut visitor = TransJSXVisitor::new(self.ctx);
-                                            visitor.visit_jsx_element(exp);
+                                        // some={<Books />}
+                                        Expr::JSXElement(el) => {
+                                            let mut visitor =
+                                                TransJSXVisitor::new(self.ctx.reborrow());
+                                            visitor.visit_jsx_element(el);
 
-                                            tokens.extend(visitor.tokens)
+                                            tokens.extend(visitor.tokens);
                                         }
 
                                         _ => {
                                             let token_arg =
-                                                self.ctx.tokenize_expr_to_arg(exp.clone());
+                                                tokenize_expr_to_arg(&mut self.ctx, exp.clone());
                                             tokens.push(MsgToken::Arg(token_arg));
                                         }
                                     }
@@ -234,13 +237,14 @@ impl TransJSXVisitor<'_> {
 impl TransJSXVisitor<'_> {
     pub fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
         if let JSXElementName::Ident(ident) = &el.name {
-            if self.ctx.is_lingui_ident("Trans", ident) {
+            if self.ctx.transform.is_lingui_ident("Trans", ident) {
                 return;
             }
 
-            if self.ctx.is_lingui_jsx_choice_cmp(ident) {
+            if self.ctx.transform.is_lingui_jsx_choice_cmp(ident) {
                 let icu_method = self
                     .ctx
+                    .transform
                     .get_ident_export_name(ident)
                     .unwrap()
                     .to_lowercase();
@@ -280,10 +284,11 @@ impl TransJSXVisitor<'_> {
 
                 // support calls to js macro inside JSX, but not to t``
                 Expr::Call(call) => {
-                    if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(call) {
+                    if let Some(tokens) = try_tokenize_call_expr_as_choice_cmp(&mut self.ctx, call)
+                    {
                         self.tokens.extend(tokens);
                     } else {
-                        let arg = self.ctx.tokenize_expr_to_arg(exp.clone());
+                        let arg = tokenize_expr_to_arg(&mut self.ctx, exp.clone());
                         self.tokens.push(MsgToken::Arg(arg));
                     }
                 }
@@ -293,10 +298,10 @@ impl TransJSXVisitor<'_> {
                 }
 
                 Expr::Tpl(tpl) => {
-                    self.tokens.extend(self.ctx.tokenize_tpl(tpl));
+                    self.tokens.extend(tokenize_tpl(&mut self.ctx, tpl));
                 }
                 _ => {
-                    let arg = self.ctx.tokenize_expr_to_arg(exp.clone());
+                    let arg = tokenize_expr_to_arg(&mut self.ctx, exp.clone());
                     self.tokens.push(MsgToken::Arg(arg));
                 }
             }
