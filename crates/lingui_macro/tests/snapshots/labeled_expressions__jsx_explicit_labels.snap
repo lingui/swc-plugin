@@ -1,14 +1,13 @@
 ---
 source: crates/lingui_macro/tests/jsx.rs
 ---
-import { Trans, ph } from "@lingui/react/macro";
+import { Trans } from "@lingui/react/macro";
 
-<Trans>Refresh {ph({foo})} inbox</Trans>;
-<Trans>Refresh {ph({foo: foo.bar})} inbox</Trans>;
-<Trans>Refresh {ph({foo: expr()})} inbox</Trans>;
-<Trans>Refresh {ph({foo: bar, baz: qux})} inbox</Trans>;
-<Trans>Refresh {ph({})} inbox</Trans>;
-<Trans>Refresh {ph({...spread})} inbox</Trans>;
+<Trans>Refresh {{foo}} inbox</Trans>;
+<Trans>Refresh {{foo: foo.bar}} inbox</Trans>;
+<Trans>Refresh {{foo: expr()}} inbox</Trans>;
+<Trans>Refresh {{}} inbox</Trans>;
+<Trans>Refresh {{...spread}} inbox</Trans>;
 
 ↓ ↓ ↓ ↓ ↓ ↓
 
@@ -31,13 +30,6 @@ import { Trans as Trans_ } from "@lingui/react";
     id: "rtxU8c",
     values: {
         foo: expr()
-    },
-    message: "Refresh {foo} inbox"
-}}/>;
-<Trans_ {.../*i18n*/ {
-    id: "rtxU8c",
-    values: {
-        foo: bar
     },
     message: "Refresh {foo} inbox"
 }}/>;

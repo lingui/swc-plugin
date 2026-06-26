@@ -266,30 +266,6 @@ import { Trans } from "@lingui/react/macro";
      "#
 );
 
-to!(
-    with_labeled_expression_as_value,
-    r#"
- import { Plural } from '@lingui/react/macro';
-        <Plural
-          value={{count: getCount()}}
-          one={"oneText"}
-          other={<a href="/more">A lot of them</a>}
-        />;
-     "#
-);
-
-to!(
-    with_labeled_expression_as_value_with_ph,
-    r#"
-import { Plural } from '@lingui/react/macro';
-        import { ph } from '@lingui/core/macro';
-        <Plural
-          value={ph({count: getCount()})}
-          one={"oneText"}
-          other={<a href="/more">A lot of them</a>}
-        />
-     "#
-);
 
 to!(
     with_value_index_in_source_order,

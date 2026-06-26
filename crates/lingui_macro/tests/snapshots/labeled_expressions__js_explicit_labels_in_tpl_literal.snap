@@ -1,14 +1,13 @@
 ---
 source: crates/lingui_macro/tests/js_t.rs
 ---
-import { t, ph } from "@lingui/core/macro";
+import { t } from "@lingui/core/macro";
 
-t`Refresh ${ph({foo})} inbox`
-t`Refresh ${ph({foo: foo.bar})} inbox`
-t`Refresh ${ph({foo: expr()})} inbox`
-t`Refresh ${ph({foo: bar, baz: qux})} inbox`
-t`Refresh ${ph({})} inbox`
-t`Refresh ${ph({...spread})} inbox`
+t`Refresh ${{foo}} inbox`
+t`Refresh ${{foo: foo.bar}} inbox`
+t`Refresh ${{foo: expr()}} inbox`
+t`Refresh ${{}} inbox`
+t`Refresh ${{...spread}} inbox`
 
 ↓ ↓ ↓ ↓ ↓ ↓
 
@@ -32,13 +31,6 @@ $_i18n._(/*i18n*/ {
     message: "Refresh {foo} inbox",
     values: {
         foo: expr()
-    }
-});
-$_i18n._(/*i18n*/ {
-    id: "rtxU8c",
-    message: "Refresh {foo} inbox",
-    values: {
-        foo: bar
     }
 });
 $_i18n._(/*i18n*/ {

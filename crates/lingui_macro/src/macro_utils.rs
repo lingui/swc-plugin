@@ -3,9 +3,10 @@ use crate::comment_directive::{DirectiveValues, LinguiCommentDirectives};
 use crate::tokens::*;
 use crate::LinguiOptions;
 use std::collections::{HashMap, HashSet};
-use swc_core::common::BytePos;
+use swc_core::common::{BytePos, Spanned};
 use swc_core::ecma::utils::quote_ident;
 use swc_core::ecma::{ast::*, atoms::Atom};
+use swc_core::plugin::errors::HANDLER;
 
 pub fn expression_to_name(expr: &Expr, get_index: &mut impl FnMut() -> usize) -> String {
     let expr = unwrap_ts_as_expr(expr);
@@ -36,6 +37,16 @@ pub fn expression_to_value(expr: Box<Expr>) -> Box<Expr> {
 
     match unwrapped {
         Expr::Object(object) => {
+            if object.props.len() > 1 {
+                HANDLER.with(|h| {
+                    h.struct_span_err(
+                        object.span,
+                        "Incorrect usage of a labeled expression. Expected exactly one property as `{variableName: variableValue}`.",
+                    )
+                    .emit();
+                });
+            }
+
             if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
                 if let Some(short) = prop.as_shorthand() {
                     return Box::new(Expr::Ident(Ident {
@@ -385,6 +396,16 @@ impl MacroCtx {
                     .is_some_and(|i| self.is_lingui_placeholder_expr(i))
             }) {
                 if let Some(first) = call.args.first() {
+                    if !first.expr.is_object() {
+                        HANDLER.with(|h| {
+                            h.struct_span_err(
+                                first.expr.span(),
+                                "Incorrect usage of `ph` macro. First argument should be an object expression like `ph({name: value})`.",
+                            )
+                            .emit();
+                        });
+                        return expr;
+                    }
                     return first.expr.clone();
                 }
             }

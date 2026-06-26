@@ -1,0 +1,14 @@
+---
+source: crates/lingui_macro/tests/js_t.rs
+info: {}
+---
+import { t, ph } from "@lingui/core/macro";
+t`Refresh ${ph(variable)} inbox`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Incorrect usage of `ph` macro. First argument should be an object expression like `ph({name: value})`.
+ --> input.tsx:2:16
+  |
+2 | t`Refresh ${ph(variable)} inbox`
+  |                ^^^^^^^^

@@ -1,0 +1,14 @@
+---
+source: crates/lingui_macro/tests/js_t.rs
+info: {}
+---
+import { t } from "@lingui/core/macro";
+t`Refresh ${{foo: bar, baz: qux}} inbox`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Incorrect usage of a labeled expression. Expected exactly one property as `{variableName: variableValue}`.
+ --> input.tsx:2:13
+  |
+2 | t`Refresh ${{foo: bar, baz: qux}} inbox`
+  |             ^^^^^^^^^^^^^^^^^^^^

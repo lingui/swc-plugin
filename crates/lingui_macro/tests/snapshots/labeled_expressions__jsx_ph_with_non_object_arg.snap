@@ -1,0 +1,14 @@
+---
+source: crates/lingui_macro/tests/jsx.rs
+info: {}
+---
+import { Trans, ph } from "@lingui/react/macro";
+<Trans>Refresh {ph(variable)} inbox</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Incorrect usage of `ph` macro. First argument should be an object expression like `ph({name: value})`.
+ --> input.tsx:2:20
+  |
+2 | <Trans>Refresh {ph(variable)} inbox</Trans>;
+  |                    ^^^^^^^^

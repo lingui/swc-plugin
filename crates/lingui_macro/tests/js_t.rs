@@ -49,44 +49,6 @@ to!(
      "#
 );
 
-to!(
-    js_explicit_labels_in_tpl_literal,
-    r#"
-   import { t } from "@lingui/core/macro";
-
-   t`Refresh ${{foo}} inbox`
-   t`Refresh ${{foo: foo.bar}} inbox`
-   t`Refresh ${{foo: expr()}} inbox`
-   t`Refresh ${{foo: bar, baz: qux}} inbox`
-   t`Refresh ${{}} inbox`
-   t`Refresh ${{...spread}} inbox`
-   "#
-);
-
-to!(
-    js_ph_labels_in_tpl_literal,
-    r#"
-  import { t, ph } from "@lingui/core/macro";
-
-  t`Refresh ${ph({foo})} inbox`
-  t`Refresh ${ph({foo: foo.bar})} inbox`
-  t`Refresh ${ph({foo: expr()})} inbox`
-  t`Refresh ${ph({foo: bar, baz: qux})} inbox`
-  t`Refresh ${ph({})} inbox`
-  t`Refresh ${ph({...spread})} inbox`
-  "#
-);
-
-to!(
-    js_choice_labels_in_tpl_literal,
-    r##"
-  import { t, ph, plural, select, selectOrdinal } from "@lingui/core/macro";
-
-  t`We have ${plural({count: getDevelopersCount()}, {one: "# developer", other: "# developers"})}`
-  t`${select(gender, {male: "he", female: "she", other: "they"})}`
-  t`${selectOrdinal(count, {one: "#st", two: "#nd", few: "#rd", other: "#th"})}`
-  "##
-);
 
 to!(
     js_custom_i18n_passed,
