@@ -1,21 +1,10 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "noEmit": true,
-    "strict": true,
-    "outDir": "./dist",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "types": [
-      "vitest/globals",
-      "node"
-    ]
-  },
-  "include": [
-    "e2e",
-    "./vitest.config.ts"
-  ],
-  "exclude": [
-    "node_modules"
+  "references": [
+    {
+      "path": "tsconfig.build.json"
+    },
+    {
+      "path": "tsconfig.test.json"
+    }
   ]
 }
