@@ -265,3 +265,44 @@ import { Trans } from "@lingui/react/macro";
 </Trans>;
      "#
 );
+
+to!(
+    with_labeled_expression_as_value,
+    r#"
+ import { Plural } from '@lingui/react/macro';
+        <Plural
+          value={{count: getCount()}}
+          one={"oneText"}
+          other={<a href="/more">A lot of them</a>}
+        />;
+     "#
+);
+
+to!(
+    with_labeled_expression_as_value_with_ph,
+    r#"
+import { Plural } from '@lingui/react/macro';
+        import { ph } from '@lingui/core/macro';
+        <Plural
+          value={ph({count: getCount()})}
+          one={"oneText"}
+          other={<a href="/more">A lot of them</a>}
+        />
+     "#
+);
+
+to!(
+    with_value_index_in_source_order,
+    r#"
+import { Plural } from '@lingui/react/macro';
+<Plural one={`${a.b} glass`} value={items.length} other="many" />
+     "#
+);
+
+to!(
+    with_non_identifier_value_first,
+    r#"
+import { Plural } from '@lingui/react/macro';
+<Plural value={items.length} one={`${a.b} glass`} other="many" />
+     "#
+);

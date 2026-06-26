@@ -7,6 +7,77 @@ use swc_core::common::BytePos;
 use swc_core::ecma::utils::quote_ident;
 use swc_core::ecma::{ast::*, atoms::Atom};
 
+pub fn expression_to_name(expr: &Expr, get_index: &mut impl FnMut() -> usize) -> String {
+    let expr = unwrap_ts_as_expr(expr);
+
+    match expr {
+        Expr::Ident(ident) => ident.sym.to_string(),
+        Expr::Object(object) => {
+            if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
+                // {foo}
+                if let Some(short) = prop.as_shorthand() {
+                    return short.sym.to_string();
+                }
+                // assume this is labeled expression, {label: value}
+                if let Prop::KeyValue(kv) = prop.as_ref() {
+                    if let PropName::Ident(ident) = &kv.key {
+                        return ident.sym.to_string();
+                    }
+                }
+            }
+            get_index().to_string()
+        }
+        _ => get_index().to_string(),
+    }
+}
+
+pub fn expression_to_value(expr: Box<Expr>) -> Box<Expr> {
+    let unwrapped = unwrap_ts_as_expr(&expr);
+
+    match unwrapped {
+        Expr::Object(object) => {
+            if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
+                if let Some(short) = prop.as_shorthand() {
+                    return Box::new(Expr::Ident(Ident {
+                        span: swc_core::common::DUMMY_SP,
+                        sym: short.sym.clone(),
+                        ctxt: swc_core::common::SyntaxContext::empty(),
+                        optional: false,
+                    }));
+                }
+                if let Prop::KeyValue(kv) = prop.as_ref() {
+                    return kv.value.clone();
+                }
+            }
+            expr
+        }
+        _ => expr,
+    }
+}
+
+// recursively expands TypeScript's as expressions until it reaches a real value
+fn unwrap_ts_as_expr(expr: &Expr) -> &Expr {
+    let mut current = expr;
+    while let Expr::TsAs(TsAsExpr {
+        expr: inner_expr, ..
+    }) = current
+    {
+        current = inner_expr;
+    }
+    current
+}
+
+pub fn tokenize_expression(expr: Box<Expr>, get_index: &mut impl FnMut() -> usize) -> MsgArg {
+    let name = expression_to_name(&expr, get_index);
+    let value = expression_to_value(expr);
+    MsgArg {
+        name,
+        value,
+        format: None,
+        cases: None,
+    }
+}
+
 const LINGUI_T: &str = "t";
 
 pub fn build_prefixed_id(
@@ -39,6 +110,8 @@ pub struct MacroCtx {
     pub options: LinguiOptions,
     pub directives: LinguiCommentDirectives,
     pub runtime_idents: RuntimeIdents,
+
+    expression_index: usize,
 }
 
 #[derive(Clone)]
@@ -64,6 +137,10 @@ impl MacroCtx {
             options,
             ..Default::default()
         }
+    }
+
+    pub fn reset_expression_index(&mut self) {
+        self.expression_index = 0;
     }
 
     pub fn set_directives(&mut self, directives: LinguiCommentDirectives) {
@@ -156,7 +233,7 @@ impl MacroCtx {
     }
 
     /// Receive TemplateLiteral with variables and return MsgTokens
-    pub fn tokenize_tpl(&self, tpl: &Tpl) -> Vec<MsgToken> {
+    pub fn tokenize_tpl(&mut self, tpl: &Tpl) -> Vec<MsgToken> {
         let mut tokens: Vec<MsgToken> = Vec::with_capacity(tpl.quasis.len());
 
         for (i, tpl_element) in tpl.quasis.iter().enumerate() {
@@ -173,14 +250,10 @@ impl MacroCtx {
                         tokens.extend(call_tokens);
                         continue;
                     }
-                    if let Some(placeholder) = self.try_tokenize_call_expr_as_placeholder_call(call)
-                    {
-                        tokens.push(placeholder);
-                        continue;
-                    }
                 }
 
-                tokens.push(MsgToken::Expression(exp.clone()));
+                let arg = self.tokenize_expr_to_arg(exp.clone());
+                tokens.push(MsgToken::Arg(arg));
             }
         }
 
@@ -189,7 +262,10 @@ impl MacroCtx {
 
     /// Try to tokenize call expression as ICU Choice macro
     /// Return None if this call is not related to macros or is not parsable
-    pub fn try_tokenize_call_expr_as_choice_cmp(&self, expr: &CallExpr) -> Option<Vec<MsgToken>> {
+    pub fn try_tokenize_call_expr_as_choice_cmp(
+        &mut self,
+        expr: &CallExpr,
+    ) -> Option<Vec<MsgToken>> {
         if let Some(ident) = match_callee_name(expr, |name| self.is_lingui_fn_choice_cmp(name)) {
             if expr.args.len() != 2 {
                 // malformed plural call, exit
@@ -204,13 +280,12 @@ impl MacroCtx {
             let arg = expr.args.get(1).unwrap();
             if let Expr::Object(object) = &arg.expr.as_ref() {
                 let format = self.get_ident_export_name(ident).unwrap().to_lowercase();
+                let mut token_arg = self.tokenize_expr_to_arg(icu_value);
                 let cases = self.get_choice_cases_from_obj(&object.props, &format);
+                token_arg.format = Some(format.into());
+                token_arg.cases = Some(cases);
 
-                return Some(vec![MsgToken::IcuChoice(IcuChoice {
-                    format: format.into(),
-                    value: icu_value,
-                    cases,
-                })]);
+                return Some(vec![MsgToken::Arg(token_arg)]);
             } else {
                 // todo passed not an ObjectLiteral,
                 //      we should panic here or just skip this call
@@ -220,20 +295,7 @@ impl MacroCtx {
         None
     }
 
-    pub fn try_tokenize_call_expr_as_placeholder_call(&self, expr: &CallExpr) -> Option<MsgToken> {
-        if expr.callee.as_expr().is_some_and(|c| {
-            c.as_ident()
-                .is_some_and(|i| self.is_lingui_placeholder_expr(i))
-        }) {
-            if let Some(first) = expr.args.first() {
-                return Some(MsgToken::Expression(first.expr.clone()));
-            }
-        }
-
-        None
-    }
-
-    pub fn try_tokenize_expr(&self, expr: &Expr) -> Option<Vec<MsgToken>> {
+    pub fn try_tokenize_expr(&mut self, expr: &Expr) -> Option<Vec<MsgToken>> {
         match expr {
             // String Literal: "has # friend"
             Expr::Lit(Lit::Str(str)) => Some(vec![MsgToken::String(
@@ -268,7 +330,7 @@ impl MacroCtx {
     /// receive ObjectLiteral {few: "..", many: "..", other: ".."} and create tokens
     /// If messages passed as TemplateLiterals with variables, it extracts variables
     pub fn get_choice_cases_from_obj(
-        &self,
+        &mut self,
         props: &Vec<PropOrSpread>,
         icu_format: &str,
     ) -> Vec<CaseOrOffset> {
@@ -286,9 +348,10 @@ impl MacroCtx {
                                 // todo: panic offset might be only a number, other forms is not supported
                             }
                         } else {
-                            let tokens = self
-                                .try_tokenize_expr(&prop.value)
-                                .unwrap_or(vec![MsgToken::Expression(prop.value.clone())]);
+                            let tokens = self.try_tokenize_expr(&prop.value).unwrap_or_else(|| {
+                                let arg = self.tokenize_expr_to_arg(prop.value.clone());
+                                vec![MsgToken::Arg(arg)]
+                            });
 
                             choices.push(CaseOrOffset::Case(ChoiceCase { tokens, key }));
                         }
@@ -302,5 +365,30 @@ impl MacroCtx {
         }
 
         choices
+    }
+
+    pub fn tokenize_expr_to_arg(&mut self, expr: Box<Expr>) -> MsgArg {
+        let expr = self.unwrap_ph_call(expr);
+        let idx = &mut self.expression_index;
+        let mut get_index = || {
+            let i = *idx;
+            *idx += 1;
+            i
+        };
+        tokenize_expression(expr, &mut get_index)
+    }
+
+    fn unwrap_ph_call(&self, expr: Box<Expr>) -> Box<Expr> {
+        if let Expr::Call(call) = expr.as_ref() {
+            if call.callee.as_expr().is_some_and(|c| {
+                c.as_ident()
+                    .is_some_and(|i| self.is_lingui_placeholder_expr(i))
+            }) {
+                if let Some(first) = call.args.first() {
+                    return first.expr.clone();
+                }
+            }
+        }
+        expr
     }
 }

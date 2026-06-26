@@ -29,8 +29,8 @@ custom_i18n._(/*i18n*/ {
     id: "xplbye",
     message: "Refresh {0} inbox {bar}",
     values: {
-        bar: bar,
-        0: foo.bar
+        0: foo.bar,
+        bar: bar
     }
 });
 custom_i18n._(/*i18n*/ {

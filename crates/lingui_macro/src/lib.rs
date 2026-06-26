@@ -9,7 +9,7 @@ use swc_core::{
     ecma::{
         ast::*,
         utils::quote_ident,
-        visit::{Fold, FoldWith, VisitWith},
+        visit::{Fold, FoldWith},
     },
     plugin::{
         metadata::TransformPluginMetadataContextKind, plugin_transform,
@@ -103,7 +103,8 @@ where
     // <Trans>Message</Trans>
     // <Plural />
     fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
-        let mut trans_visitor = TransJSXVisitor::new(&self.ctx);
+        self.ctx.reset_expression_index();
+        let mut trans_visitor = TransJSXVisitor::new(&mut self.ctx);
 
         let message_dscrptr_span: Span;
 
@@ -134,14 +135,14 @@ where
         if is_trans_el {
             // Trans
             message_dscrptr_span = el.children.first().span();
-            el.children.visit_children_with(&mut trans_visitor);
+            trans_visitor.visit_jsx_children(&el.children);
         } else {
             let value_attr =
                 get_jsx_attr(&el.opening, "value").and_then(|attr| attr.value.as_ref());
 
             // <Plural />, etc
             message_dscrptr_span = value_attr.span();
-            el.visit_children_with(&mut trans_visitor);
+            trans_visitor.visit_jsx_opening_element(&el.opening);
         }
 
         let parsed = MessageBuilder::parse(trans_visitor.tokens, &self.ctx.options);

@@ -1,14 +1,10 @@
 use crate::ast_utils::{
-    expand_ts_as_expr, get_jsx_attr, get_jsx_attr_value_as_string, is_jsx_elements_equal,
-    omit_jsx_attrs,
+    get_jsx_attr, get_jsx_attr_value_as_string, is_jsx_elements_equal, omit_jsx_attrs,
 };
 use crate::options::LinguiOptions;
-use crate::tokens::{CaseOrOffset, IcuChoice, MsgToken};
+use crate::tokens::{CaseOrOffset, MsgArg, MsgToken};
 use std::collections::HashSet;
-use swc_core::{
-    common::{SyntaxContext, DUMMY_SP},
-    ecma::ast::*,
-};
+use swc_core::{common::DUMMY_SP, ecma::ast::*};
 
 fn is_numeric(s: &str) -> bool {
     !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())
@@ -87,7 +83,6 @@ pub struct MessageBuilder<'a> {
     components: Vec<ValueWithPlaceholder>,
 
     values: Vec<ValueWithPlaceholder>,
-    values_indexed: Vec<ValueWithPlaceholder>,
 
     options: &'a LinguiOptions,
     elements_tracking: Vec<(String, JSXOpeningElement)>,
@@ -101,7 +96,6 @@ impl<'a> MessageBuilder<'a> {
             components_stack: Vec::new(),
             components: Vec::new(),
             values: Vec::new(),
-            values_indexed: Vec::new(),
             options,
             elements_tracking: Vec::new(),
             element_index: 0,
@@ -111,7 +105,7 @@ impl<'a> MessageBuilder<'a> {
         builder.into_args()
     }
 
-    pub fn into_args(mut self) -> MessageBuilderResult {
+    pub fn into_args(self) -> MessageBuilderResult {
         let message_str = self.message;
 
         let message = Box::new(Expr::Lit(Lit::Str(Str {
@@ -119,8 +113,6 @@ impl<'a> MessageBuilder<'a> {
             value: message_str.clone().into(),
             raw: None,
         })));
-
-        self.values.append(&mut self.values_indexed);
 
         let values = if self.values.is_empty() {
             None
@@ -162,9 +154,8 @@ impl<'a> MessageBuilder<'a> {
                     self.push_msg(&str);
                 }
 
-                MsgToken::Expression(val) => {
-                    let placeholder = self.push_exp(val);
-                    self.push_msg(&format!("{{{placeholder}}}"));
+                MsgToken::Arg(arg) => {
+                    self.push_arg(arg);
                 }
 
                 MsgToken::TagOpening(val) => {
@@ -172,9 +163,6 @@ impl<'a> MessageBuilder<'a> {
                 }
                 MsgToken::TagClosing => {
                     self.push_tag_closing();
-                }
-                MsgToken::IcuChoice(icu) => {
-                    self.push_icu(icu);
                 }
             }
         }
@@ -292,91 +280,37 @@ impl<'a> MessageBuilder<'a> {
         }
     }
 
-    fn push_exp(&mut self, mut exp: Box<Expr>) -> String {
-        exp = expand_ts_as_expr(exp);
+    fn push_arg(&mut self, arg: MsgArg) {
+        let placeholder = arg.name.clone();
 
-        match exp.as_ref() {
-            Expr::Ident(ident) => {
-                self.values.push(ValueWithPlaceholder {
-                    placeholder: ident.sym.to_string().clone(),
-                    value: exp.clone(),
-                });
+        self.values.push(ValueWithPlaceholder {
+            placeholder: placeholder.clone(),
+            value: arg.value,
+        });
 
-                ident.sym.to_string()
-            }
-            Expr::Object(object) => {
-                if let Some(PropOrSpread::Prop(prop)) = object.props.first() {
-                    // {foo}
-                    if let Some(short) = prop.as_shorthand() {
-                        self.values_indexed.push(ValueWithPlaceholder {
-                            placeholder: short.sym.to_string(),
-                            value: Box::new(Expr::Ident(Ident {
-                                span: DUMMY_SP,
-                                sym: short.sym.clone(),
-                                ctxt: SyntaxContext::empty(),
-                                optional: false,
-                            })),
-                        });
+        if let Some(format) = arg.format {
+            self.push_msg(&format!("{{{placeholder}, {format},"));
 
-                        return short.sym.to_string();
-                    }
-                    // {foo: bar}
-                    if let Prop::KeyValue(kv) = prop.as_ref() {
-                        if let PropName::Ident(ident) = &kv.key {
-                            self.values_indexed.push(ValueWithPlaceholder {
-                                placeholder: ident.sym.to_string(),
-                                value: kv.value.clone(),
-                            });
-
-                            return ident.sym.to_string();
+            if let Some(cases) = arg.cases {
+                for choice in cases {
+                    match choice {
+                        // produce offset:{number}
+                        CaseOrOffset::Offset(val) => {
+                            self.push_msg(&format!(" offset:{val}"));
+                        }
+                        CaseOrOffset::Case(choice) => {
+                            let key = choice.key;
+                            self.push_msg(&format!(" {key} {{"));
+                            self.process_tokens(choice.tokens);
+                            self.push_msg("}");
                         }
                     }
                 }
-
-                // fallback for {...spread} or {}
-                let index = self.values_indexed.len().to_string();
-
-                self.values_indexed.push(ValueWithPlaceholder {
-                    placeholder: index.clone(),
-                    value: exp.clone(),
-                });
-
-                index
             }
-            _ => {
-                let index = self.values_indexed.len().to_string();
 
-                self.values_indexed.push(ValueWithPlaceholder {
-                    placeholder: index.clone(),
-                    value: exp.clone(),
-                });
-
-                index
-            }
+            self.push_msg("}");
+        } else {
+            self.push_msg(&format!("{{{placeholder}}}"));
         }
-    }
-
-    fn push_icu(&mut self, icu: IcuChoice) {
-        let value_placeholder = self.push_exp(icu.value);
-        let method = icu.format;
-        self.push_msg(&format!("{{{value_placeholder}, {method},"));
-
-        for choice in icu.cases {
-            match choice {
-                // produce offset:{number}
-                CaseOrOffset::Offset(val) => {
-                    self.push_msg(&format!(" offset:{val}"));
-                }
-                CaseOrOffset::Case(choice) => {
-                    let key = choice.key;
-
-                    self.push_msg(&format!(" {key} {{"));
-                    self.process_tokens(choice.tokens);
-                    self.push_msg("}");
-                }
-            }
-        }
-
-        self.push_msg("}");
     }
 }
