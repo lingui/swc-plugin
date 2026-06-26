@@ -108,7 +108,6 @@ to!(
      "#
 );
 
-
 to!(
     jsx_template_literal_in_children,
     r#"

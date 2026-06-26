@@ -142,8 +142,8 @@ where
 
             if let Some(id_prop) = id_prop {
                 if let Some(value) = get_expr_as_string(&id_prop.value) {
-                    let value =
-                        build_prefixed_id(&self.ctx.options, &value, defaults.as_ref()).unwrap_or(value);
+                    let value = build_prefixed_id(&self.ctx.options, &value, defaults.as_ref())
+                        .unwrap_or(value);
                     new_props.push(create_key_value_prop("id", value.into()));
                 } else {
                     new_props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(
@@ -160,7 +160,11 @@ where
                 if id_prop.is_none() {
                     let resolved_context = context_val
                         .as_deref()
-                        .or_else(|| defaults.as_ref().and_then(|defaults| defaults.context.as_deref()))
+                        .or_else(|| {
+                            defaults
+                                .as_ref()
+                                .and_then(|defaults| defaults.context.as_deref())
+                        })
                         .unwrap_or_default();
 
                     new_props.push(create_key_value_prop(
@@ -188,8 +192,9 @@ where
                     new_props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(
                         context_prop.clone(),
                     ))));
-                } else if let Some(context) =
-                    defaults.as_ref().and_then(|defaults| defaults.context.as_deref())
+                } else if let Some(context) = defaults
+                    .as_ref()
+                    .and_then(|defaults| defaults.context.as_deref())
                 {
                     new_props.push(create_key_value_prop("context", context.into()));
                 }
@@ -200,8 +205,9 @@ where
                     new_props.push(PropOrSpread::Prop(Box::new(Prop::KeyValue(
                         comment_prop.clone(),
                     ))));
-                } else if let Some(value) =
-                    defaults.as_ref().and_then(|defaults| defaults.comment.as_deref())
+                } else if let Some(value) = defaults
+                    .as_ref()
+                    .and_then(|defaults| defaults.comment.as_deref())
                 {
                     new_props.push(create_key_value_prop("comment", value.into()));
                 }
@@ -235,12 +241,9 @@ where
                 let tokens = self.ctx.tokenize_tpl(&tagged_tpl.tpl);
                 let tpl_span = tagged_tpl.tpl.span();
                 let expr_span = expr.span();
-                return Expr::Call(self.create_i18n_fn_call_from_tokens(
-                    callee,
-                    tokens,
-                    tpl_span,
-                    expr_span,
-                ));
+                return Expr::Call(
+                    self.create_i18n_fn_call_from_tokens(callee, tokens, tpl_span, expr_span),
+                );
             }
         }
 

@@ -185,7 +185,6 @@ pub fn get_prop_key(prop: &KeyValueProp) -> Option<Atom> {
     }
 }
 
-
 pub fn create_key_value_prop(key: &str, value: Box<Expr>) -> PropOrSpread {
     PropOrSpread::Prop(Box::new(Prop::KeyValue(KeyValueProp {
         key: PropName::Ident(quote_ident!(key)),

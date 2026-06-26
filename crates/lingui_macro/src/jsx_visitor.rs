@@ -135,14 +135,8 @@ fn is_allowed_plural_option(key: &str) -> Option<Atom> {
 impl TransJSXVisitor<'_> {
     // <Plural /> <Select /> <SelectOrdinal />
     fn visit_icu_macro(&mut self, el: &JSXOpeningElement, icu_format: &str) {
-        let mut arg = MsgArg {
-            name: String::new(),
-            value: Box::new(Expr::Lit(Lit::Null(Null {
-                span: swc_core::common::DUMMY_SP,
-            }))),
-            format: Some(icu_format.into()),
-            cases: Some(Vec::new()),
-        };
+        let mut cases: Vec<CaseOrOffset> = Vec::new();
+        let mut value_arg: Option<MsgArg> = None;
 
         for attr in &el.attrs {
             if let JSXAttrOrSpread::JSXAttr(attr) = attr {
@@ -155,14 +149,13 @@ impl TransJSXVisitor<'_> {
                             }) = attr_value
                             {
                                 let token_arg = self.ctx.tokenize_expr_to_arg(exp.clone());
-                                arg.name = token_arg.name;
-                                arg.value = token_arg.value;
+                                value_arg = Some(token_arg)
                             }
                         } else if &ident.sym == "offset" && icu_format != "select" {
                             if let Some(value) = get_jsx_attr_value_as_string(attr_value) {
-                                if let Some(ref mut cases) = arg.cases {
-                                    cases.push(CaseOrOffset::Offset(value.to_string()));
-                                }
+                                cases.push(CaseOrOffset::Offset(value.to_string()))
+                            } else {
+                                // todo: panic offset might be only a number, other forms are not supported
                             }
                         } else if let Some(key) = is_allowed_plural_option(&ident.sym) {
                             let mut tokens: Vec<MsgToken> = Vec::new();
@@ -208,9 +201,7 @@ impl TransJSXVisitor<'_> {
                                 }
                             }
 
-                            if let Some(ref mut cases) = arg.cases {
-                                cases.push(CaseOrOffset::Case(ChoiceCase { tokens, key }));
-                            }
+                            cases.push(CaseOrOffset::Case(ChoiceCase { tokens, key }));
                         }
                     }
                 }
@@ -223,7 +214,20 @@ impl TransJSXVisitor<'_> {
             }
         }
 
-        self.tokens.push(MsgToken::Arg(arg));
+        if let Some(arg) = value_arg {
+            self.tokens.push(MsgToken::Arg(MsgArg {
+                name: arg.name,
+                value: arg.value,
+                format: Some(icu_format.into()),
+                cases: Some(cases),
+            }));
+        } else {
+            HANDLER.with(|h| {
+                h.struct_span_warn(el.span, "Incorrect Macro Usage")
+                    .note("The macro element should has a `value` property")
+                    .emit()
+            });
+        }
     }
 }
 
@@ -274,6 +278,7 @@ impl TransJSXVisitor<'_> {
                         .push(MsgToken::String(str.value.to_string_lossy().into_owned()));
                 }
 
+                // support calls to js macro inside JSX, but not to t``
                 Expr::Call(call) => {
                     if let Some(tokens) = self.ctx.try_tokenize_call_expr_as_choice_cmp(call) {
                         self.tokens.extend(tokens);
