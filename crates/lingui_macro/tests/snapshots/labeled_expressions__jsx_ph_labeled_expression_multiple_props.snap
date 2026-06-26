@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/jsx.rs
+source: crates/lingui_macro/tests/labeled_expressions.rs
 info: {}
 ---
 import { Trans, ph } from "@lingui/react/macro";

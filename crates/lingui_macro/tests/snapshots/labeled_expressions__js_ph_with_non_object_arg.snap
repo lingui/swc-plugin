@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/js_t.rs
+source: crates/lingui_macro/tests/labeled_expressions.rs
 info: {}
 ---
 import { t, ph } from "@lingui/core/macro";

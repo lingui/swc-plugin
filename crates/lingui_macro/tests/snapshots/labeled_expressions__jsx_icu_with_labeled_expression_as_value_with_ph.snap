@@ -1,5 +1,5 @@
 ---
-source: crates/lingui_macro/tests/jsx_icu.rs
+source: crates/lingui_macro/tests/labeled_expressions.rs
 ---
 import { Plural } from '@lingui/react/macro';
         import { ph } from '@lingui/core/macro';
