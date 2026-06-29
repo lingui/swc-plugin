@@ -103,8 +103,8 @@ where
     // <Trans>Message</Trans>
     // <Plural />
     fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
-        let macro_ctx = MacroCtx::new(&mut self.ctx);
-        let mut trans_visitor = TransJSXVisitor::new(macro_ctx);
+        let mut macro_ctx = MacroCtx::new(&mut self.ctx);
+        let mut trans_visitor = TransJSXVisitor::new(&mut macro_ctx);
 
         let message_dscrptr_span: Span;
 

@@ -7,13 +7,13 @@ use swc_core::ecma::ast::*;
 use swc_core::ecma::atoms::Atom;
 use swc_core::plugin::errors::HANDLER;
 
-pub struct TransJSXVisitor<'a> {
+pub struct TransJSXVisitor<'a, 'ctx> {
     pub tokens: Vec<MsgToken>,
-    pub ctx: MacroCtx<'a>,
+    ctx: &'a mut MacroCtx<'ctx>,
 }
 
-impl<'a> TransJSXVisitor<'a> {
-    pub fn new(ctx: MacroCtx<'a>) -> TransJSXVisitor<'a> {
+impl<'a, 'ctx> TransJSXVisitor<'a, 'ctx> {
+    pub fn new(ctx: &'a mut MacroCtx<'ctx>) -> TransJSXVisitor<'a, 'ctx> {
         TransJSXVisitor {
             tokens: Vec::new(),
             ctx,
@@ -134,7 +134,7 @@ fn is_allowed_plural_option(key: &str) -> Option<Atom> {
     }
 }
 
-impl TransJSXVisitor<'_> {
+impl TransJSXVisitor<'_, '_> {
     // <Plural /> <Select /> <SelectOrdinal />
     fn visit_icu_macro(&mut self, el: &JSXOpeningElement, icu_format: &str) {
         let mut cases: Vec<CaseOrOffset> = Vec::new();
@@ -150,7 +150,7 @@ impl TransJSXVisitor<'_> {
                                 ..
                             }) = attr_value
                             {
-                                let token_arg = tokenize_expr_to_arg(&mut self.ctx, exp.clone());
+                                let token_arg = tokenize_expr_to_arg(self.ctx, exp.clone());
                                 value_arg = Some(token_arg)
                             }
                         } else if &ident.sym == "offset" && icu_format != "select" {
@@ -180,12 +180,11 @@ impl TransJSXVisitor<'_> {
                                         )),
                                         // some={`# books ${name}`}
                                         Expr::Tpl(tpl) => {
-                                            tokens.extend(tokenize_tpl(&mut self.ctx, tpl));
+                                            tokens.extend(tokenize_tpl(self.ctx, tpl));
                                         }
                                         // some={<Books />}
                                         Expr::JSXElement(el) => {
-                                            let mut visitor =
-                                                TransJSXVisitor::new(self.ctx.reborrow());
+                                            let mut visitor = TransJSXVisitor::new(self.ctx);
                                             visitor.visit_jsx_element(el);
 
                                             tokens.extend(visitor.tokens);
@@ -193,7 +192,7 @@ impl TransJSXVisitor<'_> {
 
                                         _ => {
                                             let token_arg =
-                                                tokenize_expr_to_arg(&mut self.ctx, exp.clone());
+                                                tokenize_expr_to_arg(self.ctx, exp.clone());
                                             tokens.push(MsgToken::Arg(token_arg));
                                         }
                                     }
@@ -234,7 +233,7 @@ impl TransJSXVisitor<'_> {
     }
 }
 
-impl TransJSXVisitor<'_> {
+impl TransJSXVisitor<'_, '_> {
     pub fn visit_jsx_opening_element(&mut self, el: &JSXOpeningElement) {
         if let JSXElementName::Ident(ident) = &el.name {
             if self.ctx.transform.is_lingui_ident("Trans", ident) {
@@ -284,11 +283,10 @@ impl TransJSXVisitor<'_> {
 
                 // support calls to js macro inside JSX, but not to t``
                 Expr::Call(call) => {
-                    if let Some(tokens) = try_tokenize_call_expr_as_choice_cmp(&mut self.ctx, call)
-                    {
+                    if let Some(tokens) = try_tokenize_call_expr_as_choice_cmp(self.ctx, call) {
                         self.tokens.extend(tokens);
                     } else {
-                        let arg = tokenize_expr_to_arg(&mut self.ctx, exp.clone());
+                        let arg = tokenize_expr_to_arg(self.ctx, exp.clone());
                         self.tokens.push(MsgToken::Arg(arg));
                     }
                 }
@@ -298,10 +296,10 @@ impl TransJSXVisitor<'_> {
                 }
 
                 Expr::Tpl(tpl) => {
-                    self.tokens.extend(tokenize_tpl(&mut self.ctx, tpl));
+                    self.tokens.extend(tokenize_tpl(self.ctx, tpl));
                 }
                 _ => {
-                    let arg = tokenize_expr_to_arg(&mut self.ctx, exp.clone());
+                    let arg = tokenize_expr_to_arg(self.ctx, exp.clone());
                     self.tokens.push(MsgToken::Arg(arg));
                 }
             }

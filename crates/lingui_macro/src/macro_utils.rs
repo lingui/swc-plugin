@@ -8,7 +8,7 @@ use swc_core::ecma::utils::quote_ident;
 use swc_core::ecma::{ast::*, atoms::Atom};
 use swc_core::plugin::errors::HANDLER;
 
-fn expression_to_name(expr: &Expr, get_index: &mut impl FnMut() -> usize) -> String {
+fn expression_to_name(expr: &Expr, ctx: &mut MacroCtx) -> String {
     let expr = unwrap_ts_as_expr(expr);
 
     match expr {
@@ -26,9 +26,9 @@ fn expression_to_name(expr: &Expr, get_index: &mut impl FnMut() -> usize) -> Str
                     }
                 }
             }
-            get_index().to_string()
+            ctx.next_expression_index().to_string()
         }
-        _ => get_index().to_string(),
+        _ => ctx.next_expression_index().to_string(),
     }
 }
 
@@ -78,8 +78,8 @@ fn unwrap_ts_as_expr(expr: &Expr) -> &Expr {
     current
 }
 
-fn tokenize_expression(expr: Box<Expr>, get_index: &mut impl FnMut() -> usize) -> MsgArg {
-    let name = expression_to_name(&expr, get_index);
+fn tokenize_expression(expr: Box<Expr>, ctx: &mut MacroCtx) -> MsgArg {
+    let name = expression_to_name(&expr, ctx);
     let value = expression_to_value(expr);
     MsgArg {
         name,
@@ -129,13 +129,7 @@ fn unwrap_ph_call(ctx: &MacroCtx, expr: Box<Expr>) -> Box<Expr> {
 
 pub fn tokenize_expr_to_arg(ctx: &mut MacroCtx, expr: Box<Expr>) -> MsgArg {
     let expr = unwrap_ph_call(ctx, expr);
-    let idx = &mut ctx.expression_index;
-    let mut get_index = || {
-        let i = *idx;
-        *idx += 1;
-        i
-    };
-    tokenize_expression(expr, &mut get_index)
+    tokenize_expression(expr, ctx)
 }
 
 /// Receive TemplateLiteral with variables and return MsgTokens
@@ -416,7 +410,6 @@ impl TransformCtx {
 }
 
 /// Local context for a single macro invocation.
-/// Owns a fresh expression index counter and borrows the global TransformCtx.
 pub struct MacroCtx<'a> {
     pub transform: &'a mut TransformCtx,
     expression_index: usize,
@@ -430,13 +423,9 @@ impl<'a> MacroCtx<'a> {
         }
     }
 
-    /// Re-borrow this context with a shorter lifetime, sharing the same
-    /// counter and TransformCtx. Use when passing to a child visitor
-    /// that continues the same macro invocation.
-    pub fn reborrow(&mut self) -> MacroCtx<'_> {
-        MacroCtx {
-            transform: self.transform,
-            expression_index: self.expression_index,
-        }
+    pub fn next_expression_index(&mut self) -> usize {
+        let i = self.expression_index;
+        self.expression_index += 1;
+        i
     }
 }

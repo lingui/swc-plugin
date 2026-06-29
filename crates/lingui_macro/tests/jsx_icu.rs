@@ -281,3 +281,15 @@ import { Plural } from '@lingui/react/macro';
 <Plural value={items.length} one={`${a.b} glass`} other="many" />
      "#
 );
+
+to!(
+    jsx_in_case_with_expression_does_not_clash,
+    r#"
+import { Plural } from '@lingui/react/macro';
+<Plural
+  value={count}
+  one={<a>{getLink()}</a>}
+  other={<b>{getOther()}</b>}
+/>
+     "#
+);
