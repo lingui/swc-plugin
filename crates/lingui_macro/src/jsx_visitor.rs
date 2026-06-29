@@ -226,7 +226,7 @@ impl TransJSXVisitor<'_, '_> {
         } else {
             HANDLER.with(|h| {
                 h.struct_span_warn(el.span, "Incorrect Macro Usage")
-                    .note("The macro element should has a `value` property")
+                    .note("The macro element should have a `value` property")
                     .emit()
             });
         }
