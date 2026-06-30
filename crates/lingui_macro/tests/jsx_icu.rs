@@ -265,3 +265,31 @@ import { Trans } from "@lingui/react/macro";
 </Trans>;
      "#
 );
+
+to!(
+    with_value_index_in_source_order,
+    r#"
+import { Plural } from '@lingui/react/macro';
+<Plural one={`${a.b} glass`} value={items.length} other="many" />
+     "#
+);
+
+to!(
+    with_non_identifier_value_first,
+    r#"
+import { Plural } from '@lingui/react/macro';
+<Plural value={items.length} one={`${a.b} glass`} other="many" />
+     "#
+);
+
+to!(
+    jsx_in_case_with_expression_does_not_clash,
+    r#"
+import { Plural } from '@lingui/react/macro';
+<Plural
+  value={count}
+  one={<a>{getLink()}</a>}
+  other={<b>{getOther()}</b>}
+/>
+     "#
+);

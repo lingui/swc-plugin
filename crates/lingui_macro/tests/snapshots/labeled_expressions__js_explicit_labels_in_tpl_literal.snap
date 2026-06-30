@@ -1,12 +1,11 @@
 ---
-source: crates/lingui_macro/tests/js_t.rs
+source: crates/lingui_macro/tests/labeled_expressions.rs
 ---
 import { t } from "@lingui/core/macro";
 
 t`Refresh ${{foo}} inbox`
 t`Refresh ${{foo: foo.bar}} inbox`
 t`Refresh ${{foo: expr()}} inbox`
-t`Refresh ${{foo: bar, baz: qux}} inbox`
 t`Refresh ${{}} inbox`
 t`Refresh ${{...spread}} inbox`
 
@@ -32,13 +31,6 @@ $_i18n._(/*i18n*/ {
     message: "Refresh {foo} inbox",
     values: {
         foo: expr()
-    }
-});
-$_i18n._(/*i18n*/ {
-    id: "rtxU8c",
-    message: "Refresh {foo} inbox",
-    values: {
-        foo: bar
     }
 });
 $_i18n._(/*i18n*/ {

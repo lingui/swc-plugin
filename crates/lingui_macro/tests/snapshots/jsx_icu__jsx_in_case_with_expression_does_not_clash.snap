@@ -1,0 +1,26 @@
+---
+source: crates/lingui_macro/tests/jsx_icu.rs
+---
+import { Plural } from '@lingui/react/macro';
+<Plural
+  value={count}
+  one={<a>{getLink()}</a>}
+  other={<b>{getOther()}</b>}
+/>
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "5GtQtV",
+    values: {
+        count: count,
+        0: getLink(),
+        1: getOther()
+    },
+    components: {
+        0: <a/>,
+        1: <b/>
+    },
+    message: "{count, plural, one {<0>{0}</0>} other {<1>{1}</1>}}"
+}}/>;

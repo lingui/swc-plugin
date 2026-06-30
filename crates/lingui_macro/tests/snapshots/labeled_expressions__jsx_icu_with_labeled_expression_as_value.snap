@@ -1,0 +1,23 @@
+---
+source: crates/lingui_macro/tests/labeled_expressions.rs
+---
+import { Plural } from '@lingui/react/macro';
+       <Plural
+         value={{count: getCount()}}
+         one={"oneText"}
+         other={<a href="/more">A lot of them</a>}
+       />;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "blU5AK",
+    values: {
+        count: getCount()
+    },
+    components: {
+        0: <a href="/more"/>
+    },
+    message: "{count, plural, one {oneText} other {<0>A lot of them</0>}}"
+}}/>;
