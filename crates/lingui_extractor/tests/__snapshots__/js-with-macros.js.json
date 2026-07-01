@@ -1,0 +1,186 @@
+[
+  {
+    "id": "xDAtGP",
+    "message": "Message",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 4,
+      "column": 2
+    }
+  },
+  {
+    "id": "xDAtGP",
+    "message": "Message",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 6,
+      "column": 15
+    }
+  },
+  {
+    "id": "Nu4oKW",
+    "message": "Description",
+    "context": null,
+    "comment": "description",
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 8,
+      "column": 25
+    }
+  },
+  {
+    "id": "ID",
+    "message": "Message with id",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 13,
+      "column": 16
+    }
+  },
+  {
+    "id": "QCVtWw",
+    "message": "Values {param}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "param": "param"
+    },
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 18,
+      "column": 21
+    }
+  },
+  {
+    "id": "ID Some",
+    "message": "Message with id some",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 20,
+      "column": 19
+    }
+  },
+  {
+    "id": "Backtick",
+    "message": null,
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 25,
+      "column": 27
+    }
+  },
+  {
+    "id": "Some ID",
+    "message": null,
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 29,
+      "column": 25
+    }
+  },
+  {
+    "id": "Some other ID",
+    "message": null,
+    "context": "Context1",
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 34,
+      "column": 25
+    }
+  },
+  {
+    "id": "Some ID",
+    "message": null,
+    "context": "Context2",
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 39,
+      "column": 34
+    }
+  },
+  {
+    "id": "Some ID",
+    "message": null,
+    "context": "Context2",
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 44,
+      "column": 28
+    }
+  },
+  {
+    "id": "sD7MQ4",
+    "message": "TplLiteral",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 49,
+      "column": 29
+    }
+  },
+  {
+    "id": "VO4BJY",
+    "message": "[useLingui]: TplLiteral",
+    "context": null,
+    "comment": null,
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 54,
+      "column": 4
+    }
+  },
+  {
+    "id": "ZxxjOE",
+    "message": "[useLingui]: Text {0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}",
+    "context": null,
+    "comment": null,
+    "placeholders": {
+      "0": "users.length"
+    },
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 57,
+      "column": 14
+    }
+  },
+  {
+    "id": "AZczQP",
+    "message": "Some ID",
+    "context": "Context2",
+    "comment": "This is a comment for a message",
+    "placeholders": {},
+    "origin": {
+      "filename": "js-with-macros.js",
+      "line": 65,
+      "column": 36
+    }
+  }
+]

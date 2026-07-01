@@ -55,8 +55,7 @@ cargo clippy --all-targets --all-features -- -D warnings
 ## Building for production
 
 ```bash
-# (alias for `cargo build --target wasm32-wasip1`)
-cargo build-wasi --release
+cargo build -p lingui_macro --target wasm32-wasip1 --release
 ```
 Then wasm binary would be on the path: `./target/wasm32-wasip1/release/lingui_macro.wasm`
 
