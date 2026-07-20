@@ -9,7 +9,7 @@ use swc_core::ecma::{ast::*, atoms::Atom};
 use swc_core::plugin::errors::HANDLER;
 
 fn expression_to_name(expr: &Expr, ctx: &mut MacroCtx) -> String {
-    let expr = unwrap_ts_as_expr(expr);
+    let expr = unwrap_ts_only_expr(expr);
 
     match expr {
         Expr::Ident(ident) => ident.sym.to_string(),
@@ -33,7 +33,7 @@ fn expression_to_name(expr: &Expr, ctx: &mut MacroCtx) -> String {
 }
 
 fn expression_to_value(expr: Box<Expr>) -> Box<Expr> {
-    let unwrapped = unwrap_ts_as_expr(&expr);
+    let unwrapped = unwrap_ts_only_expr(&expr);
 
     match unwrapped {
         Expr::Object(object) => {
@@ -66,14 +66,18 @@ fn expression_to_value(expr: Box<Expr>) -> Box<Expr> {
     }
 }
 
-// recursively expands TypeScript's as expressions until it reaches a real value
-fn unwrap_ts_as_expr(expr: &Expr) -> &Expr {
+// recursively unwraps TypeScript-only expression wrappers (`x as T`, `x!`,
+// `x satisfies T`) until it reaches a real value, so the inner expression drives
+// placeholder naming (e.g. `${x!}` → `{x}`, not `{0}`).
+fn unwrap_ts_only_expr(expr: &Expr) -> &Expr {
     let mut current = expr;
-    while let Expr::TsAs(TsAsExpr {
-        expr: inner_expr, ..
-    }) = current
-    {
-        current = inner_expr;
+    loop {
+        current = match current {
+            Expr::TsAs(TsAsExpr { expr, .. })
+            | Expr::TsNonNull(TsNonNullExpr { expr, .. })
+            | Expr::TsSatisfies(TsSatisfiesExpr { expr, .. }) => expr,
+            _ => break,
+        };
     }
     current
 }
