@@ -238,3 +238,11 @@ to!(
      t`Variable ${name!}`;
      "#
 );
+
+to!(
+    js_satisfies_gets_named_placeholder,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Variable ${name satisfies string}`;
+     "#
+);
