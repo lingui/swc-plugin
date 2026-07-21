@@ -228,3 +228,21 @@ to!(
      t`Hello World`
      "#
 );
+
+// TS-only expression wrappers unwrap to a named placeholder (parity with `as`),
+// matching @lingui/babel-plugin-lingui-macro (see lingui/js-lingui#2622).
+to!(
+    js_non_null_assertion_gets_named_placeholder,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Variable ${name!}`;
+     "#
+);
+
+to!(
+    js_satisfies_gets_named_placeholder,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Variable ${name satisfies string}`;
+     "#
+);
