@@ -270,3 +270,11 @@ to!(
      const message = t({ message: msg`Hello ${name}` })
      "#
 );
+
+to!(
+    js_t_unknown_tagged_tpl_nested,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Field ${aaa`First Name`} is required`
+     "#
+);
