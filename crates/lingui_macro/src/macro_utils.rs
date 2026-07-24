@@ -156,6 +156,13 @@ pub fn tokenize_tpl(ctx: &mut MacroCtx, tpl: &Tpl) -> Vec<MsgToken> {
                 }
             }
 
+            if let Expr::TaggedTpl(tagged_tpl) = exp.as_ref() {
+                if let Some(inner_tokens) = try_tokenize_tagged_tpl(ctx, tagged_tpl) {
+                    tokens.extend(inner_tokens);
+                    continue;
+                }
+            }
+
             let arg = tokenize_expr_to_arg(ctx, exp.clone());
             tokens.push(MsgToken::Arg(arg));
         }
@@ -204,6 +211,23 @@ pub fn try_tokenize_call_expr_as_choice_cmp(
     None
 }
 
+fn try_tokenize_tagged_tpl(ctx: &mut MacroCtx, tagged_tpl: &TaggedTpl) -> Option<Vec<MsgToken>> {
+    let tag = tagged_tpl.tag.as_ref();
+
+    let (is_t, _callee) = ctx.transform.is_lingui_t_call_expr(tag);
+    if is_t {
+        return Some(tokenize_tpl(ctx, &tagged_tpl.tpl));
+    }
+
+    if let Expr::Ident(ident) = tag {
+        if ctx.transform.is_define_message_ident(ident) {
+            return Some(tokenize_tpl(ctx, &tagged_tpl.tpl));
+        }
+    }
+
+    None
+}
+
 pub fn try_tokenize_expr(ctx: &mut MacroCtx, expr: &Expr) -> Option<Vec<MsgToken>> {
     match expr {
         // String Literal: "has # friend"
@@ -218,6 +242,9 @@ pub fn try_tokenize_expr(ctx: &mut MacroCtx, expr: &Expr) -> Option<Vec<MsgToken
 
         // Call Expression: {one: plural(numArticles, {...})}
         Expr::Call(expr) => try_tokenize_call_expr_as_choice_cmp(ctx, expr),
+
+        // Tagged template literal: msg`Hello ${name}` or t`Hello ${name}`
+        Expr::TaggedTpl(tagged_tpl) => try_tokenize_tagged_tpl(ctx, tagged_tpl),
         _ => None,
     }
 }

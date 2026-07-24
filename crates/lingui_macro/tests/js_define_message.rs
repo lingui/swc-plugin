@@ -95,3 +95,13 @@ to!(
         })
     "#
 );
+
+to!(
+    should_inline_msg_tagged_tpl_in_message_prop,
+    r#"
+        import { defineMessage, msg } from '@lingui/macro';
+        const message = defineMessage({
+            message: msg`Hello ${name}`
+        })
+    "#
+);

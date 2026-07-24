@@ -1,0 +1,17 @@
+---
+source: crates/lingui_macro/tests/js_define_message.rs
+---
+import { defineMessage, msg } from '@lingui/macro';
+const message = defineMessage({
+    message: msg`Hello ${name}`
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+const message = /*i18n*/ {
+    id: "OVaF9k",
+    message: "Hello {name}",
+    values: {
+        name: name
+    }
+};

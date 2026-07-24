@@ -1,0 +1,16 @@
+---
+source: crates/lingui_macro/tests/js_t.rs
+---
+import { t, msg } from '@lingui/core/macro';
+const message = t({ message: msg`Hello ${name}` })
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+const message = $_i18n._(/*i18n*/ {
+    id: "OVaF9k",
+    message: "Hello {name}",
+    values: {
+        name: name
+    }
+});
