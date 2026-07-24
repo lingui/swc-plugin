@@ -246,3 +246,27 @@ to!(
      t`Variable ${name satisfies string}`;
      "#
 );
+
+to!(
+    js_t_nested_t_tagged_tpl,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Outer ${t`Hello ${name}`} end`
+     "#
+);
+
+to!(
+    js_t_nested_msg_tagged_tpl,
+    r#"
+     import { t, msg } from '@lingui/core/macro';
+     t`Field ${msg`First Name`} is required`
+     "#
+);
+
+to!(
+    js_t_call_with_msg_tagged_tpl_message,
+    r#"
+     import { t, msg } from '@lingui/core/macro';
+     const message = t({ message: msg`Hello ${name}` })
+     "#
+);
