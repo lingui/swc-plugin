@@ -270,7 +270,9 @@ impl TransJSXVisitor<'_, '_> {
 
     fn visit_jsx_text(&mut self, el: &JSXText) {
         self.tokens
-            .push(MsgToken::String(clean_jsx_element_literal_child(&el.value.to_string_lossy())));
+            .push(MsgToken::String(clean_jsx_element_literal_child(
+                &el.value.to_string_lossy(),
+            )));
     }
 
     fn visit_jsx_expr_container(&mut self, cont: &JSXExprContainer) {
