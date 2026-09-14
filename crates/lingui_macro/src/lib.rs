@@ -255,7 +255,7 @@ where
         }
     }
 
-    pub fn handle_use_lingui(&mut self, n: BlockStmt) -> BlockStmt {
+    pub fn handle_use_lingui(&mut self, n: FunctionBody) -> FunctionBody {
         let mut ctx = self.ctx.clone();
 
         let mut ident_replacer: Option<IdentReplacer> = None;
@@ -381,10 +381,9 @@ r#"You have to destructure `t` when using the `useLingui` macro, i.e:
             })
             .collect();
 
-        let mut block = BlockStmt {
+        let mut block = FunctionBody {
             span: n.span,
             stmts,
-            ctxt: SyntaxContext::empty(),
         };
 
         // use lingui matched above
@@ -492,11 +491,11 @@ where
 
         let mut func = n;
 
-        if func.body.is_block_stmt() {
-            let block = func.body.block_stmt().unwrap();
-
+        if let ArrowFunctionBody::FunctionBody(body) = *func.body {
             func = ArrowExpr {
-                body: Box::new(BlockStmtOrExpr::BlockStmt(self.handle_use_lingui(block))),
+                body: Box::new(ArrowFunctionBody::FunctionBody(
+                    self.handle_use_lingui(body),
+                )),
                 ..func
             }
         }

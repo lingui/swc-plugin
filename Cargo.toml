@@ -6,7 +6,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "6.6.0"
+version = "6.7.0"
 edition = "2021"
 
 [profile.release]
@@ -15,5 +15,5 @@ lto = false
 opt-level = 3
 
 [workspace.dependencies]
-swc_core = { version = "66.0.3", default-features = false }
-insta = { version = "1.47.2", features = ["serde"] }
+swc_core = { version = "77.1.1", default-features = false }
+insta = { version = "1.48.0", features = ["serde"] }
