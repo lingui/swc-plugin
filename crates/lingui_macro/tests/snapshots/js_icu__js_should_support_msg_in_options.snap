@@ -1,0 +1,20 @@
+---
+source: crates/lingui_macro/tests/js_icu.rs
+---
+import { plural, msg } from '@lingui/macro'
+const message = plural(count, {
+   one: msg`${name} has ${count} friend`,
+   other: msg`${name} has {count} friends`
+})
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+const message = $_i18n._(/*i18n*/ {
+    id: "tK7kAV",
+    message: "{count, plural, one {{name} has {count} friend} other {{name} has {count} friends}}",
+    values: {
+        count: count,
+        name: name
+    }
+});

@@ -1,0 +1,13 @@
+---
+source: crates/lingui_macro/tests/js_t.rs
+---
+import { t, msg } from '@lingui/core/macro';
+t`Field ${msg`First Name`} is required`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+$_i18n._(/*i18n*/ {
+    id: "-nmgWY",
+    message: "Field First Name is required"
+});

@@ -109,64 +109,6 @@ to!(
 );
 
 to!(
-    jsx_explicit_labels_with_as_statement,
-    r#"
-       import { Trans } from "@lingui/react/macro";
-       <Trans>Refresh {{foo} as unknown as string} inbox</Trans>;
-       "#
-);
-
-to!(
-    jsx_explicit_labels,
-    r#"
-       import { Trans } from "@lingui/react/macro";
-
-       <Trans>Refresh {{foo}} inbox</Trans>;
-       <Trans>Refresh {{foo: foo.bar}} inbox</Trans>;
-       <Trans>Refresh {{foo: expr()}} inbox</Trans>;
-       <Trans>Refresh {{foo: bar, baz: qux}} inbox</Trans>;
-       <Trans>Refresh {{}} inbox</Trans>;
-       <Trans>Refresh {{...spread}} inbox</Trans>;
-     "#
-);
-
-to!(
-    jsx_ph_labels,
-    r#"
-       import { Trans, ph } from "@lingui/react/macro";
-
-       <Trans>Refresh {ph({foo})} inbox</Trans>;
-       <Trans>Refresh {ph({foo: foo.bar})} inbox</Trans>;
-       <Trans>Refresh {ph({foo: expr()})} inbox</Trans>;
-       <Trans>Refresh {ph({foo: bar, baz: qux})} inbox</Trans>;
-       <Trans>Refresh {ph({})} inbox</Trans>;
-       <Trans>Refresh {ph({...spread})} inbox</Trans>;
-     "#
-);
-
-to!(
-    jsx_ph_label_with_nested_plural,
-    r##"
-       import { Trans, Plural, ph } from "@lingui/react/macro";
-
-       const zones = [1, 2]
-       const x = <Trans id="key">
-         {ph({ available: 1 })} of <Plural value={zones.length} one="# zone" other="# zones" /> available
-       </Trans>
-     "##
-);
-
-to!(
-    jsx_nested_labels,
-    r#"
-       import { Trans, ph } from "@lingui/react/macro";
-
-       <Trans>Refresh <span>{{foo}}</span> inbox</Trans>;
-       <Trans>Refresh <span>{ph({foo})}</span> inbox</Trans>;
-     "#
-);
-
-to!(
     jsx_template_literal_in_children,
     r#"
        import { Trans } from "@lingui/react/macro";

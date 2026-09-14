@@ -1,0 +1,14 @@
+---
+source: crates/lingui_macro/tests/labeled_expressions.rs
+info: {}
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Refresh {{foo: bar, baz: qux}} inbox</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Incorrect usage of a labeled expression. Expected exactly one property as `{variableName: variableValue}`.
+ --> input.tsx:2:17
+  |
+2 | <Trans>Refresh {{foo: bar, baz: qux}} inbox</Trans>;
+  |                 ^^^^^^^^^^^^^^^^^^^^

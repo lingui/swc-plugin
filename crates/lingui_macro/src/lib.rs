@@ -9,7 +9,7 @@ use swc_core::{
     ecma::{
         ast::*,
         utils::quote_ident,
-        visit::{Fold, FoldWith, VisitWith},
+        visit::{Fold, FoldWith},
     },
     plugin::{
         metadata::TransformPluginMetadataContextKind, plugin_transform,
@@ -57,7 +57,7 @@ where
     C: Comments + Clone,
 {
     has_lingui_macro_imports: bool,
-    ctx: MacroCtx,
+    ctx: TransformCtx,
     comments: Option<C>,
     source_map: Lrc<dyn SourceMapper>,
 }
@@ -73,7 +73,7 @@ where
     ) -> LinguiMacroFolder<C> {
         LinguiMacroFolder {
             has_lingui_macro_imports: false,
-            ctx: MacroCtx::new(options),
+            ctx: TransformCtx::new(options),
             comments,
             source_map,
         }
@@ -103,7 +103,8 @@ where
     // <Trans>Message</Trans>
     // <Plural />
     fn transform_jsx_macro(&mut self, el: JSXElement, is_trans_el: bool) -> JSXElement {
-        let mut trans_visitor = TransJSXVisitor::new(&self.ctx);
+        let mut macro_ctx = MacroCtx::new(&mut self.ctx);
+        let mut trans_visitor = TransJSXVisitor::new(&mut macro_ctx);
 
         let message_dscrptr_span: Span;
 
@@ -134,14 +135,14 @@ where
         if is_trans_el {
             // Trans
             message_dscrptr_span = el.children.first().span();
-            el.children.visit_children_with(&mut trans_visitor);
+            trans_visitor.visit_jsx_children(&el.children);
         } else {
             let value_attr =
                 get_jsx_attr(&el.opening, "value").and_then(|attr| attr.value.as_ref());
 
             // <Plural />, etc
             message_dscrptr_span = value_attr.span();
-            el.visit_children_with(&mut trans_visitor);
+            trans_visitor.visit_jsx_opening_element(&el.opening);
         }
 
         let parsed = MessageBuilder::parse(trans_visitor.tokens, &self.ctx.options);

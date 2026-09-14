@@ -21,8 +21,8 @@ const messagePlural = $_i18n._(/*i18n*/ {
     message: "{count, plural, one {{0}} other {{variable}}}",
     values: {
         count: count,
-        variable: variable,
-        0: foo.bar
+        0: foo.bar,
+        variable: variable
     }
 });
 const messageSelect = $_i18n._(/*i18n*/ {

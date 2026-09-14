@@ -50,45 +50,6 @@ to!(
 );
 
 to!(
-    js_explicit_labels_in_tpl_literal,
-    r#"
-   import { t } from "@lingui/core/macro";
-
-   t`Refresh ${{foo}} inbox`
-   t`Refresh ${{foo: foo.bar}} inbox`
-   t`Refresh ${{foo: expr()}} inbox`
-   t`Refresh ${{foo: bar, baz: qux}} inbox`
-   t`Refresh ${{}} inbox`
-   t`Refresh ${{...spread}} inbox`
-   "#
-);
-
-to!(
-    js_ph_labels_in_tpl_literal,
-    r#"
-  import { t, ph } from "@lingui/core/macro";
-
-  t`Refresh ${ph({foo})} inbox`
-  t`Refresh ${ph({foo: foo.bar})} inbox`
-  t`Refresh ${ph({foo: expr()})} inbox`
-  t`Refresh ${ph({foo: bar, baz: qux})} inbox`
-  t`Refresh ${ph({})} inbox`
-  t`Refresh ${ph({...spread})} inbox`
-  "#
-);
-
-to!(
-    js_choice_labels_in_tpl_literal,
-    r##"
-  import { t, ph, plural, select, selectOrdinal } from "@lingui/core/macro";
-
-  t`We have ${plural({count: getDevelopersCount()}, {one: "# developer", other: "# developers"})}`
-  t`${select(gender, {male: "he", female: "she", other: "they"})}`
-  t`${selectOrdinal(count, {one: "#st", two: "#nd", few: "#rd", other: "#th"})}`
-  "##
-);
-
-to!(
     js_custom_i18n_passed,
     r#"
      import { t } from "@lingui/core/macro";
@@ -265,5 +226,55 @@ to!(
     r#"
      import { t } from '@lingui/core/macro'
      t`Hello World`
+     "#
+);
+
+// TS-only expression wrappers unwrap to a named placeholder (parity with `as`),
+// matching @lingui/babel-plugin-lingui-macro (see lingui/js-lingui#2622).
+to!(
+    js_non_null_assertion_gets_named_placeholder,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Variable ${name!}`;
+     "#
+);
+
+to!(
+    js_satisfies_gets_named_placeholder,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Variable ${name satisfies string}`;
+     "#
+);
+
+to!(
+    js_t_nested_t_tagged_tpl,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Outer ${t`Hello ${name}`} end`
+     "#
+);
+
+to!(
+    js_t_nested_msg_tagged_tpl,
+    r#"
+     import { t, msg } from '@lingui/core/macro';
+     t`Field ${msg`First Name`} is required`
+     "#
+);
+
+to!(
+    js_t_call_with_msg_tagged_tpl_message,
+    r#"
+     import { t, msg } from '@lingui/core/macro';
+     const message = t({ message: msg`Hello ${name}` })
+     "#
+);
+
+to!(
+    js_t_unknown_tagged_tpl_nested,
+    r#"
+     import { t } from '@lingui/core/macro';
+     t`Field ${aaa`First Name`} is required`
      "#
 );

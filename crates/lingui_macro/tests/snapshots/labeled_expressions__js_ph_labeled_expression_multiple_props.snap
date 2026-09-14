@@ -1,0 +1,14 @@
+---
+source: crates/lingui_macro/tests/labeled_expressions.rs
+info: {}
+---
+import { t, ph } from "@lingui/core/macro";
+t`Refresh ${ph({foo: bar, baz: qux})} inbox`
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Incorrect usage of a labeled expression. Expected exactly one property as `{variableName: variableValue}`.
+ --> input.tsx:2:16
+  |
+2 | t`Refresh ${ph({foo: bar, baz: qux})} inbox`
+  |                ^^^^^^^^^^^^^^^^^^^^

@@ -142,3 +142,14 @@ to!(
         });
      "#
 );
+
+to!(
+    js_should_support_msg_in_options,
+    r#"
+        import { plural, msg } from '@lingui/macro'
+        const message = plural(count, {
+           one: msg`${name} has ${count} friend`,
+           other: msg`${name} has {count} friends`
+        })
+     "#
+);

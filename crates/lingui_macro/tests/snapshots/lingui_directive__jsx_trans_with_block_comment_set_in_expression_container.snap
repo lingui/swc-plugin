@@ -1,0 +1,22 @@
+---
+source: crates/lingui_macro/tests/lingui_directive.rs
+---
+import { Trans } from "@lingui/react/macro";
+const el = (
+  <div>
+    {/* lingui-set context="section" */}
+    <Trans>Title</Trans>
+  </div>
+);
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+const el = <div>
+    { /* lingui-set context="section" */ }
+    <Trans_ {.../*i18n*/ {
+    id: "OcRjns",
+    message: "Title",
+    context: "section"
+}}/>
+  </div>;

@@ -5,8 +5,8 @@
     "outDir": "./dist",
     "rootDir": "./src-js",
     "declaration": true,
-    "module": "esnext",
-    "moduleResolution": "bundler"
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
   },
   "include": [
     "src-js"

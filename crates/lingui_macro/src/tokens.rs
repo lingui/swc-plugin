@@ -3,10 +3,17 @@ use swc_core::ecma::atoms::Atom;
 
 pub enum MsgToken {
     String(String),
-    Expression(Box<Expr>),
+    Arg(MsgArg),
     TagOpening(TagOpening),
     TagClosing,
-    IcuChoice(IcuChoice),
+}
+
+pub struct MsgArg {
+    pub name: String,
+    pub value: Box<Expr>,
+    /// plural | select | selectordinal
+    pub format: Option<Atom>,
+    pub cases: Option<Vec<CaseOrOffset>>,
 }
 
 pub struct TagOpening {
@@ -14,28 +21,12 @@ pub struct TagOpening {
     pub el: JSXOpeningElement,
 }
 
-pub struct IcuChoice {
-    pub value: Box<Expr>,
-    /// plural | select | selectOrdinal
-    pub format: Atom,
-    pub cases: Vec<CaseOrOffset>,
-}
-
 pub enum CaseOrOffset {
     Case(ChoiceCase),
     Offset(String),
 }
+
 pub struct ChoiceCase {
     pub key: Atom,
     pub tokens: Vec<MsgToken>,
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::{*};
-//
-//     #[test]
-//     fn test_normalize_whitespaces() {
-//
-//     }
-// }
