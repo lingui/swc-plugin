@@ -1182,7 +1182,7 @@ dependencies = [
 
 [[package]]
 name = "lingui_extractor"
-version = "6.4.0"
+version = "6.6.0"
 dependencies = [
  "data-encoding",
  "lingui_macro",
