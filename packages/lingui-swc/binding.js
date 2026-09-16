@@ -70,15 +70,15 @@ function requireNative() {
   } else if (process.platform === 'android') {
     if (process.arch === 'arm64') {
       try {
-        return require('./lingui-swc.android-arm64.node')
+        return require('./lingui-native-tools.android-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-android-arm64')
-        const bindingPackageVersion = require('lingui-swc-android-arm64/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-android-arm64')
+        const bindingPackageVersion = require('@lingui/native-tools-android-arm64/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -86,15 +86,15 @@ function requireNative() {
       }
     } else if (process.arch === 'arm') {
       try {
-        return require('./lingui-swc.android-arm-eabi.node')
+        return require('./lingui-native-tools.android-arm-eabi.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-android-arm-eabi')
-        const bindingPackageVersion = require('lingui-swc-android-arm-eabi/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-android-arm-eabi')
+        const bindingPackageVersion = require('@lingui/native-tools-android-arm-eabi/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -107,15 +107,15 @@ function requireNative() {
     if (process.arch === 'x64') {
       if (process.config?.variables?.shlib_suffix === 'dll.a' || process.config?.variables?.node_target_type === 'shared_library') {
         try {
-        return require('./lingui-swc.win32-x64-gnu.node')
+        return require('./lingui-native-tools.win32-x64-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-win32-x64-gnu')
-        const bindingPackageVersion = require('lingui-swc-win32-x64-gnu/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-win32-x64-gnu')
+        const bindingPackageVersion = require('@lingui/native-tools-win32-x64-gnu/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -123,15 +123,15 @@ function requireNative() {
       }
       } else {
         try {
-        return require('./lingui-swc.win32-x64-msvc.node')
+        return require('./lingui-native-tools.win32-x64-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-win32-x64-msvc')
-        const bindingPackageVersion = require('lingui-swc-win32-x64-msvc/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-win32-x64-msvc')
+        const bindingPackageVersion = require('@lingui/native-tools-win32-x64-msvc/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -140,15 +140,15 @@ function requireNative() {
       }
     } else if (process.arch === 'ia32') {
       try {
-        return require('./lingui-swc.win32-ia32-msvc.node')
+        return require('./lingui-native-tools.win32-ia32-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-win32-ia32-msvc')
-        const bindingPackageVersion = require('lingui-swc-win32-ia32-msvc/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-win32-ia32-msvc')
+        const bindingPackageVersion = require('@lingui/native-tools-win32-ia32-msvc/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -156,15 +156,15 @@ function requireNative() {
       }
     } else if (process.arch === 'arm64') {
       try {
-        return require('./lingui-swc.win32-arm64-msvc.node')
+        return require('./lingui-native-tools.win32-arm64-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-win32-arm64-msvc')
-        const bindingPackageVersion = require('lingui-swc-win32-arm64-msvc/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-win32-arm64-msvc')
+        const bindingPackageVersion = require('@lingui/native-tools-win32-arm64-msvc/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -175,15 +175,15 @@ function requireNative() {
     }
   } else if (process.platform === 'darwin') {
     try {
-      return require('./lingui-swc.darwin-universal.node')
+      return require('./lingui-native-tools.darwin-universal.node')
     } catch (e) {
       loadErrors.push(e)
     }
     try {
-      const binding = require('lingui-swc-darwin-universal')
-      const bindingPackageVersion = require('lingui-swc-darwin-universal/package.json').version
-      if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-        throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+      const binding = require('@lingui/native-tools-darwin-universal')
+      const bindingPackageVersion = require('@lingui/native-tools-darwin-universal/package.json').version
+      if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+        throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
       }
       return binding
     } catch (e) {
@@ -191,15 +191,15 @@ function requireNative() {
     }
     if (process.arch === 'x64') {
       try {
-        return require('./lingui-swc.darwin-x64.node')
+        return require('./lingui-native-tools.darwin-x64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-darwin-x64')
-        const bindingPackageVersion = require('lingui-swc-darwin-x64/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-darwin-x64')
+        const bindingPackageVersion = require('@lingui/native-tools-darwin-x64/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -207,15 +207,15 @@ function requireNative() {
       }
     } else if (process.arch === 'arm64') {
       try {
-        return require('./lingui-swc.darwin-arm64.node')
+        return require('./lingui-native-tools.darwin-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-darwin-arm64')
-        const bindingPackageVersion = require('lingui-swc-darwin-arm64/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-darwin-arm64')
+        const bindingPackageVersion = require('@lingui/native-tools-darwin-arm64/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -227,15 +227,15 @@ function requireNative() {
   } else if (process.platform === 'freebsd') {
     if (process.arch === 'x64') {
       try {
-        return require('./lingui-swc.freebsd-x64.node')
+        return require('./lingui-native-tools.freebsd-x64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-freebsd-x64')
-        const bindingPackageVersion = require('lingui-swc-freebsd-x64/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-freebsd-x64')
+        const bindingPackageVersion = require('@lingui/native-tools-freebsd-x64/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -243,15 +243,15 @@ function requireNative() {
       }
     } else if (process.arch === 'arm64') {
       try {
-        return require('./lingui-swc.freebsd-arm64.node')
+        return require('./lingui-native-tools.freebsd-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-freebsd-arm64')
-        const bindingPackageVersion = require('lingui-swc-freebsd-arm64/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-freebsd-arm64')
+        const bindingPackageVersion = require('@lingui/native-tools-freebsd-arm64/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -264,15 +264,15 @@ function requireNative() {
     if (process.arch === 'x64') {
       if (isMusl()) {
         try {
-          return require('./lingui-swc.linux-x64-musl.node')
+          return require('./lingui-native-tools.linux-x64-musl.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-x64-musl')
-          const bindingPackageVersion = require('lingui-swc-linux-x64-musl/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-x64-musl')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-x64-musl/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -280,15 +280,15 @@ function requireNative() {
         }
       } else {
         try {
-          return require('./lingui-swc.linux-x64-gnu.node')
+          return require('./lingui-native-tools.linux-x64-gnu.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-x64-gnu')
-          const bindingPackageVersion = require('lingui-swc-linux-x64-gnu/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-x64-gnu')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-x64-gnu/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -298,15 +298,15 @@ function requireNative() {
     } else if (process.arch === 'arm64') {
       if (isMusl()) {
         try {
-          return require('./lingui-swc.linux-arm64-musl.node')
+          return require('./lingui-native-tools.linux-arm64-musl.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-arm64-musl')
-          const bindingPackageVersion = require('lingui-swc-linux-arm64-musl/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-arm64-musl')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-arm64-musl/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -314,15 +314,15 @@ function requireNative() {
         }
       } else {
         try {
-          return require('./lingui-swc.linux-arm64-gnu.node')
+          return require('./lingui-native-tools.linux-arm64-gnu.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-arm64-gnu')
-          const bindingPackageVersion = require('lingui-swc-linux-arm64-gnu/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-arm64-gnu')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-arm64-gnu/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -332,15 +332,15 @@ function requireNative() {
     } else if (process.arch === 'arm') {
       if (isMusl()) {
         try {
-          return require('./lingui-swc.linux-arm-musleabihf.node')
+          return require('./lingui-native-tools.linux-arm-musleabihf.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-arm-musleabihf')
-          const bindingPackageVersion = require('lingui-swc-linux-arm-musleabihf/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-arm-musleabihf')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-arm-musleabihf/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -348,15 +348,15 @@ function requireNative() {
         }
       } else {
         try {
-          return require('./lingui-swc.linux-arm-gnueabihf.node')
+          return require('./lingui-native-tools.linux-arm-gnueabihf.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-arm-gnueabihf')
-          const bindingPackageVersion = require('lingui-swc-linux-arm-gnueabihf/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-arm-gnueabihf')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-arm-gnueabihf/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -366,15 +366,15 @@ function requireNative() {
     } else if (process.arch === 'loong64') {
       if (isMusl()) {
         try {
-          return require('./lingui-swc.linux-loong64-musl.node')
+          return require('./lingui-native-tools.linux-loong64-musl.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-loong64-musl')
-          const bindingPackageVersion = require('lingui-swc-linux-loong64-musl/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-loong64-musl')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-loong64-musl/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -382,15 +382,15 @@ function requireNative() {
         }
       } else {
         try {
-          return require('./lingui-swc.linux-loong64-gnu.node')
+          return require('./lingui-native-tools.linux-loong64-gnu.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-loong64-gnu')
-          const bindingPackageVersion = require('lingui-swc-linux-loong64-gnu/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-loong64-gnu')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-loong64-gnu/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -400,15 +400,15 @@ function requireNative() {
     } else if (process.arch === 'riscv64') {
       if (isMusl()) {
         try {
-          return require('./lingui-swc.linux-riscv64-musl.node')
+          return require('./lingui-native-tools.linux-riscv64-musl.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-riscv64-musl')
-          const bindingPackageVersion = require('lingui-swc-linux-riscv64-musl/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-riscv64-musl')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-riscv64-musl/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -416,15 +416,15 @@ function requireNative() {
         }
       } else {
         try {
-          return require('./lingui-swc.linux-riscv64-gnu.node')
+          return require('./lingui-native-tools.linux-riscv64-gnu.node')
         } catch (e) {
           loadErrors.push(e)
         }
         try {
-          const binding = require('lingui-swc-linux-riscv64-gnu')
-          const bindingPackageVersion = require('lingui-swc-linux-riscv64-gnu/package.json').version
-          if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-            throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+          const binding = require('@lingui/native-tools-linux-riscv64-gnu')
+          const bindingPackageVersion = require('@lingui/native-tools-linux-riscv64-gnu/package.json').version
+          if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+            throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
           }
           return binding
         } catch (e) {
@@ -433,15 +433,15 @@ function requireNative() {
       }
     } else if (process.arch === 'ppc64') {
       try {
-        return require('./lingui-swc.linux-ppc64-gnu.node')
+        return require('./lingui-native-tools.linux-ppc64-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-linux-ppc64-gnu')
-        const bindingPackageVersion = require('lingui-swc-linux-ppc64-gnu/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-linux-ppc64-gnu')
+        const bindingPackageVersion = require('@lingui/native-tools-linux-ppc64-gnu/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -449,15 +449,15 @@ function requireNative() {
       }
     } else if (process.arch === 's390x') {
       try {
-        return require('./lingui-swc.linux-s390x-gnu.node')
+        return require('./lingui-native-tools.linux-s390x-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-linux-s390x-gnu')
-        const bindingPackageVersion = require('lingui-swc-linux-s390x-gnu/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-linux-s390x-gnu')
+        const bindingPackageVersion = require('@lingui/native-tools-linux-s390x-gnu/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -469,15 +469,15 @@ function requireNative() {
   } else if (process.platform === 'openharmony') {
     if (process.arch === 'arm64') {
       try {
-        return require('./lingui-swc.openharmony-arm64.node')
+        return require('./lingui-native-tools.openharmony-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-openharmony-arm64')
-        const bindingPackageVersion = require('lingui-swc-openharmony-arm64/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-openharmony-arm64')
+        const bindingPackageVersion = require('@lingui/native-tools-openharmony-arm64/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -485,15 +485,15 @@ function requireNative() {
       }
     } else if (process.arch === 'x64') {
       try {
-        return require('./lingui-swc.openharmony-x64.node')
+        return require('./lingui-native-tools.openharmony-x64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-openharmony-x64')
-        const bindingPackageVersion = require('lingui-swc-openharmony-x64/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-openharmony-x64')
+        const bindingPackageVersion = require('@lingui/native-tools-openharmony-x64/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -501,15 +501,15 @@ function requireNative() {
       }
     } else if (process.arch === 'arm') {
       try {
-        return require('./lingui-swc.openharmony-arm.node')
+        return require('./lingui-native-tools.openharmony-arm.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        const binding = require('lingui-swc-openharmony-arm')
-        const bindingPackageVersion = require('lingui-swc-openharmony-arm/package.json').version
-        if (bindingPackageVersion !== '0.9.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
-          throw new Error(`Native binding package version mismatch, expected 0.9.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
+        const binding = require('@lingui/native-tools-openharmony-arm')
+        const bindingPackageVersion = require('@lingui/native-tools-openharmony-arm/package.json').version
+        if (bindingPackageVersion !== '0.10.0' && process.env.NAPI_RS_ENFORCE_VERSION_CHECK && process.env.NAPI_RS_ENFORCE_VERSION_CHECK !== '0') {
+          throw new Error(`Native binding package version mismatch, expected 0.10.0 but got ${bindingPackageVersion}. You can reinstall dependencies to fix this issue.`)
         }
         return binding
       } catch (e) {
@@ -529,7 +529,7 @@ if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
   let wasiBinding = null
   let wasiBindingError = null
   try {
-    wasiBinding = require('./lingui-swc.wasi.cjs')
+    wasiBinding = require('./lingui-native-tools.wasi.cjs')
     nativeBinding = wasiBinding
   } catch (err) {
     if (process.env.NAPI_RS_FORCE_WASI) {
@@ -538,7 +538,7 @@ if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
   }
   if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
     try {
-      wasiBinding = require('lingui-swc-wasm32-wasi')
+      wasiBinding = require('@lingui/native-tools-wasm32-wasi')
       nativeBinding = wasiBinding
     } catch (err) {
       if (process.env.NAPI_RS_FORCE_WASI) {
