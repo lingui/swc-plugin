@@ -1,5 +1,8 @@
 [workspace]
-members = ["crates/*"]
+members = [
+  "crates/*",
+  "./packages/lingui-swc",
+]
 resolver = "2"
 
 [workspace.package]
