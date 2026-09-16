@@ -1113,7 +1113,6 @@ name = "lingui_swc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "data-encoding",
  "lingui_extractor",
  "lingui_macro",
  "napi",

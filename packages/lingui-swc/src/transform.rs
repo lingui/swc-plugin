@@ -1,5 +1,4 @@
-use data_encoding::BASE64;
-use lingui_extractor::detect_parser_config;
+use lingui_extractor::{detect_parser_config, extract_inline_sourcemap};
 use lingui_macro::{LinguiJsOptions, LinguiMacroFolder, LinguiOptions};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
@@ -64,29 +63,6 @@ struct TransformOptionsInternal {
   pub macro_options: Option<LinguiJsOptions>,
   #[serde(default)]
   pub source_maps: SourceMapsOption,
-}
-
-fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {
-  let source_mapping_prefix = "sourceMappingURL=";
-
-  if let Some(idx) = source_code.rfind(source_mapping_prefix) {
-    let url_part = &source_code[idx + source_mapping_prefix.len()..];
-    let url = url_part.lines().next().unwrap_or(url_part).trim();
-
-    if url.starts_with("data:application/json;base64,") {
-      if let Some(base64_start) = url.find("base64,") {
-        let base64_content = &url[base64_start + "base64,".len()..].trim();
-
-        if let Ok(decoded) = BASE64.decode(base64_content.as_bytes()) {
-          if let Ok(source_map) = sourcemap::SourceMap::from_slice(&decoded) {
-            return Some(source_map);
-          }
-        }
-      }
-    }
-  }
-
-  None
 }
 
 fn do_transform(
