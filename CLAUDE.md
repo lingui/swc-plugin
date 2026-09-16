@@ -11,7 +11,7 @@ Monorepo for [LinguiJS](https://lingui.dev) Rust/SWC-based tooling. Contains two
 
 Published npm packages:
 - `packages/lingui-macro` (`@lingui/swc-plugin`) — ships the compiled WASM binary for the macro transform.
-- `packages/lingui-swc` (`lingui-swc`) — NAPI-RS native Node.js binding for the extractor.
+- `packages/lingui-swc` (`@lingui/native-tools`) — NAPI-RS native Node.js binding: message extractor and standalone macro transformer.
 
 ## Repository Structure
 
@@ -21,7 +21,7 @@ Published npm packages:
 │   └── lingui_extractor/   # Message extractor library (depends on lingui_macro)
 ├── packages/
 │   ├── lingui-macro/       # npm package wrapping the WASM binary
-│   └── lingui-swc/         # NAPI-RS Node.js binding for the extractor
+│   └── lingui-swc/         # NAPI-RS Node.js binding (@lingui/native-tools)
 ├── Cargo.toml              # Workspace root (members: crates/*, packages/lingui-swc)
 └── package.json            # Yarn workspaces root (packages/*)
 ```
@@ -87,7 +87,7 @@ AST visitor that walks source files and collects message descriptors (id, messag
 
 ### packages/lingui-swc
 
-NAPI-RS native Node.js addon that wraps `lingui_extractor`. Provides a JS-callable interface for extracting messages from source files. Built with `@napi-rs/cli`.
+NAPI-RS native Node.js addon published as `@lingui/native-tools`. Wraps `lingui_extractor` (`extractMessages`, `extractMessagesFromFiles`, `createSwcExtractor`) and exposes a standalone macro `transform()` built on `lingui_macro` (`src/transform.rs`). Built with `@napi-rs/cli`.
 
 ## Testing
 
@@ -116,8 +116,8 @@ Uses Vitest. Tests live in `packages/lingui-swc/__test__/`.
 
 ## Toolchain
 
-- Rust nightly (pinned in `___rust-toolchain.toml`)
+- Rust 1.98 (stable) pinned in `rust-toolchain.toml`; the native crates need at least 1.88 (`napi` MSRV)
 - WASM target: `wasm32-wasip1` (aliased as `cargo build-wasi` in `.cargo/config.toml`)
-- SWC core v56 (`swc_core` workspace dependency)
+- SWC core v77.1.1 (`swc_core` workspace dependency)
 - Node v22, Yarn v4 with workspaces
 - NAPI-RS v3 for native Node.js bindings

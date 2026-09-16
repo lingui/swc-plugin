@@ -12,7 +12,7 @@ Rust tooling for [Lingui](https://lingui.dev) i18n - compiles to WebAssembly and
 
 ## Overview
 
-This monorepo hosts the Rust-based tooling for [Lingui](https://lingui.dev). Its flagship is an SWC plugin that transforms `@lingui/macro` and `@lingui/react/macro` calls into optimized i18n runtime code at build time - a faster, Rust-powered alternative to the Babel macro.
+This monorepo hosts the Rust-based tooling for [Lingui](https://lingui.dev). It ships an SWC plugin that transforms `@lingui/macro` and `@lingui/react/macro` calls into optimized i18n runtime code at build time - a faster, Rust-powered alternative to the Babel macro.
 
 ## Packages
 
@@ -29,6 +29,16 @@ SWC macro transform plugin for Lingui. Transforms `@lingui/macro` and `@lingui/r
 - Installation, usage & options - [`@lingui/swc-plugin` README](./packages/lingui-macro/README.md)
 - `swc_core` compatibility table - [Compatibility](./packages/lingui-macro/README.md#compatibility)
 - [Lingui macro reference](https://lingui.dev/ref/macro)
+
+### [`@lingui/native-tools`](./packages/lingui-swc/)
+
+[![CI](https://github.com/lingui/swc-plugin/actions/workflows/ci-lingui-swc.yml/badge.svg?branch=main)](https://github.com/lingui/swc-plugin/actions/workflows/ci-lingui-swc.yml)
+
+Native Node.js addon (NAPI-RS) with a Rust message extractor and a standalone macro transformer. Provides `createSwcExtractor()` for `lingui extract` and `transform()` for custom build pipelines that only need the Lingui macro step.
+
+#### Documentation
+
+- Usage & options - [`@lingui/native-tools` README](./packages/lingui-swc/README.md)
 
 ## Contributing
 
