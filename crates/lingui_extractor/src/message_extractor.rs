@@ -20,8 +20,7 @@ use swc_sourcemap as sourcemap;
 
 /// Extract inline source map from source code
 /// Looks for sourceMappingURL comments with inline base64 data
-fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {
-    // get_compiler().transform()
+pub fn extract_inline_sourcemap(source_code: &str) -> Option<sourcemap::SourceMap> {
     // Look for sourceMappingURL comment (typically at the end of the file)
     let source_mapping_prefix = "sourceMappingURL=";
 

@@ -1,19 +1,20 @@
 {
-  "name": "lingui-swc",
+  "name": "@lingui/native-tools",
   "version": "0.10.0",
-  "description": "Lingui Extractor Implementation using Rust and SWC",
+  "description": "Native (Rust + SWC) Lingui tooling: message extractor and standalone macro transformer",
   "license": "MIT",
   "repository": {
-    "url": "https://github.com/timofei-iatsenko/lingui-rust-tools.git",
-    "directory": "packages/lingui-swc"
+    "type": "git",
+    "url": "https://github.com/lingui/swc-plugin.git",
+    "directory": "packages/native-tools"
   },
   "keywords": [
-    "napi-rs",
-    "NAPI",
-    "N-API",
-    "Rust",
-    "node-addon",
-    "node-addon-api"
+    "lingui",
+    "i18n",
+    "swc",
+    "extractor",
+    "macro",
+    "napi-rs"
   ],
   "files": [
     "binding.d.ts",
@@ -21,10 +22,13 @@
     "dist"
   ],
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "napi": {
-    "binaryName": "lingui-swc",
+    "binaryName": "lingui-native-tools",
     "targets": [
       "x86_64-apple-darwin",
       "x86_64-pc-windows-msvc",
@@ -38,7 +42,7 @@
     ]
   },
   "engines": {
-    "node": ">= 12.22.0 < 13 || >= 14.17.0 < 15 || >= 15.12.0 < 16 || >= 16.0.0"
+    "node": ">=22.19.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
@@ -46,7 +50,6 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "bench": "node --import @oxc-node/core/register benchmark/bench.ts",
     "build": "napi build --platform --release --js ./binding.js --dts ./binding.d.ts",
     "build:ts": "tsc",
     "build:debug": "napi build --platform",
@@ -61,20 +64,21 @@
     "version": "napi version"
   },
   "dependencies": {
-    "@lingui/conf": "^6.0.1",
     "@swc/types": "^0.1.25"
+  },
+  "peerDependencies": {
+    "@lingui/conf": "^6.0.1"
   },
   "devDependencies": {
     "@emnapi/core": "^1.8.1",
     "@emnapi/runtime": "^1.8.1",
+    "@lingui/conf": "^6.0.1",
     "@napi-rs/cli": "^3.5.1",
-    "@oxc-node/core": "^0.0.35",
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.0",
     "@types/node": "^24.1.0",
     "oxlint": "^1.14.0",
     "prettier": "^3.6.2",
-    "tinybench": "^6.0.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }

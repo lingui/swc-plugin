@@ -1,0 +1,7 @@
+# napi-rs build outputs
+*.node
+*.wasm
+/npm
+/artifacts
+/dist
+/target

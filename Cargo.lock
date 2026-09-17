@@ -1109,11 +1109,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "lingui_swc"
+name = "lingui_native_tools"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "data-encoding",
  "lingui_extractor",
  "lingui_macro",
  "napi",

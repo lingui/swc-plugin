@@ -11,7 +11,7 @@ Monorepo for [LinguiJS](https://lingui.dev) Rust/SWC-based tooling. Contains two
 
 Published npm packages:
 - `packages/lingui-macro` (`@lingui/swc-plugin`) — ships the compiled WASM binary for the macro transform.
-- `packages/lingui-swc` (`lingui-swc`) — NAPI-RS native Node.js binding for the extractor.
+- `packages/native-tools` (`@lingui/native-tools`) — NAPI-RS native Node.js binding: message extractor and standalone macro transformer.
 
 ## Repository Structure
 
@@ -21,8 +21,8 @@ Published npm packages:
 │   └── lingui_extractor/   # Message extractor library (depends on lingui_macro)
 ├── packages/
 │   ├── lingui-macro/       # npm package wrapping the WASM binary
-│   └── lingui-swc/         # NAPI-RS Node.js binding for the extractor
-├── Cargo.toml              # Workspace root (members: crates/*, packages/lingui-swc)
+│   └── native-tools/       # NAPI-RS Node.js binding (@lingui/native-tools)
+├── Cargo.toml              # Workspace root (members: crates/*, packages/native-tools)
 └── package.json            # Yarn workspaces root (packages/*)
 ```
 
@@ -54,14 +54,14 @@ UPDATE=1 cargo test -p lingui_extractor
 # === WASM build (lingui_macro plugin) ===
 cargo build-wasi --release    # alias defined in .cargo/config.toml
 
-# === NAPI-RS build (lingui-swc) ===
-cd packages/lingui-swc && yarn build
+# === NAPI-RS build (native-tools) ===
+cd packages/native-tools && yarn build
 
 # === E2E tests (lingui-macro npm package) ===
 cd packages/lingui-macro && yarn test:e2e
 
-# === lingui-swc tests ===
-cd packages/lingui-swc && yarn test
+# === native-tools tests ===
+cd packages/native-tools && yarn test
 ```
 
 ## Architecture
@@ -85,9 +85,9 @@ The plugin follows SWC's AST visitor pattern using the `Fold` trait for recursiv
 
 AST visitor that walks source files and collects message descriptors (id, message, context) using the same parsing logic from `lingui_macro`. Exposes its API via `napi-derive` for consumption by the NAPI binding.
 
-### packages/lingui-swc
+### packages/native-tools
 
-NAPI-RS native Node.js addon that wraps `lingui_extractor`. Provides a JS-callable interface for extracting messages from source files. Built with `@napi-rs/cli`.
+NAPI-RS native Node.js addon published as `@lingui/native-tools`. Wraps `lingui_extractor` (`extractMessages`, `extractMessagesFromFiles`, `createSwcExtractor`) and exposes a standalone macro `transform()` built on `lingui_macro` (`src/transform.rs`). Built with `@napi-rs/cli`.
 
 ## Testing
 
@@ -106,9 +106,9 @@ To update snapshots use `INSTA_UPDATE=always cargo test` or `cargo insta test --
 
 Uses a custom snapshot mechanism (not insta). Fixtures live in `crates/lingui_extractor/tests/fixtures/`, snapshots in `crates/lingui_extractor/tests/__snapshots__/` (JSON files). To update snapshots: `UPDATE=1 cargo test -p lingui_extractor`.
 
-### JS (packages/lingui-swc)
+### JS (packages/native-tools)
 
-Uses Vitest. Tests live in `packages/lingui-swc/__test__/`.
+Uses Vitest. Tests live in `packages/native-tools/__test__/`.
 
 ## Reference
 
@@ -116,8 +116,8 @@ Uses Vitest. Tests live in `packages/lingui-swc/__test__/`.
 
 ## Toolchain
 
-- Rust nightly (pinned in `___rust-toolchain.toml`)
+- Rust 1.98 (stable) pinned in `rust-toolchain.toml`; the native crates need at least 1.88 (`napi` MSRV)
 - WASM target: `wasm32-wasip1` (aliased as `cargo build-wasi` in `.cargo/config.toml`)
-- SWC core v56 (`swc_core` workspace dependency)
+- SWC core v77.1.1 (`swc_core` workspace dependency)
 - Node v22, Yarn v4 with workspaces
 - NAPI-RS v3 for native Node.js bindings

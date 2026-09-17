@@ -1,21 +1,18 @@
-name: CI - Lingui SWC
+name: CI - Native Tools
 env:
   DEBUG: napi:*
-  APP_NAME: lingui-swc
+  APP_NAME: lingui-native-tools
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
 on:
-  #  push:
-  #    branches:
-  #      - main
-  #    tags-ignore:
-  #      - '**'
-  #    paths-ignore:
-  #      - '**/*.md'
-  #      - LICENSE
-  #      - '**/*.gitignore'
-  #      - .editorconfig
-  #      - docs/**
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '**'
+    paths-ignore:
+      - '**/*.md'
+      - LICENSE
   pull_request:
   workflow_dispatch:
 
@@ -25,7 +22,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: ./packages/lingui-swc
+    working-directory: ./packages/native-tools
 
 jobs:
   lint:
@@ -50,7 +47,7 @@ jobs:
       - name: Cargo fmt
         run: cargo fmt -- --check
       - name: Clippy
-        run: cargo clippy
+        run: cargo clippy -- -D warnings
   build:
     strategy:
       fail-fast: false
@@ -62,9 +59,6 @@ jobs:
           - host: windows-latest
             build: yarn build --target x86_64-pc-windows-msvc
             target: x86_64-pc-windows-msvc
-          #          - host: windows-latest
-          #            build: yarn build --target i686-pc-windows-msvc
-          #            target: i686-pc-windows-msvc#
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             build: yarn build --target x86_64-unknown-linux-gnu --use-napi-cross
@@ -124,10 +118,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           tool: cargo-zigbuild
-      - name: Setup toolchain
-        run: ${{ matrix.settings.setup }}
-        if: ${{ matrix.settings.setup }}
-        shell: bash
       - name: Install dependencies
         run: yarn install
         working-directory: .
@@ -138,56 +128,10 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: bindings-${{ matrix.settings.target }}
-
           path: |
-            ./packages/lingui-swc/${{ env.APP_NAME }}.*.node
-            ./packages/lingui-swc/${{ env.APP_NAME }}.*.wasm
+            ./packages/native-tools/${{ env.APP_NAME }}.*.node
+            ./packages/native-tools/${{ env.APP_NAME }}.*.wasm
           if-no-files-found: error
-  #  build-freebsd:
-  #    runs-on: ubuntu-latest
-  #    name: Build FreeBSD
-  #    steps:
-  #      - uses: actions/checkout@v6
-  #      - name: Build
-  #        id: build
-  #        uses: cross-platform-actions/action@v0.32.0
-  #        env:
-  #          DEBUG: napi:*
-  #          RUSTUP_IO_THREADS: 1
-  #        with:
-  #          operating_system: freebsd
-  #          version: '15.0'
-  #          memory: 8G
-  #          cpu_count: 3
-  #          environment_variables: DEBUG RUSTUP_IO_THREADS
-  #          shell: bash
-  #          # language=bash
-  #          run: |
-  #            sudo pkg install -y -f curl node libnghttp2 npm cmake
-  #            corepack enable
-  #            #            sudo npm install -g yarn --ignore-scripts
-  #            curl https://sh.rustup.rs -sSf --output rustup.sh
-  #            sh rustup.sh -y --profile minimal --default-toolchain stable
-  #            source "$HOME/.cargo/env"
-  #            echo "~~~~ rustc --version ~~~~"
-  #            rustc --version
-  #            echo "~~~~ node -v ~~~~"
-  #            node -v
-  #            echo "~~~~ yarn --version ~~~~"
-  #            yarn --version
-  #            pwd
-  #            ls -lah
-  #            whoami
-  #            env
-  #            freebsd-version
-  #            yarn install
-  #            yarn build
-  #      - name: Upload artifact
-  #        uses: actions/upload-artifact@v6
-  #        with:
-  #          name: bindings-freebsd
-  #          path: ./packages/lingui-swc/${{ env.APP_NAME }}.*.node
-  #          if-no-files-found: error
   test-macOS-windows-binding:
     name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
     needs:
@@ -224,7 +168,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ./packages/lingui-swc
+          path: ./packages/native-tools
       - name: List packages
         run: ls -R .
         shell: bash
@@ -248,10 +192,6 @@ jobs:
     runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v6
-      #      - name: Setup node
-      #        uses: actions/setup-node@v6
-      #        with:
-      #          node-version: ${{ matrix.node }}
       - run: corepack enable
       - name: Output docker params
         uses: actions/github-script@v8
@@ -264,30 +204,20 @@ jobs:
 
             if (target.startsWith('aarch64')) {
               core.setOutput('PLATFORM', 'linux/arm64');
-            } else if (target.startsWith('armv7')) {
-              core.setOutput('PLATFORM', 'linux/arm/v7');
             } else {
               core.setOutput('PLATFORM', 'linux/amd64');
             }
 
             const suffix = target.endsWith('-musl') ? 'alpine' : 'slim';
             core.setOutput('IMAGE', `node:${node}-${suffix}`)
-
       - name: Download artifacts
         uses: actions/download-artifact@v7
         with:
           name: bindings-${{ matrix.target }}
-          path: ./packages/lingui-swc
+          path: ./packages/native-tools
       - name: List packages
         run: ls -R .
         shell: bash
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        if: ${{ contains(matrix.target, 'armv7') }}
-        with:
-          platforms: all
-      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-        if: ${{ contains(matrix.target, 'armv7') }}
       - name: Test bindings
         run: |
           docker run --rm \
@@ -295,7 +225,7 @@ jobs:
             -w /repo \
             --platform ${{ steps.docker.outputs.PLATFORM }} \
             ${{ steps.docker.outputs.IMAGE }} \
-            sh -c "corepack enable && yarn install && cd packages/lingui-swc && yarn test"
+            sh -c "corepack enable && yarn install && cd packages/native-tools && yarn test"
   publish:
     name: Publish
     runs-on: ubuntu-latest
@@ -304,7 +234,6 @@ jobs:
       id-token: write
     needs:
       - lint
-      #      - build-freebsd
       - test-macOS-windows-binding
       - test-linux-binding
     steps:
@@ -322,28 +251,19 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v7
         with:
-          path: ./packages/lingui-swc/artifacts
+          path: ./packages/native-tools/artifacts
       - name: Move artifacts
         run: yarn artifacts
       - name: List packages
         run: ls -R ./npm
         shell: bash
       - name: Publish
+        # Manual publishing only until trusted publishing is configured for every platform package.
         if: github.event_name == 'workflow_dispatch'
         # language=bash
         run: |
           echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
           npm publish --provenance --access public
-        #
-        #          if git log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
-        #          then
-        #            npm publish --provenance --access public
-        #          elif git log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+";
-        #          then
-        #            npm publish --access public --tag next
-        #          else
-        #            echo "Not a release, skipping publish"
-        #          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

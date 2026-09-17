@@ -1,4 +1,4 @@
-# `lingui-swc`
+# `@lingui/native-tools`
 
 LinguiJS utils based on SWC Platform
 
@@ -18,7 +18,7 @@ To achieve better performance you need to disable multithreading support on the 
 :::
 
 ```ts
-import {createSwcExtractor} from 'lingui-swc'
+import {createSwcExtractor} from '@lingui/native-tools'
 
 // lingui.config.ts
 defineConfig({
@@ -59,7 +59,7 @@ It is a minimal SWC setup with the Lingui macro transform baked into a single na
 This is useful when you have a custom build pipeline (e.g. esbuild, Rollup, or a dev server) and only need to transform Lingui macros without pulling in the full SWC or Babel toolchain.
 
 ```ts
-import { transform } from 'lingui-swc'
+import { transform } from '@lingui/native-tools'
 
 const result = await transform(
   `import { t } from '@lingui/core/macro';
@@ -76,7 +76,7 @@ console.log(result.map)
 The `transform` function accepts an optional third argument with options:
 
 ```ts
-import { transform, type TransformOptions } from 'lingui-swc'
+import { transform, type TransformOptions } from '@lingui/native-tools'
 
 const options: TransformOptions = {
   // SWC parser config (auto-inferred from filename by default)
