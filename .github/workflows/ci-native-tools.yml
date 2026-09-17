@@ -97,6 +97,9 @@ jobs:
         with:
           target: ${{ matrix.settings.target }}
           cache-key: ${{ matrix.settings.target }}
+          # Build job only: warnings are denied by clippy in ci-rust.yml. Cross linkers emit
+          # messages (surfaced by the `linker_messages` lint) that must not fail the build.
+          build-warnings: warn
       - name: Cache napi cross toolchains
         uses: actions/cache@v6
         with:

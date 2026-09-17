@@ -17,6 +17,9 @@ jobs:
 
       # Toolchain and the wasm32-wasip1 target come from rust-toolchain.toml.
       - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          # Build only: warnings are denied by clippy in ci-rust.yml.
+          build-warnings: warn
 
       - name: Set up Node
         uses: actions/setup-node@v7
