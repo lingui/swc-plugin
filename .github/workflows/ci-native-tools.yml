@@ -22,7 +22,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: ./packages/lingui-swc
+    working-directory: ./packages/native-tools
 
 jobs:
   lint:
@@ -129,8 +129,8 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            ./packages/lingui-swc/${{ env.APP_NAME }}.*.node
-            ./packages/lingui-swc/${{ env.APP_NAME }}.*.wasm
+            ./packages/native-tools/${{ env.APP_NAME }}.*.node
+            ./packages/native-tools/${{ env.APP_NAME }}.*.wasm
           if-no-files-found: error
   test-macOS-windows-binding:
     name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
@@ -168,7 +168,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: ./packages/lingui-swc
+          path: ./packages/native-tools
       - name: List packages
         run: ls -R .
         shell: bash
@@ -214,7 +214,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: bindings-${{ matrix.target }}
-          path: ./packages/lingui-swc
+          path: ./packages/native-tools
       - name: List packages
         run: ls -R .
         shell: bash
@@ -225,7 +225,7 @@ jobs:
             -w /repo \
             --platform ${{ steps.docker.outputs.PLATFORM }} \
             ${{ steps.docker.outputs.IMAGE }} \
-            sh -c "corepack enable && yarn install && cd packages/lingui-swc && yarn test"
+            sh -c "corepack enable && yarn install && cd packages/native-tools && yarn test"
   publish:
     name: Publish
     runs-on: ubuntu-latest
@@ -251,7 +251,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v7
         with:
-          path: ./packages/lingui-swc/artifacts
+          path: ./packages/native-tools/artifacts
       - name: Move artifacts
         run: yarn artifacts
       - name: List packages

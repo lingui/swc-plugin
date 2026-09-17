@@ -30,15 +30,15 @@ SWC macro transform plugin for Lingui. Transforms `@lingui/macro` and `@lingui/r
 - `swc_core` compatibility table - [Compatibility](./packages/lingui-macro/README.md#compatibility)
 - [Lingui macro reference](https://lingui.dev/ref/macro)
 
-### [`@lingui/native-tools`](./packages/lingui-swc/)
+### [`@lingui/native-tools`](./packages/native-tools/)
 
-[![CI](https://github.com/lingui/swc-plugin/actions/workflows/ci-lingui-swc.yml/badge.svg?branch=main)](https://github.com/lingui/swc-plugin/actions/workflows/ci-lingui-swc.yml)
+[![CI](https://github.com/lingui/swc-plugin/actions/workflows/ci-native-tools.yml/badge.svg?branch=main)](https://github.com/lingui/swc-plugin/actions/workflows/ci-native-tools.yml)
 
 Native Node.js addon (NAPI-RS) with a Rust message extractor and a standalone macro transformer. Provides `createSwcExtractor()` for `lingui extract` and `transform()` for custom build pipelines that only need the Lingui macro step.
 
 #### Documentation
 
-- Usage & options - [`@lingui/native-tools` README](./packages/lingui-swc/README.md)
+- Usage & options - [`@lingui/native-tools` README](./packages/native-tools/README.md)
 
 ## Contributing
 

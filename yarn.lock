@@ -337,9 +337,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lingui/native-tools@workspace:packages/lingui-swc":
+"@lingui/native-tools@workspace:packages/native-tools":
   version: 0.0.0-use.local
-  resolution: "@lingui/native-tools@workspace:packages/lingui-swc"
+  resolution: "@lingui/native-tools@workspace:packages/native-tools"
   dependencies:
     "@emnapi/core": "npm:^1.8.1"
     "@emnapi/runtime": "npm:^1.8.1"
