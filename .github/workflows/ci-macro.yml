@@ -6,61 +6,39 @@ on:
       - main
       - next
     paths-ignore:
-      - "README.md"
+      - "**/*.md"
       - "LICENSE"
   push:
     branches:
       - main
       - next
     paths-ignore:
-      - "README.md"
+      - "**/*.md"
       - "LICENSE"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          target: 'wasm32-wasip1'
-
-      - name: Check formatting
-        run: cargo fmt --check
-
-      - name: Run clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cargo-llvm-cov
-
-      - name: Generate code coverage
-        run: cargo llvm-cov -p lingui_macro -p lingui_extractor --all-features --lcov --output-path lcov.info
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./lcov.info
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-
+  # Rust formatting, clippy and unit tests run workspace-wide in ci-rust.yml.
   e2e-test:
     name: E2E Smoke Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      # Toolchain version comes from rust-toolchain.toml.
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
-          target: 'wasm32-wasip1'
+          target: wasm32-wasip1
+          # Build only: warnings are denied by clippy in ci-rust.yml.
+          build-warnings: warn
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 

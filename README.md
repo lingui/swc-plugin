@@ -4,6 +4,7 @@
 
 Rust tooling for [Lingui](https://lingui.dev) i18n - compiles to WebAssembly and runs inside SWC, Next.js, and Vite build pipelines.
 
+[![CI - Rust](https://github.com/lingui/swc-plugin/actions/workflows/ci-rust.yml/badge.svg?branch=main)](https://github.com/lingui/swc-plugin/actions/workflows/ci-rust.yml)
 [![codecov](https://codecov.io/gh/lingui/swc-plugin/branch/main/graph/badge.svg)](https://codecov.io/gh/lingui/swc-plugin)
 [![GitHub contributors](https://img.shields.io/github/contributors/lingui/swc-plugin?cacheSeconds=1000)](https://github.com/lingui/swc-plugin/graphs/contributors)
 [![GitHub](https://img.shields.io/github/license/lingui/swc-plugin)](https://github.com/lingui/swc-plugin/blob/main/LICENSE)
