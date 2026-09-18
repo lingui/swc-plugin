@@ -43,7 +43,7 @@ jobs:
           node-version: 24
       - run: corepack enable
       - name: Install dependencies
-        run: yarn install --immutable
+        run: yarn install
         working-directory: .
       - name: Oxlint
         run: yarn lint
@@ -119,7 +119,7 @@ jobs:
         with:
           tool: cargo-zigbuild
       - name: Install dependencies
-        run: yarn install --immutable
+        run: yarn install
         working-directory: .
       - name: Build
         run: ${{ matrix.settings.build }}
@@ -163,7 +163,7 @@ jobs:
           architecture: ${{ matrix.settings.architecture }}
       - run: corepack enable
       - name: Install dependencies
-        run: yarn install --immutable
+        run: yarn install
         working-directory: .
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -248,7 +248,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: corepack enable
       - name: Install dependencies
-        run: yarn install --immutable
+        run: yarn install
         working-directory: .
       - name: Install npm CLI
         # Trusted publishing needs npm >= 11.5.1.

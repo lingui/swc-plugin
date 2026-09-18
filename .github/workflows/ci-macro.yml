@@ -31,9 +31,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Toolchain and the wasm32-wasip1 target come from rust-toolchain.toml.
+      # Toolchain version comes from rust-toolchain.toml.
       - uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
+          target: wasm32-wasip1
           # Build only: warnings are denied by clippy in ci-rust.yml.
           build-warnings: warn
 
@@ -45,7 +46,7 @@ jobs:
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: yarn install
 
       - name: Run E2E test
         working-directory: ./packages/lingui-macro
