@@ -1,6 +1,6 @@
 {
   "name": "@lingui/native-tools",
-  "version": "0.10.0",
+  "version": "0.1.0",
   "description": "Native (Rust + SWC) Lingui tooling: message extractor and standalone macro transformer",
   "license": "MIT",
   "repository": {
