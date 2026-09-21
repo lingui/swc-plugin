@@ -1,13 +1,16 @@
 name: CI - Native Tools
+
 env:
   DEBUG: napi:*
   APP_NAME: lingui-native-tools
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
+
 on:
   push:
     branches:
       - main
+      - next
     tags-ignore:
       - '**'
     paths-ignore:
@@ -15,6 +18,9 @@ on:
       - LICENSE
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,29 +31,25 @@ defaults:
     working-directory: ./packages/native-tools
 
 jobs:
+  # Rust formatting, clippy and unit tests run workspace-wide in ci-rust.yml.
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
       - run: corepack enable
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
       - name: Install dependencies
         run: yarn install
         working-directory: .
       - name: Oxlint
         run: yarn lint
-      - name: Cargo fmt
-        run: cargo fmt -- --check
-      - name: Clippy
-        run: cargo clippy -- -D warnings
+      - name: Typecheck
+        run: yarn build:ts --noEmit
+
   build:
     strategy:
       fail-fast: false
@@ -80,33 +82,31 @@ jobs:
           - host: windows-latest
             target: aarch64-pc-windows-msvc
             build: yarn build --target aarch64-pc-windows-msvc
-    name: stable - ${{ matrix.settings.target }} - node@24
+    name: Build ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
-    env:
-      RUSTUP_TOOLCHAIN: stable
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
       - run: corepack enable
-      - name: Install Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust toolchain
+        # Toolchain version comes from rust-toolchain.toml; caches the cargo registry and target dir.
+        uses: actions-rust-lang/setup-rust-toolchain@v2
         with:
-          toolchain: stable
-          targets: ${{ matrix.settings.target }}
-      - name: Cache cargo
-        uses: actions/cache@v5
+          target: ${{ matrix.settings.target }}
+          cache-key: ${{ matrix.settings.target }}
+          # Build job only: warnings are denied by clippy in ci-rust.yml. Cross linkers emit
+          # messages (surfaced by the `linker_messages` lint) that must not fail the build.
+          build-warnings: warn
+      - name: Cache napi cross toolchains
+        uses: actions/cache@v6
         with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            ~/.napi-rs
-            .cargo-cache
-            target/
-          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+          path: ~/.napi-rs
+          key: napi-rs-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            napi-rs-${{ matrix.settings.target }}-
       - uses: mlugg/setup-zig@v2
         if: ${{ contains(matrix.settings.target, 'musl') }}
         with:
@@ -125,15 +125,16 @@ jobs:
         run: ${{ matrix.settings.build }}
         shell: bash
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
             ./packages/native-tools/${{ env.APP_NAME }}.*.node
             ./packages/native-tools/${{ env.APP_NAME }}.*.wasm
           if-no-files-found: error
+
   test-macOS-windows-binding:
-    name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
+    name: Test ${{ matrix.settings.target }} - node@${{ matrix.node }}
     needs:
       - build
     strategy:
@@ -154,9 +155,9 @@ jobs:
           - '24'
     runs-on: ${{ matrix.settings.host }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.settings.architecture }}
@@ -165,7 +166,7 @@ jobs:
         run: yarn install
         working-directory: .
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ./packages/native-tools
@@ -174,6 +175,7 @@ jobs:
         shell: bash
       - name: Test bindings
         run: yarn test
+
   test-linux-binding:
     name: Test ${{ matrix.target }} - node@${{ matrix.node }}
     needs:
@@ -191,10 +193,9 @@ jobs:
           - '24'
     runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@v6
-      - run: corepack enable
+      - uses: actions/checkout@v7
       - name: Output docker params
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         id: docker
         with:
           # language=javascript
@@ -211,7 +212,7 @@ jobs:
             const suffix = target.endsWith('-musl') ? 'alpine' : 'slim';
             core.setOutput('IMAGE', `node:${node}-${suffix}`)
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: bindings-${{ matrix.target }}
           path: ./packages/native-tools
@@ -225,31 +226,37 @@ jobs:
             -w /repo \
             --platform ${{ steps.docker.outputs.PLATFORM }} \
             ${{ steps.docker.outputs.IMAGE }} \
-            sh -c "corepack enable && yarn install && cd packages/native-tools && yarn test"
+            sh -c "corepack enable && yarn install --immutable && cd packages/native-tools && yarn test"
+
   publish:
     name: Publish
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      # Required for npm trusted publishing (OIDC) and provenance attestations.
       id-token: write
     needs:
       - lint
       - test-macOS-windows-binding
       - test-linux-binding
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
+          registry-url: 'https://registry.npmjs.org'
       - run: corepack enable
       - name: Install dependencies
         run: yarn install
         working-directory: .
-      - name: create npm dirs
+      - name: Install npm CLI
+        # Trusted publishing needs npm >= 11.5.1.
+        run: npm install -g npm@latest
+      - name: Create npm dirs
         run: yarn napi create-npm-dirs
       - name: Download all artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: ./packages/native-tools/artifacts
       - name: Move artifacts
@@ -258,12 +265,8 @@ jobs:
         run: ls -R ./npm
         shell: bash
       - name: Publish
-        # Manual publishing only until trusted publishing is configured for every platform package.
+        # Manual trigger only. Publishes @lingui/native-tools and every @lingui/native-tools-* platform
+        # package via `prepublishOnly` (napi prepublish). Authentication is npm trusted publishing:
+        # every one of those packages must have this workflow registered as a trusted publisher on npmjs.com.
         if: github.event_name == 'workflow_dispatch'
-        # language=bash
-        run: |
-          echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-          npm publish --provenance --access public
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public

@@ -1,0 +1,60 @@
+name: CI - Rust
+
+on:
+  pull_request:
+    branches:
+      - main
+      - next
+    paths-ignore:
+      - "**/*.md"
+      - "LICENSE"
+  push:
+    branches:
+      - main
+      - next
+    paths-ignore:
+      - "**/*.md"
+      - "LICENSE"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    # Workspace-wide checks for every Rust crate (lingui_macro, lingui_extractor, lingui_native_tools).
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Toolchain, targets and components come from rust-toolchain.toml.
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-llvm-cov
+
+      - name: Run tests with coverage
+        run: cargo llvm-cov -p lingui_macro -p lingui_extractor --all-features --lcov --output-path lcov.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
