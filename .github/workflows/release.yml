@@ -7,6 +7,9 @@ on:
 jobs:
   release:
     name: Release
+    # This workflow publishes @lingui/swc-plugin only. Releases of @lingui/native-tools use
+    # `native-tools@<version>` tags and are published from ci-native-tools.yml.
+    if: ${{ !startsWith(github.event.release.tag_name, 'native-tools@') }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
