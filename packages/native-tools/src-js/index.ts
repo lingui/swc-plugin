@@ -1,6 +1,6 @@
 import binding = require('../binding')
 import type {ParserConfig} from "@swc/types"
-import type {ExtractedMessage, ExtractorCtx, ExtractorType} from "@lingui/conf"
+import type {ExtractedMessage, ExtractorType} from "@lingui/conf"
 import {LinguiMacroOptions, mapOptions} from "./macro-src/map-options"
 
 export type {LinguiMacroOptions};
@@ -106,13 +106,7 @@ const mapMessage = (msg: binding.ExtractedMessage): ExtractedMessage => {
  *
  * Macro options automatically inherited from the Lingui Config.
  */
-export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorType & {
-  extractFromFiles: (
-    filenames: string[],
-    onMessageExtracted: (msg: ExtractedMessage) => void,
-    ctx: ExtractorCtx,
-  ) => Promise<void>
-} {
+export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorType {
   const matchRe = new RegExp(
     "\\.(" +
     [".ts", ".mts", ".cts", ".tsx", ".js", ".mjs", ".cjs", ".jsx"]
@@ -137,19 +131,6 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
         onMessageExtracted(mapMessage(msg))
       })
     },
-
-    async extractFromFiles(filenames: string[],
-                           onMessageExtracted: (msg: ExtractedMessage) => void,
-                           ctx: ExtractorCtx) {
-      const {messages} = await extractMessagesFromFiles(filenames, {
-        ...options,
-        macro: mapOptions(ctx.linguiConfig)
-      })
-
-      messages.forEach((msg) => {
-        onMessageExtracted(mapMessage(msg))
-      })
-    }
   }
 }
 
