@@ -1,32 +1,52 @@
-# `@lingui/native-tools`
+# <div align="center">Lingui Native Tools</div>
 
-LinguiJS utils based on SWC Platform
+<div align="center">
 
-## Low level extraction methods
+Native (Rust + SWC) [Lingui](https://lingui.dev) tooling: message extractor and standalone macro transformer
 
-- `extractMessagesFromFiles`
-- `extractMessages`
+[![npm](https://img.shields.io/npm/v/@lingui/native-tools?logo=npm&cacheSeconds=1800)](https://www.npmjs.com/package/@lingui/native-tools)
+[![npm](https://img.shields.io/npm/dt/@lingui/native-tools?cacheSeconds=500)](https://www.npmjs.com/package/@lingui/native-tools)
+[![CI](https://github.com/lingui/swc-plugin/actions/workflows/ci-native-tools.yml/badge.svg?branch=main)](https://github.com/lingui/swc-plugin/actions/workflows/ci-native-tools.yml)
+[![GitHub](https://img.shields.io/github/license/lingui/swc-plugin)](https://github.com/lingui/swc-plugin/blob/main/LICENSE)
 
-Check TypeScript types for more info.
+</div>
+
+> **Note**
+> `@lingui/native-tools` is pre-1.0. The API may change between minor versions until the 1.0 release.
+
+## Installation
+
+```bash
+npm install --save-dev @lingui/native-tools
+# or
+yarn add -D @lingui/native-tools
+```
+
+Requirements:
+
+- Node.js `>=22.19.0`
+- `@lingui/conf` `^6` (peer dependency, used by `createSwcExtractor()`)
+
+Prebuilt binaries are installed automatically for macOS (x64, arm64), Linux (x64, arm64; glibc and musl), Windows (x64, arm64), and Android (arm64). No Rust toolchain is needed.
 
 ## Lingui Extractor Plugin
 
-This will add rust based extractor implementation to your existing lingui setup. 
-
-:::note
-To achieve better performance you need to disable multithreading support on the lingui cli side using `--workers 1`.
-:::
+`createSwcExtractor()` adds the Rust-based extractor implementation to your existing Lingui setup. Macro options are inferred from your Lingui config automatically.
 
 ```ts
-import {createSwcExtractor} from '@lingui/native-tools'
-
 // lingui.config.ts
-defineConfig({
+import { defineConfig } from '@lingui/conf'
+import { createSwcExtractor } from '@lingui/native-tools'
+
+export default defineConfig({
   extractors: [createSwcExtractor()],
 })
 ```
 
-`createSwcExtractor()` accepts extractor options: 
+> **Note**
+> For the best performance, disable multithreading on the Lingui CLI side with `lingui extract --workers 1`. The native extractor processes files in parallel itself.
+
+`createSwcExtractor()` accepts optional extractor options:
 
 ```ts
 export type ExtractorOptions = {
@@ -47,14 +67,22 @@ export type ExtractorOptions = {
 }
 ```
 
-In most of the cases you don't need to specify anything, unless you use some non-standard parser features or has a custom 
-configuration for macro itself. The macro options automatically inferred from your Lingui Config.
+In most cases you don't need to specify anything, unless you use non-standard parser features or have a custom configuration for the macro itself.
+
+### Low-level extraction methods
+
+For custom tooling, the extractor is also exposed directly:
+
+- `extractMessages(code, filename, options?)` - extracts messages from a source string.
+- `extractMessagesFromFiles(filePaths, options?)` - reads and extracts messages from many files in parallel.
+
+Both return a `Promise<ExtractionResult>` with the extracted messages (id, message, context, comment, placeholders, and origin). Check the TypeScript types for details.
 
 ## Transform
 
 A native Lingui macro transformer that can be used as a standalone alternative to a full SWC or Babel setup.
 
-It is a minimal SWC setup with the Lingui macro transform baked into a single native binary. It skips the SWC plugin system overhead and omits all other SWC transforms — only Lingui macros are processed, everything else is emitted as-is.
+It is a minimal SWC setup with the Lingui macro transform baked into a single native binary. It skips the SWC plugin system overhead and omits all other SWC transforms - only Lingui macros are processed, everything else is emitted as-is.
 
 This is useful when you have a custom build pipeline (e.g. esbuild, Rollup, or a dev server) and only need to transform Lingui macros without pulling in the full SWC or Babel toolchain.
 
@@ -81,7 +109,7 @@ import { transform, type TransformOptions } from '@lingui/native-tools'
 const options: TransformOptions = {
   // SWC parser config (auto-inferred from filename by default)
   parser: { syntax: 'typescript', tsx: true },
-  // Lingui macro options
+  // Lingui macro options, the same as for @lingui/swc-plugin
   macro: {
     runtimeModules: {
       i18n: ['@lingui/core', 'i18n'],
@@ -89,14 +117,23 @@ const options: TransformOptions = {
       useLingui: ['@lingui/react', 'useLingui'],
     },
   },
-  // External source map JSON string (inline source maps are used if not provided)
-  sourceMap: '...',
+  // Source map generation:
+  // - true (default): source map returned in `result.map`
+  // - "inline": source map appended to `result.code` as a base64 data URL
+  // - false: no source map
+  sourceMaps: true,
 }
 
 const result = await transform(code, 'app.tsx', options)
 ```
 
-Here is a benchmark results for native transformer (lower value - better):
+If the input code ends with an inline `//# sourceMappingURL=data:...` comment, that source map is consumed and chained into the output map.
+
+The `macro` options are documented in the [`@lingui/swc-plugin` README](https://github.com/lingui/swc-plugin/blob/main/packages/lingui-macro/README.md#options).
+
+### Benchmark
+
+Macro transform benchmark results for the native transformer (lower is better):
 
 ```
 ══════════════════════════════════════════════════════════════
@@ -114,5 +151,9 @@ native transformer  █░░░░░░░░░░░░░░░░░░░
 
 Summary:
 native transformer is 29.3x faster than Babel
-native transformer is 2.7x faster than SWC 
+native transformer is 2.7x faster than SWC
 ```
+
+## License
+
+The project is licensed under the [MIT](https://github.com/lingui/swc-plugin/blob/main/LICENSE) license.

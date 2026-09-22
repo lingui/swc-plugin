@@ -261,6 +261,9 @@ jobs:
           path: ./packages/native-tools/artifacts
       - name: Move artifacts
         run: yarn artifacts
+      - name: Copy LICENSE into platform packages
+        # napi create-npm-dirs generates the platform packages without a LICENSE file.
+        run: for d in npm/*/; do cp LICENSE "$d"; done
       - name: List packages
         run: ls -R ./npm
         shell: bash
