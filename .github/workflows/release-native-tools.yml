@@ -71,7 +71,5 @@ jobs:
         run: ls -R ./npm
 
       - name: Publish
-        # Publishes @lingui/native-tools and every @lingui/native-tools-* platform package via
-        # `prepublishOnly` (napi prepublish). Authentication is npm trusted publishing: every one of
-        # those packages must have this workflow file registered as a trusted publisher on npmjs.com.
-        run: npm publish --provenance --access public
+        # Publishes @lingui/native-tools and every @lingui/native-tools-* platform package via `prepublishOnly` (napi prepublish)
+        run: npm publish --provenance

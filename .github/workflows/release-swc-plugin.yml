@@ -52,8 +52,7 @@ jobs:
       - name: Install npm CLI
         run: npm install -g npm@12
 
-      # Both steps build the WASM plugin via `prepublishOnly`. Authentication is npm trusted publishing:
-      # @lingui/swc-plugin must have this workflow file registered as a trusted publisher on npmjs.com.
+      # Both steps build the WASM plugin via `prepublishOnly`
       - name: Build and publish 'latest' tag
         working-directory: packages/lingui-macro
         if: ${{ !github.event.release.prerelease }}
