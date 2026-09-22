@@ -22,11 +22,11 @@ npm install --save-dev @lingui/swc-plugin
 yarn add -D @lingui/swc-plugin
 ```
 
-You still need to install `@lingui/macro` for typings support:
+The macros themselves are provided by `@lingui/core/macro` and `@lingui/react/macro`, so `@lingui/core` and `@lingui/react` must be installed as usual:
 ```bash
-npm install @lingui/macro
+npm install @lingui/core @lingui/react
 # or
-yarn add @lingui/macro
+yarn add @lingui/core @lingui/react
 ```
 
 ## Usage
@@ -97,7 +97,7 @@ linguiMacroSwcPlugin({}, { configPath: '../lingui.config.js' })
 
 ### `.swcrc`
 
-When using SWC directly via CLI or a JSON-only configuration, pass options manually. All options are optional — if your have a standard setup, an empty object `{}` is sufficient:
+When using SWC directly via CLI or a JSON-only configuration, pass options manually. All options are optional — if you have a standard setup, an empty object `{}` is sufficient:
 
 ```json5
 {
@@ -178,6 +178,13 @@ Compatibility option for using the v6 SWC plugin release channel with `@lingui/c
 
 > **Note**
 > This option is temporary and will be removed in the next major release.
+
+### `useJsdocI18nComment`
+
+Emits the extraction marker as a JSDoc comment (`/** i18n */`) instead of a regular block comment (`/* i18n */`). JSDoc comments survive bundler code generation (e.g. Rolldown), so the extractor can still locate messages in bundled output.
+
+- **`false`** (default) — `/* i18n */`, compatible with all `@lingui/cli` versions.
+- **`true`** — `/** i18n */`, requires `@lingui/cli` >= 6.4.0.
 
 ## Compatibility
 SWC Plugin support is still experimental. They do not guarantee a semver backwards compatibility between different `swc-core` versions.
