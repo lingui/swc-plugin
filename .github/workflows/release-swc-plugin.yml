@@ -1,0 +1,65 @@
+# Publishes @lingui/swc-plugin to npm.
+#
+# Trigger: publish a GitHub Release whose tag is `swc-plugin@<version>`. Releases with any other
+# tag are ignored here (see release-native-tools.yml for @lingui/native-tools).
+#
+# The published version is the one in packages/lingui-macro/package.json. A release marked
+# "Latest" publishes to the `latest` dist-tag, one marked "Pre-release" to `next`.
+name: Release - SWC Plugin
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    if: startsWith(github.event.release.tag_name, 'swc-plugin@')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Toolchain version comes from rust-toolchain.toml.
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          target: wasm32-wasip1
+          # Build only: warnings are denied by clippy in ci-rust.yml.
+          build-warnings: warn
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          registry-url: "https://registry.npmjs.org"
+          node-version-file: .nvmrc
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install npm CLI
+        run: npm install -g npm@12
+
+      # Both steps build the WASM plugin via `prepublishOnly`. Authentication is npm trusted publishing:
+      # @lingui/swc-plugin must have this workflow file registered as a trusted publisher on npmjs.com.
+      - name: Build and publish 'latest' tag
+        working-directory: packages/lingui-macro
+        if: ${{ !github.event.release.prerelease }}
+        run: npm publish --provenance
+
+      - name: Build and publish 'next' tag
+        working-directory: packages/lingui-macro
+        if: ${{ github.event.release.prerelease }}
+        run: npm publish --provenance --tag next

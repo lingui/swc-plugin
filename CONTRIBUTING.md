@@ -96,3 +96,16 @@ cargo install cargo-llvm-cov
 # Generate HTML coverage report for local viewing
 cargo llvm-cov --all-features --workspace --html --open
 ```
+
+## Releasing
+
+The two npm packages are versioned and published independently. Publishing is triggered by a GitHub Release and authenticated with npm trusted publishing.
+
+1. Open a PR that bumps `version` in the package's `package.json` and merge it:
+   - `@lingui/swc-plugin` - `packages/lingui-macro/package.json`
+   - `@lingui/native-tools` - `packages/native-tools/package.json`
+2. Create a GitHub Release from `main` with a tag in the form `<package>@<version>`:
+   - `swc-plugin@6.8.0` runs [`release-swc-plugin.yml`](.github/workflows/release-swc-plugin.yml). Mark the release "Latest" to publish to the `latest` dist-tag, or "Pre-release" to publish to `next`.
+   - `native-tools@0.1.1` runs [`release-native-tools.yml`](.github/workflows/release-native-tools.yml). It always publishes to `latest`. Until 1.0, mark these releases as "Pre-release" so the repository's "Latest" release stays on `@lingui/swc-plugin`.
+
+The version that gets published is the one in `package.json`, so make sure the tag matches it. A release with any other tag format publishes nothing.

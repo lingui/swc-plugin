@@ -1,0 +1,218 @@
+# Reusable workflow: lint, build and test @lingui/native-tools for every supported target.
+# Called by ci-native-tools.yml (pull requests, pushes) and release-native-tools.yml (publishing).
+# It never publishes anything; it only uploads one `bindings-<target>` artifact per target.
+name: Build - Native Tools
+
+env:
+  DEBUG: napi:*
+  APP_NAME: lingui-native-tools
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
+  CARGO_INCREMENTAL: "1"
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: ./packages/native-tools
+
+jobs:
+  # Rust formatting, clippy and unit tests run workspace-wide in ci-rust.yml.
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: corepack enable
+      - name: Install dependencies
+        run: yarn install
+        working-directory: .
+      - name: Oxlint
+        run: yarn lint
+      - name: Typecheck
+        run: yarn build:ts --noEmit
+
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: yarn build --target x86_64-apple-darwin
+          - host: windows-latest
+            build: yarn build --target x86_64-pc-windows-msvc
+            target: x86_64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: yarn build --target x86_64-unknown-linux-gnu --use-napi-cross
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            build: yarn build --target x86_64-unknown-linux-musl -x
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: yarn build --target aarch64-apple-darwin
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            build: yarn build --target aarch64-unknown-linux-gnu --use-napi-cross
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            build: yarn build --target aarch64-linux-android
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            build: yarn build --target aarch64-unknown-linux-musl -x
+          - host: windows-latest
+            target: aarch64-pc-windows-msvc
+            build: yarn build --target aarch64-pc-windows-msvc
+    name: Build ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: corepack enable
+      - name: Install Rust toolchain
+        # Toolchain version comes from rust-toolchain.toml; caches the cargo registry and target dir.
+        uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          target: ${{ matrix.settings.target }}
+          cache-key: ${{ matrix.settings.target }}
+          # Build job only: warnings are denied by clippy in ci-rust.yml. Cross linkers emit
+          # messages (surfaced by the `linker_messages` lint) that must not fail the build.
+          build-warnings: warn
+      - name: Cache napi cross toolchains
+        uses: actions/cache@v6
+        with:
+          path: ~/.napi-rs
+          key: napi-rs-${{ matrix.settings.target }}-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            napi-rs-${{ matrix.settings.target }}-
+      - uses: mlugg/setup-zig@v2
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        with:
+          version: 0.14.1
+      - name: Install cargo-zigbuild
+        uses: taiki-e/install-action@v2
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-zigbuild
+      - name: Install dependencies
+        run: yarn install
+        working-directory: .
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        shell: bash
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: |
+            ./packages/native-tools/${{ env.APP_NAME }}.*.node
+            ./packages/native-tools/${{ env.APP_NAME }}.*.wasm
+          if-no-files-found: error
+
+  test-macOS-windows-binding:
+    name: Test ${{ matrix.settings.target }} - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            architecture: x64
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            architecture: arm64
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            architecture: x64
+        node:
+          - "22"
+          - "24"
+    runs-on: ${{ matrix.settings.host }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          architecture: ${{ matrix.settings.architecture }}
+      - run: corepack enable
+      - name: Install dependencies
+        run: yarn install
+        working-directory: .
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: ./packages/native-tools
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Test bindings
+        run: yarn test
+
+  test-linux-binding:
+    name: Test ${{ matrix.target }} - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+        node:
+          - "22"
+          - "24"
+    runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Output docker params
+        uses: actions/github-script@v9
+        id: docker
+        with:
+          # language=javascript
+          script: |
+            const target = '${{ matrix.target }}';
+            const node = '${{ matrix.node }}';
+
+            if (target.startsWith('aarch64')) {
+              core.setOutput('PLATFORM', 'linux/arm64');
+            } else {
+              core.setOutput('PLATFORM', 'linux/amd64');
+            }
+
+            const suffix = target.endsWith('-musl') ? 'alpine' : 'slim';
+            core.setOutput('IMAGE', `node:${node}-${suffix}`)
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: bindings-${{ matrix.target }}
+          path: ./packages/native-tools
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Test bindings
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/repo \
+            -w /repo \
+            --platform ${{ steps.docker.outputs.PLATFORM }} \
+            ${{ steps.docker.outputs.IMAGE }} \
+            sh -c "corepack enable && yarn install --immutable && cd packages/native-tools && yarn test"
