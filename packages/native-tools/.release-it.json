@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/release-it@21/schema/release-it.json",
+  "git": {
+    "commit": false,
+    "tag": false,
+    "push": false,
+    "requireUpstream": false
+  },
+  "github": {
+    "release": false
+  },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "before:bump": "perl -pi -e 's/^version = \".*\"/version = \"${version}\"/' Cargo.toml"
+  }
+}
