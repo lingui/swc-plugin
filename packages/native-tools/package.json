@@ -52,7 +52,7 @@
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release --js ./binding.js --dts ./binding.d.ts",
     "build:ts": "tsc",
-    "build:debug": "napi build --platform",
+    "build:debug": "napi build --platform --js ./binding.js --dts ./binding.d.ts",
     "format": "run-p format:prettier format:rs format:toml",
     "format:prettier": "prettier . -w",
     "format:toml": "taplo format",
@@ -60,7 +60,7 @@
     "lint": "oxlint .",
     "prepublishOnly": "yarn build:ts && napi prepublish -t npm --no-gh-release",
     "test": "vitest run",
-    "preversion": "napi build --platform && git add .",
+    "preversion": "yarn build:debug && git add .",
     "version": "napi version"
   },
   "dependencies": {
