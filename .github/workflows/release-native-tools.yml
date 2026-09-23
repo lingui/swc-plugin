@@ -1,0 +1,75 @@
+# Publishes @lingui/native-tools and its platform packages to npm.
+#
+# Trigger: publish a GitHub Release whose tag is `native-tools@<version>`. Releases with any other
+# tag are ignored here (see release-swc-plugin.yml for @lingui/swc-plugin).
+#
+# The published version is the one in packages/native-tools/package.json. native-tools always
+# publishes to the `latest` dist-tag; the GitHub "Pre-release" checkbox is only a label.
+name: Release - Native Tools
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build & Test
+    if: startsWith(github.event.release.tag_name, 'native-tools@')
+    uses: ./.github/workflows/build-native-tools.yml
+
+  publish:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: ./packages/native-tools
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+
+      - run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: .
+
+      - name: Install npm CLI
+        run: npm install -g npm@12
+
+      - name: Create npm dirs
+        run: yarn napi create-npm-dirs
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: ./packages/native-tools/artifacts
+
+      - name: Move artifacts
+        run: yarn artifacts
+
+      - name: Copy LICENSE into platform packages
+        # napi create-npm-dirs generates the platform packages without a LICENSE file.
+        run: for d in npm/*/; do cp LICENSE "$d"; done
+
+      - name: List packages
+        run: ls -R ./npm
+
+      - name: Publish
+        # Publishes @lingui/native-tools and every @lingui/native-tools-* platform package via `prepublishOnly` (napi prepublish)
+        run: npm publish --provenance
