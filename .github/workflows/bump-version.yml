@@ -1,0 +1,74 @@
+# Opens a version bump PR for one package. Merge it, then publish a GitHub Release tagged
+# `<package>@<version>` to publish to npm (see release-swc-plugin.yml / release-native-tools.yml).
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package
+        type: choice
+        required: true
+        options:
+          - swc-plugin
+          - native-tools
+      bump:
+        description: Version increment
+        type: choice
+        required: true
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    name: Bump ${{ inputs.package }} (${{ inputs.bump }})
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_DIR: ${{ inputs.package == 'swc-plugin' && 'packages/lingui-macro' || 'packages/native-tools' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Toolchain version comes from rust-toolchain.toml. Needed to refresh Cargo.lock
+      # (and, for native-tools, to regenerate binding.js via the `preversion` script).
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          build-warnings: warn
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Bump version
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: yarn run -T release-it ${{ inputs.bump }} --ci
+
+      - name: Read new version
+        id: version
+        working-directory: ${{ env.PACKAGE_DIR }}
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: chore/${{ inputs.package }}-${{ steps.version.outputs.version }}
+          delete-branch: true
+          commit-message: "chore: version @lingui/${{ inputs.package }} ${{ steps.version.outputs.version }}"
+          title: "chore: version @lingui/${{ inputs.package }} ${{ steps.version.outputs.version }}"
+          body: |
+            Bumps `@lingui/${{ inputs.package }}` to `${{ steps.version.outputs.version }}` (${{ inputs.bump }}).
+
+            After merging, publish a GitHub Release with tag `${{ inputs.package }}@${{ steps.version.outputs.version }}` to publish it to npm.
+
+            > CI does not run on pull requests opened by GitHub Actions. Close and reopen this PR if you want the checks to run.
