@@ -70,5 +70,3 @@ jobs:
             Bumps `@lingui/${{ inputs.package }}` to `${{ steps.version.outputs.version }}` (${{ inputs.bump }}).
 
             After merging, publish a GitHub Release with tag `${{ inputs.package }}@${{ steps.version.outputs.version }}` to publish it to npm.
-
-            > CI does not run on pull requests opened by GitHub Actions. Close and reopen this PR if you want the checks to run.
