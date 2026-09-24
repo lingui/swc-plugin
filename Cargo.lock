@@ -1110,7 +1110,7 @@ dependencies = [
 
 [[package]]
 name = "lingui_native_tools"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "lingui_extractor",
