@@ -2,7 +2,7 @@
 authors = ["Timofei Iatsenko"]
 edition = "2021"
 name = "lingui_native_tools"
-version = "0.1.1"
+version = "0.1.2"
 
 [lib]
 crate-type = ["cdylib"]
