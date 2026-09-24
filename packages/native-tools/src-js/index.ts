@@ -3,7 +3,8 @@ import type {ParserConfig} from "@swc/types"
 import type {ExtractedMessage, ExtractorType} from "@lingui/conf"
 import {LinguiMacroOptions, mapOptions} from "./macro-src/map-options"
 
-export type {LinguiMacroOptions, mapOptions as mapMacroOptions};
+export type {LinguiMacroOptions};
+export {mapOptions as mapMacroOptions};
 
 export type TransformOptions = {
   /**
