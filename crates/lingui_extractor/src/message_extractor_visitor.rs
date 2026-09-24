@@ -330,6 +330,16 @@ impl<'a> MessageExtractorVisitor<'a> {
         let raw = extract_from_object_expression(obj, &mut self.warnings);
 
         if raw.id.is_none() {
+            // The id may be provided by a spread element (e.g. `i18n._({ ...msg })`),
+            // which can't be resolved statically. Skip silently instead of warning.
+            let has_spread = obj
+                .props
+                .iter()
+                .any(|prop| matches!(prop, PropOrSpread::Spread(_)));
+            if has_spread {
+                return;
+            }
+
             let loc = self.source_map.span_to_string(span);
             self.warnings
                 .push(format!("{loc}: Missing message ID, skipping."));

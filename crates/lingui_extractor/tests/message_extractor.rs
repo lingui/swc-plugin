@@ -85,6 +85,21 @@ import { Trans } from "@lingui/react";
 }
 
 #[test]
+fn test_no_warning_when_id_could_be_provided_via_spread() {
+    let code = r#"
+const lookup = { x: {}, generic: {} };
+i18n._({
+  ...(lookup.x ?? lookup.generic),
+  values: { val: "test" },
+});
+    "#;
+
+    let (messages, warnings) = extract_and_sort(code, "test.js");
+    assert_no_warnings(&warnings);
+    assert_eq!(messages.len(), 0);
+}
+
+#[test]
 fn test_call_expression_i18n_underscore() {
     let code = r#"
 const msg = i18n._("Message");
