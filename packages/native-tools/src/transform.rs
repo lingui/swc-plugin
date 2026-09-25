@@ -125,7 +125,12 @@ fn do_transform(
       // are not aware of TS-only nodes and produce invalid output for some of them,
       // e.g. `(a as any).b` -> `a as any.b`
       let program = if syntax.typescript() {
-        let config = typescript::Config::default();
+        let config = typescript::Config {
+          // keep class fields as-is (`useDefineForClassFields: true`), otherwise
+          // declared-only fields are dropped and initializers moved to the constructor
+          native_class_properties: true,
+          ..Default::default()
+        };
 
         if syntax.jsx() {
           program.apply(typescript::tsx(

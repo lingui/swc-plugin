@@ -84,6 +84,8 @@ A native Lingui macro transformer that can be used as a standalone alternative t
 
 It is a minimal SWC setup with the Lingui macro transform baked into a single native binary. It skips the SWC plugin system overhead and omits all other SWC transforms - only Lingui macros are processed, everything else is emitted as-is.
 
+The only exception is TypeScript: TS syntax is stripped before the macro runs (the same way SWC does before running plugins), so `.ts` / `.tsx` files come out as JS with JSX preserved. Type-only imports are removed, class fields are kept as-is (`useDefineForClassFields: true`), and `enum` / `namespace` are compiled to JS.
+
 This is useful when you have a custom build pipeline (e.g. esbuild, Rollup, or a dev server) and only need to transform Lingui macros without pulling in the full SWC or Babel toolchain.
 
 ```ts

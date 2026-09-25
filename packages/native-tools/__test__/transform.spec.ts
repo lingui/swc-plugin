@@ -135,6 +135,29 @@ const App = ({ name }: { name: string }) => {
       `)
     })
 
+    test('keeps class fields as-is', async () => {
+      const code = `
+class A {
+  foo: string;
+  bar = 1;
+  constructor(private baz: number) {}
+}
+`
+      const result = await transform(code, 'app.ts')
+
+      expect(result.code).toMatchInlineSnapshot(`
+        "class A {
+            baz;
+            foo;
+            bar = 1;
+            constructor(baz){
+                this.baz = baz;
+            }
+        }
+        "
+      `)
+    })
+
     test('removes type-only imports and keeps React import in .tsx', async () => {
       const code = `
 import React from 'react';
