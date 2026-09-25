@@ -37,8 +37,9 @@ export type TransformResult = {
  * Transform source code by applying the Lingui macro transformation.
  *
  * This is a minimal SWC + Lingui transformer built as a single native library
- * for optimal performance. It only transforms Lingui macros and keeps everything
- * else as-is.
+ * for optimal performance. It transforms Lingui macros and, for TypeScript input,
+ * strips TypeScript syntax: TS files come out as JS with JSX preserved.
+ * Everything else is kept as-is.
  *
  * Parser options are automatically inferred from the filename (.ts, .tsx, .js, .jsx, etc.)
  *

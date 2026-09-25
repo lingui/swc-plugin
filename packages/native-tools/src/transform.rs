@@ -11,6 +11,7 @@ use swc_core::ecma::codegen::text_writer::JsWriter;
 use swc_core::ecma::codegen::Emitter;
 use swc_core::ecma::parser::{Parser, StringInput, Syntax};
 use swc_core::ecma::transforms::base::{fixer, hygiene, resolver};
+use swc_core::ecma::transforms::typescript;
 use swc_core::ecma::visit::fold_pass;
 use swc_sourcemap as sourcemap;
 
@@ -113,12 +114,45 @@ fn do_transform(
 
       let lingui_macro = LinguiMacroFolder::new(lingui_options, Some(&comments), cm.clone());
 
+      let program = program.apply(&mut resolver(
+        unresolved_mark,
+        top_level_mark,
+        syntax.typescript(),
+      ));
+
+      // Strip TS syntax before running the macro, the same way SWC runs plugins
+      // (unless `runPluginFirst` is set). Besides, `fixer` and the code generator
+      // are not aware of TS-only nodes and produce invalid output for some of them,
+      // e.g. `(a as any).b` -> `a as any.b`
+      let program = if syntax.typescript() {
+        let config = typescript::Config {
+          // keep class fields as-is (`useDefineForClassFields: true`), otherwise
+          // declared-only fields are dropped and initializers moved to the constructor
+          native_class_properties: true,
+          ..Default::default()
+        };
+
+        if syntax.jsx() {
+          program.apply(typescript::tsx(
+            cm.clone(),
+            config,
+            typescript::TsxConfig::default(),
+            &comments,
+            unresolved_mark,
+            top_level_mark,
+          ))
+        } else {
+          program.apply(typescript::typescript(
+            config,
+            unresolved_mark,
+            top_level_mark,
+          ))
+        }
+      } else {
+        program
+      };
+
       let program = program
-        .apply(&mut resolver(
-          unresolved_mark,
-          top_level_mark,
-          syntax.typescript(),
-        ))
         .apply(fold_pass(lingui_macro))
         .apply(hygiene::hygiene())
         .apply(fixer::fixer(Some(&comments)));
