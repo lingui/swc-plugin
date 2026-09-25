@@ -59,6 +59,99 @@ const App = () => {
     expect(result.map).toBeDefined()
   })
 
+  describe('strips typescript syntax', () => {
+    test('`as` expression in member object', async () => {
+      const result = await transform(`(window as any).foo()`, 'app.tsx')
+
+      expect(result.code).toMatchInlineSnapshot(`
+        "window.foo();
+        "
+      `)
+    })
+
+    test('generic arrow function in .tsx', async () => {
+      const result = await transform(`const f = <T,>(v: T) => v`, 'app.tsx')
+
+      expect(result.code).toMatchInlineSnapshot(`
+        "const f = (v)=>v;
+        "
+      `)
+    })
+
+    test('`as` expression in macro placeholder', async () => {
+      const code = `
+import { t } from '@lingui/core/macro';
+const a = t\`Hello \${(user as any).name}\`;
+`
+      const result = await transform(code, 'app.ts')
+
+      expect(result.code).toMatchInlineSnapshot(`
+        "import { i18n as $_i18n } from "@lingui/core";
+        const a = $_i18n._(/*i18n*/ {
+            id: "Y7riaK",
+            message: "Hello {0}",
+            values: {
+                0: user.name
+            }
+        });
+        "
+      `)
+    })
+
+    test('keeps macro imports used in JSX and via useLingui in .tsx', async () => {
+      const code = `
+import { Trans, useLingui } from '@lingui/react/macro';
+import { msg } from '@lingui/core/macro';
+import type { MessageDescriptor } from '@lingui/core';
+const greeting: MessageDescriptor = msg\`Hello\`;
+const App = ({ name }: { name: string }) => {
+  const { t } = useLingui();
+  return <div title={t\`Title\`}><Trans>Hello {name}</Trans></div>;
+};
+`
+      const result = await transform(code, 'app.tsx')
+
+      expect(result.code).toMatchInlineSnapshot(`
+        "import { useLingui as $_useLingui } from "@lingui/react";
+        import { Trans as Trans_ } from "@lingui/react";
+        const greeting = /*i18n*/ {
+            id: "uzTaYi",
+            message: "Hello"
+        };
+        const App = ({ name })=>{
+            const { i18n: $__i18n, _: $__ } = $_useLingui();
+            return <div title={$__i18n._(/*i18n*/ {
+                id: "MHrjPM",
+                message: "Title"
+            })}><Trans_ {.../*i18n*/ {
+                id: "OVaF9k",
+                values: {
+                    name: name
+                },
+                message: "Hello {name}"
+            }}/></div>;
+        };
+        "
+      `)
+    })
+
+    test('removes type-only imports and keeps React import in .tsx', async () => {
+      const code = `
+import React from 'react';
+import type { FC } from 'react';
+import { Props } from './types';
+const App: FC<Props> = () => <div />;
+`
+      const result = await transform(code, 'app.tsx')
+
+      expect(result.code).toMatchInlineSnapshot(`
+        "import React from 'react';
+        const App = ()=><div/>;
+        "
+      `)
+    })
+  })
+
   test('infers parser from .tsx filename', async () => {
     const code = `
 import { Trans } from '@lingui/react/macro';
@@ -69,10 +162,7 @@ const Greet = (props: Props) => <Trans>Hello {props.name}</Trans>;
 
     expect(result.code).toMatchInlineSnapshot(`
       "import { Trans as Trans_ } from "@lingui/react";
-      type Props = {
-          name: string;
-      };
-      const Greet = (props: Props)=><Trans_ {.../*i18n*/ {
+      const Greet = (props)=><Trans_ {.../*i18n*/ {
               id: "Y7riaK",
               values: {
                   0: props.name
