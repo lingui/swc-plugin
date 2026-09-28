@@ -610,11 +610,6 @@ __metadata:
     vitest: "npm:^4.1.7"
   peerDependencies:
     "@lingui/core": 5 || 6
-  peerDependenciesMeta:
-    "@swc/core":
-      optional: true
-    next:
-      optional: true
   languageName: unknown
   linkType: soft
 
