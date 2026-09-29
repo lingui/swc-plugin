@@ -20,7 +20,12 @@ use std::sync::{Arc, Mutex};
 /// Prefixes `msg` with `filename:line:column` (both 1-based) of the start of `span`
 fn with_location(cm: &SourceMap, span: Span, msg: &str) -> String {
   let loc = cm.lookup_char_pos(span.lo());
-  format!("{}:{}:{}: {msg}", loc.file.name, loc.line, loc.col_display + 1)
+  format!(
+    "{}:{}:{}: {msg}",
+    loc.file.name,
+    loc.line,
+    loc.col_display + 1
+  )
 }
 
 struct StringEmitter {

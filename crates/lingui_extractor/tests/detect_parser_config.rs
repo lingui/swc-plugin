@@ -295,13 +295,25 @@ fn user_tsx_true_on_ts_file_stays_true() {
 #[test]
 fn decorators_enabled_by_default_for_typescript() {
     let result = detect_parser_config("service.ts", None);
-    assert!(matches!(result, Syntax::Typescript(TsSyntax { decorators: true, .. })));
+    assert!(matches!(
+        result,
+        Syntax::Typescript(TsSyntax {
+            decorators: true,
+            ..
+        })
+    ));
 }
 
 #[test]
 fn decorators_enabled_by_default_for_ecmascript() {
     let result = detect_parser_config("service.js", None);
-    assert!(matches!(result, Syntax::Es(EsSyntax { decorators: true, .. })));
+    assert!(matches!(
+        result,
+        Syntax::Es(EsSyntax {
+            decorators: true,
+            ..
+        })
+    ));
 }
 
 #[test]
@@ -312,5 +324,11 @@ fn user_config_controls_decorators() {
         ..Default::default()
     });
     let result = detect_parser_config("service.ts", Some(user));
-    assert!(matches!(result, Syntax::Typescript(TsSyntax { decorators: false, .. })));
+    assert!(matches!(
+        result,
+        Syntax::Typescript(TsSyntax {
+            decorators: false,
+            ..
+        })
+    ));
 }
