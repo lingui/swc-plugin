@@ -318,7 +318,7 @@ class Service {
     test('explicit parser config is used as-is', async () => {
       await expect(
         transform(`@dec class A {}`, 'a.ts', {parser: {syntax: 'typescript', decorators: false}}),
-      ).rejects.toThrowError('TS1109')
+      ).rejects.toThrowError('a.ts:1:1: Parse error: Expression expected')
     })
   })
 
