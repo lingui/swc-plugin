@@ -1,12 +1,12 @@
 use lingui_extractor::{detect_parser_config, extract_inline_sourcemap};
-use lingui_macro::{LinguiJsOptions, LinguiMacroFolder, LinguiOptions};
+use lingui_macro::{LinguiJsOptions, LinguiMacroFolder};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serde::Deserialize;
 use swc_core::common::comments::SingleThreadedComments;
 use swc_core::common::errors::{DiagnosticBuilder, Handler, HandlerFlags};
 use swc_core::common::{sync::Lrc, BytePos, LineCol};
-use swc_core::common::{FileName, Globals, Mark, SourceMap, GLOBALS};
+use swc_core::common::{FileName, Globals, Mark, SourceMap, Span, Spanned, GLOBALS};
 use swc_core::ecma::codegen::text_writer::JsWriter;
 use swc_core::ecma::codegen::Emitter;
 use swc_core::ecma::parser::{Parser, StringInput, Syntax};
@@ -17,8 +17,15 @@ use swc_sourcemap as sourcemap;
 
 use std::sync::{Arc, Mutex};
 
+/// Prefixes `msg` with `filename:line:column` (both 1-based) of the start of `span`
+fn with_location(cm: &SourceMap, span: Span, msg: &str) -> String {
+  let loc = cm.lookup_char_pos(span.lo());
+  format!("{}:{}:{}: {msg}", loc.file.name, loc.line, loc.col_display + 1)
+}
+
 struct StringEmitter {
   buffer: Arc<Mutex<String>>,
+  cm: Lrc<SourceMap>,
 }
 
 impl swc_core::common::errors::Emitter for StringEmitter {
@@ -29,6 +36,10 @@ impl swc_core::common::errors::Emitter for StringEmitter {
       .map(|m| m.0.as_str())
       .collect::<Vec<_>>()
       .join("");
+    let msg = match db.span.primary_span() {
+      Some(span) if !span.is_dummy() => with_location(&self.cm, span, &msg),
+      _ => msg,
+    };
     let mut buf = self.buffer.lock().unwrap();
     if !buf.is_empty() {
       buf.push('\n');
@@ -64,6 +75,10 @@ struct TransformOptionsInternal {
   pub macro_options: Option<LinguiJsOptions>,
   #[serde(default)]
   pub source_maps: SourceMapsOption,
+  /// Environment name (`NODE_ENV`), used to resolve `descriptorFields: "auto"`.
+  /// Set by the JS wrapper, not part of the public options.
+  #[serde(default)]
+  pub env_name: Option<String>,
 }
 
 fn do_transform(
@@ -71,6 +86,7 @@ fn do_transform(
   filename: &str,
   parser_syntax: Option<Syntax>,
   macro_options: Option<LinguiJsOptions>,
+  env_name: &str,
   input_source_map: Option<sourcemap::SourceMap>,
   source_maps: &SourceMapsOption,
 ) -> std::result::Result<TransformResult, String> {
@@ -81,6 +97,7 @@ fn do_transform(
   let handler = Handler::with_emitter_and_flags(
     Box::new(StringEmitter {
       buffer: error_buffer.clone(),
+      cm: cm.clone(),
     }),
     HandlerFlags {
       can_emit_warnings: true,
@@ -94,16 +111,15 @@ fn do_transform(
 
   let mut parser = Parser::new(syntax, StringInput::from(&*source_file), Some(&comments));
 
-  let module = parser
-    .parse_module()
-    .map_err(|e| format!("Parse error: {e:?}"))?;
+  let module = parser.parse_module().map_err(|e| {
+    let msg = format!("Parse error: {}", e.kind().msg());
+    with_location(&cm, e.span(), &msg)
+  })?;
 
   let program = swc_core::ecma::ast::Program::Module(module);
 
-  let lingui_options = match macro_options {
-    Some(opts) => opts.into_options(""),
-    None => LinguiOptions::default(),
-  };
+  // `descriptorFields: "auto"` resolves to `id-only` for `production` and `all` otherwise
+  let lingui_options = macro_options.unwrap_or_default().into_options(env_name);
 
   let globals = Globals::default();
 
@@ -279,6 +295,7 @@ impl Task for TransformTask {
       &self.filename,
       options.parser,
       options.macro_options,
+      options.env_name.as_deref().unwrap_or_default(),
       input_source_map,
       &options.source_maps,
     )

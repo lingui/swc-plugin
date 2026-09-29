@@ -292,4 +292,94 @@ const msg = t\`Hello\`;
     await expect(transform(code, 'broken.ts'))
       .rejects.toThrowError('Parse error')
   })
+
+  describe('parser defaults', () => {
+    test('decorators are enabled by default in .ts', async () => {
+      const code = `
+import { t } from '@lingui/core/macro';
+@Injectable()
+class Service {
+  @Input() label = t\`Hello\`;
+}
+`
+      const result = await transform(code, 'service.ts')
+
+      expect(result.code).toContain('@Injectable()')
+      expect(result.code).toContain('@Input()')
+      expect(result.code).toContain('id: "uzTaYi"')
+    })
+
+    test('decorators are enabled by default in .js', async () => {
+      const result = await transform(`@dec class A {}`, 'a.js')
+
+      expect(result.code).toContain('@dec')
+    })
+
+    test('explicit parser config is used as-is', async () => {
+      await expect(
+        transform(`@dec class A {}`, 'a.ts', {parser: {syntax: 'typescript', decorators: false}}),
+      ).rejects.toThrowError('TS1109')
+    })
+  })
+
+  describe('descriptorFields: "auto"', () => {
+    const code = `
+import { t } from '@lingui/core/macro';
+const msg = t\`Hello\`;
+`
+
+    async function withNodeEnv<T>(env: string, fn: () => Promise<T>): Promise<T> {
+      const prev = process.env.NODE_ENV
+      process.env.NODE_ENV = env
+      try {
+        return await fn()
+      } finally {
+        process.env.NODE_ENV = prev
+      }
+    }
+
+    test('keeps id only when NODE_ENV=production', async () => {
+      const result = await withNodeEnv('production', () => transform(code, 'a.ts'))
+
+      expect(result.code).toContain('id: "uzTaYi"')
+      expect(result.code).not.toContain('message:')
+    })
+
+    test('keeps message when NODE_ENV is not production', async () => {
+      const result = await withNodeEnv('development', () => transform(code, 'a.ts'))
+
+      expect(result.code).toContain('message: "Hello"')
+    })
+
+    test('explicit descriptorFields wins over NODE_ENV', async () => {
+      const result = await withNodeEnv('production', () =>
+        transform(code, 'a.ts', {macro: {descriptorFields: 'all'}}),
+      )
+
+      expect(result.code).toContain('message: "Hello"')
+    })
+  })
+
+  describe('error locations', () => {
+    test('macro errors include file, line and column', async () => {
+      const code = `import { t, ph } from '@lingui/core/macro';
+const a = t\`Hello \${ph("x")}\`;
+`
+      const error: any = await transform(code, 'src/a.ts').catch((e) => e)
+
+      expect(error).toBeInstanceOf(Error)
+      expect(error.message).toBe(
+        'src/a.ts:2:24: Incorrect usage of `ph` macro. First argument should be an object expression like `ph({name: value})`.',
+      )
+      // `loc` follows the Rollup/Vite convention: 1-based line, 0-based column
+      expect(error.loc).toEqual({file: 'src/a.ts', line: 2, column: 23})
+    })
+
+    test('parse errors include file, line and column', async () => {
+      const error: any = await transform('const x = {', 'broken.ts').catch((e) => e)
+
+      expect(error.message).toMatch(/^broken\.ts:1:12: Parse error: /)
+      expect(error.loc).toEqual({file: 'broken.ts', line: 1, column: 11})
+    })
+  })
 })

@@ -8,6 +8,7 @@ fn tsx_file_no_user_config() {
         result,
         Syntax::Typescript(TsSyntax {
             tsx: true,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -20,6 +21,7 @@ fn jsx_file_no_user_config() {
         result,
         Syntax::Es(EsSyntax {
             jsx: true,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -32,6 +34,7 @@ fn ts_file_no_user_config() {
         result,
         Syntax::Typescript(TsSyntax {
             tsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -44,6 +47,7 @@ fn mts_file_no_user_config() {
         result,
         Syntax::Typescript(TsSyntax {
             tsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -56,6 +60,7 @@ fn cts_file_no_user_config() {
         result,
         Syntax::Typescript(TsSyntax {
             tsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -68,6 +73,7 @@ fn js_file_no_user_config() {
         result,
         Syntax::Es(EsSyntax {
             jsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -80,6 +86,7 @@ fn mjs_file_no_user_config() {
         result,
         Syntax::Es(EsSyntax {
             jsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -92,6 +99,7 @@ fn cjs_file_no_user_config() {
         result,
         Syntax::Es(EsSyntax {
             jsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -104,6 +112,7 @@ fn unknown_extension_defaults_to_ecmascript() {
         result,
         Syntax::Es(EsSyntax {
             jsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -116,6 +125,7 @@ fn no_extension_defaults_to_ecmascript() {
         result,
         Syntax::Es(EsSyntax {
             jsx: false,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -128,6 +138,7 @@ fn full_path_extracts_extension() {
         result,
         Syntax::Typescript(TsSyntax {
             tsx: true,
+            decorators: true,
             ..Default::default()
         })
     );
@@ -279,4 +290,27 @@ fn user_tsx_true_on_ts_file_stays_true() {
             ..Default::default()
         })
     );
+}
+
+#[test]
+fn decorators_enabled_by_default_for_typescript() {
+    let result = detect_parser_config("service.ts", None);
+    assert!(matches!(result, Syntax::Typescript(TsSyntax { decorators: true, .. })));
+}
+
+#[test]
+fn decorators_enabled_by_default_for_ecmascript() {
+    let result = detect_parser_config("service.js", None);
+    assert!(matches!(result, Syntax::Es(EsSyntax { decorators: true, .. })));
+}
+
+#[test]
+fn user_config_controls_decorators() {
+    // Explicit user config is taken as-is, decorators are not forced on
+    let user = Syntax::Typescript(TsSyntax {
+        decorators: false,
+        ..Default::default()
+    });
+    let result = detect_parser_config("service.ts", Some(user));
+    assert!(matches!(result, Syntax::Typescript(TsSyntax { decorators: false, .. })));
 }

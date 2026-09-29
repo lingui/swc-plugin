@@ -78,12 +78,16 @@ pub fn detect_parser_config(filename: &str, user_config: Option<Syntax>) -> Synt
             jsx: es.jsx || detected_jsx,
             ..es
         }),
+        // Decorators are common enough (Angular, NestJS, MobX, TypeORM) that a
+        // file using them should not fail to parse out of the box.
         None if detected_is_typescript => Syntax::Typescript(TsSyntax {
             tsx: detected_jsx,
+            decorators: true,
             ..Default::default()
         }),
         None => Syntax::Es(EsSyntax {
             jsx: detected_jsx,
+            decorators: true,
             ..Default::default()
         }),
     }
