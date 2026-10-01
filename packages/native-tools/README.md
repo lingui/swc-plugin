@@ -133,6 +133,14 @@ If the input code ends with an inline `//# sourceMappingURL=data:...` comment, t
 
 The `macro` options are documented in the [`@lingui/swc-plugin` README](https://github.com/lingui/swc-plugin/blob/main/packages/lingui-macro/README.md#options).
 
+#### Parser defaults
+
+The parser syntax (ECMAScript / TypeScript) and JSX support are inferred from the filename, and decorators are enabled. When you pass `parser`, it is used as-is (only `jsx` / `tsx` is still OR-ed in from the filename), so remember to set `decorators: true` yourself if you need them.
+
+#### `descriptorFields: "auto"`
+
+When `macro.descriptorFields` is not set (or is `"auto"`), it resolves from `process.env.NODE_ENV`: `"id-only"` in `production`, `"all"` otherwise — the same behavior as the Babel macro plugin. Set it explicitly to make the output independent of the environment.
+
 ### Benchmark
 
 Macro transform benchmark results for the native transformer (lower is better):

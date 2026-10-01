@@ -34,6 +34,20 @@ export type TransformResult = {
 }
 
 /**
+ * Error thrown by `transform`.
+ *
+ * The message is prefixed with `filename:line:column` (1-based) when the location is known,
+ * e.g. `src/App.tsx:12:7: Incorrect usage of \`ph\` macro...`. Multiple errors are joined with `\n`.
+ */
+export type TransformError = Error & {
+  /**
+   * Location of the first error. `line` is 1-based, `column` is 0-based,
+   * following the Rollup / Vite convention so bundlers can render a code frame from it.
+   */
+  loc?: {file: string; line: number; column: number}
+}
+
+/**
  * Transform source code by applying the Lingui macro transformation.
  *
  * This is a minimal SWC + Lingui transformer built as a single native library
@@ -41,15 +55,60 @@ export type TransformResult = {
  * strips TypeScript syntax: TS files come out as JS with JSX preserved.
  * Everything else is kept as-is.
  *
- * Parser options are automatically inferred from the filename (.ts, .tsx, .js, .jsx, etc.)
+ * Parser options are automatically inferred from the filename (.ts, .tsx, .js, .jsx, etc.),
+ * with decorators enabled. Pass `parser` to take full control of the parser config.
+ *
+ * `macro.descriptorFields` defaults to `"auto"`: `"id-only"` when `process.env.NODE_ENV`
+ * is `"production"`, `"all"` otherwise.
+ *
+ * Rejects with a {@link TransformError} on parse or macro errors.
  *
  * @param code - The source code to transform
- * @param filename - The filename (used for parser inference and source maps)
+ * @param filename - The filename (used for parser inference, error messages and source maps)
  * @param options - Optional transform options
  * @returns Promise resolving to transformed code and source map
  */
-export function transform(code: string, filename: string, options?: TransformOptions): Promise<TransformResult> {
-  return binding.transform(code, filename, options ? toBuffer(options) : undefined)
+export async function transform(code: string, filename: string, options?: TransformOptions): Promise<TransformResult> {
+  const resolvedOptions = {
+    ...options,
+    macro: {...options?.macro, descriptorFields: resolveDescriptorFields(options?.macro?.descriptorFields)},
+  }
+
+  try {
+    return await binding.transform(code, filename, toBuffer(resolvedOptions))
+  } catch (error) {
+    throw withLocation(error, filename)
+  }
+}
+
+function resolveDescriptorFields(
+  value: LinguiMacroOptions['descriptorFields'],
+): Exclude<LinguiMacroOptions['descriptorFields'], 'auto'> {
+  if (value === undefined || value === 'auto') {
+    return process.env.NODE_ENV === 'production' ? 'id-only' : 'all'
+  }
+  return value
+}
+
+/**
+ * Parses the `filename:line:column: ` prefix produced by the native side
+ * and exposes it as `error.loc` (1-based line, 0-based column).
+ */
+function withLocation(error: unknown, filename: string): unknown {
+  if (!(error instanceof Error) || !error.message.startsWith(filename)) {
+    return error
+  }
+
+  const match = /^:(\d+):(\d+): /.exec(error.message.slice(filename.length))
+  if (match) {
+    (error as TransformError).loc = {
+      file: filename,
+      line: Number(match[1]),
+      column: Number(match[2]) - 1,
+    }
+  }
+
+  return error
 }
 
 export type ExtractorOptions = {

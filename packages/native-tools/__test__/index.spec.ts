@@ -41,6 +41,20 @@ test('handle extraction errors gracefully', async () => {
 })
 
 
+test('parses decorators by default', async () => {
+  const code = `
+import { t } from '@lingui/core/macro';
+@Injectable()
+class Service {
+  label = t\`Hello\`;
+}
+`
+  const result = await extractMessages(code, 'service.ts')
+
+  expect(result.warnings).toEqual([])
+  expect(result.messages.map((m) => m.message)).toEqual(['Hello'])
+})
+
 test('parser options: should parse jsx', async () => {
   const code = `const t = <div>Hello</div>`
 
