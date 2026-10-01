@@ -69,13 +69,25 @@ export type TransformError = Error & {
  * @returns Promise resolving to transformed code and source map
  */
 export async function transform(code: string, filename: string, options?: TransformOptions): Promise<TransformResult> {
-  const internalOptions = {...options, envName: process.env.NODE_ENV}
+  const resolvedOptions = {
+    ...options,
+    macro: {...options?.macro, descriptorFields: resolveDescriptorFields(options?.macro?.descriptorFields)},
+  }
 
   try {
-    return await binding.transform(code, filename, toBuffer(internalOptions))
+    return await binding.transform(code, filename, toBuffer(resolvedOptions))
   } catch (error) {
     throw withLocation(error, filename)
   }
+}
+
+function resolveDescriptorFields(
+  value: LinguiMacroOptions['descriptorFields'],
+): Exclude<LinguiMacroOptions['descriptorFields'], 'auto'> {
+  if (value === undefined || value === 'auto') {
+    return process.env.NODE_ENV === 'production' ? 'id-only' : 'all'
+  }
+  return value
 }
 
 /**

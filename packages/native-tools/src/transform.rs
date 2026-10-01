@@ -1,5 +1,5 @@
 use lingui_extractor::{detect_parser_config, extract_inline_sourcemap};
-use lingui_macro::{LinguiJsOptions, LinguiMacroFolder};
+use lingui_macro::{LinguiJsOptions, LinguiMacroFolder, LinguiOptions};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use serde::Deserialize;
@@ -80,10 +80,6 @@ struct TransformOptionsInternal {
   pub macro_options: Option<LinguiJsOptions>,
   #[serde(default)]
   pub source_maps: SourceMapsOption,
-  /// Environment name (`NODE_ENV`), used to resolve `descriptorFields: "auto"`.
-  /// Set by the JS wrapper, not part of the public options.
-  #[serde(default)]
-  pub env_name: Option<String>,
 }
 
 fn do_transform(
@@ -91,7 +87,6 @@ fn do_transform(
   filename: &str,
   parser_syntax: Option<Syntax>,
   macro_options: Option<LinguiJsOptions>,
-  env_name: &str,
   input_source_map: Option<sourcemap::SourceMap>,
   source_maps: &SourceMapsOption,
 ) -> std::result::Result<TransformResult, String> {
@@ -123,8 +118,10 @@ fn do_transform(
 
   let program = swc_core::ecma::ast::Program::Module(module);
 
-  // `descriptorFields: "auto"` resolves to `id-only` for `production` and `all` otherwise
-  let lingui_options = macro_options.unwrap_or_default().into_options(env_name);
+  let lingui_options = match macro_options {
+    Some(opts) => opts.into_options(""),
+    None => LinguiOptions::default(),
+  };
 
   let globals = Globals::default();
 
@@ -300,7 +297,6 @@ impl Task for TransformTask {
       &self.filename,
       options.parser,
       options.macro_options,
-      options.env_name.as_deref().unwrap_or_default(),
       input_source_map,
       &options.source_maps,
     )

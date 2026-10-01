@@ -351,6 +351,14 @@ const msg = t\`Hello\`;
       expect(result.code).toContain('message: "Hello"')
     })
 
+    test('explicit "auto" behaves like the default', async () => {
+      const result = await withNodeEnv('production', () =>
+        transform(code, 'a.ts', {macro: {descriptorFields: 'auto'}}),
+      )
+
+      expect(result.code).not.toContain('message:')
+    })
+
     test('explicit descriptorFields wins over NODE_ENV', async () => {
       const result = await withNodeEnv('production', () =>
         transform(code, 'a.ts', {macro: {descriptorFields: 'all'}}),
