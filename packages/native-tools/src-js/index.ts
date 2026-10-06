@@ -165,7 +165,7 @@ const mapMessage = (msg: binding.ExtractedMessage): ExtractedMessage => {
  * })
  * ```
  *
- * Macro options automatically inherited from the Lingui Config.
+ * Macro options are inherited from the Lingui Config. Explicit `macro` options take precedence over them.
  */
 export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorType {
   const matchRe = new RegExp(
@@ -185,7 +185,7 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
     async extract(filename, code, onMessageExtracted, ctx) {
       const {messages} = await extractMessages(code, filename, {
         ...options,
-        macro: mapOptions(ctx.linguiConfig)
+        macro: mapOptions(ctx.linguiConfig, options.macro),
       })
 
       messages.forEach((msg) => {
