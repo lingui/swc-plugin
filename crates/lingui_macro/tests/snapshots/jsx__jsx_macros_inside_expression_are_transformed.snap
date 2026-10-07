@@ -1,0 +1,33 @@
+---
+source: crates/lingui_macro/tests/jsx.rs
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello, {props.world ? <Trans>world</Trans> : <Trans>guys</Trans>}</Trans>;
+<Trans>Hello, {props.world && <Trans>world</Trans>}</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "UT5PlM",
+    values: {
+        0: props.world ? <Trans_ {.../*i18n*/ {
+            id: "ELi2P3",
+            message: "world"
+        }}/> : <Trans_ {.../*i18n*/ {
+            id: "39nd-2",
+            message: "guys"
+        }}/>
+    },
+    message: "Hello, {0}"
+}}/>;
+<Trans_ {.../*i18n*/ {
+    id: "UT5PlM",
+    values: {
+        0: props.world && <Trans_ {.../*i18n*/ {
+            id: "ELi2P3",
+            message: "world"
+        }}/>
+    },
+    message: "Hello, {0}"
+}}/>;

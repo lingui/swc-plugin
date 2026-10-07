@@ -563,11 +563,14 @@ where
 
         if let JSXElementName::Ident(ident) = &el.opening.name {
             if self.ctx.is_lingui_ident("Trans", ident) {
-                return self.transform_jsx_macro(el, true);
+                // `transform_jsx_macro` moves nested JSX inside expression
+                // placeholders verbatim into the produced `values`/`components`
+                // props, so keep folding to transform macro elements there too.
+                return self.transform_jsx_macro(el, true).fold_children_with(self);
             }
 
             if self.ctx.is_lingui_jsx_choice_cmp(ident) {
-                return self.transform_jsx_macro(el, false);
+                return self.transform_jsx_macro(el, false).fold_children_with(self);
             }
         }
 
