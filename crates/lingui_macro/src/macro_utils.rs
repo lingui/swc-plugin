@@ -330,6 +330,10 @@ pub struct RuntimeIdents {
     pub i18n: Ident,
     pub trans: IdentName,
     pub use_lingui: IdentName,
+    /// `_` translator destructured from `useLingui()`.
+    /// When set (inside a `useLingui` scope), `t`-family calls
+    /// invoke it directly instead of `<i18n>._(...)`.
+    pub use_lingui_t: Option<Ident>,
 }
 
 impl Default for RuntimeIdents {
@@ -338,6 +342,7 @@ impl Default for RuntimeIdents {
             i18n: quote_ident!("$_i18n").into(),
             trans: quote_ident!("Trans_"),
             use_lingui: quote_ident!("$_useLingui"),
+            use_lingui_t: None,
         }
     }
 }

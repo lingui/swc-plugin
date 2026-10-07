@@ -16,13 +16,13 @@ function App() {
 
 import { useLingui as $_useLingui } from "@lingui/react";
 function App() {
-    const { i18n: $__i18n, _: $__ } = $_useLingui();
-    /* lingui-set context="first" */ const msg1 = $__i18n._(/*i18n*/ {
+    const { _: $__ } = $_useLingui();
+    /* lingui-set context="first" */ const msg1 = $__(/*i18n*/ {
         id: "VUeJYD",
         message: "Hello",
         context: "first"
     });
-    /* lingui-set context="second" */ const msg2 = $__i18n._(/*i18n*/ {
+    /* lingui-set context="second" */ const msg2 = $__(/*i18n*/ {
         id: "ovKD_8",
         message: "World",
         context: "second"

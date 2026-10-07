@@ -287,37 +287,31 @@ where
                                             let mut new_props: Vec<ObjectPatProp> = obj_pat
                                                 .props
                                                 .into_iter()
-                                                .map(|prop| {
-                                                    get_local_ident_from_object_pat_prop(&prop, "t")
-                                                        .map(|ident| {
-                                                            ctx.register_reference(
-                                                                &"t".into(),
-                                                                &ident.to_id(),
-                                                            );
+                                                .filter_map(|prop| {
+                                                    if let Some(ident) =
+                                                        get_local_ident_from_object_pat_prop(
+                                                            &prop, "t",
+                                                        )
+                                                    {
+                                                        ctx.register_reference(
+                                                            &"t".into(),
+                                                            &ident.to_id(),
+                                                        );
 
-                                                            let new_i18n_ident =
-                                                                private_ident!("$__i18n");
+                                                        ident_replacer = Some(IdentReplacer {
+                                                            from: ident.to_id(),
+                                                            to: underscore_ident.clone(),
+                                                        });
 
-                                                            ident_replacer = Some(IdentReplacer {
-                                                                from: ident.to_id(),
-                                                                to: underscore_ident.clone(),
-                                                            });
+                                                        ctx.runtime_idents.use_lingui_t =
+                                                            Some(underscore_ident.clone());
 
-                                                            ctx.runtime_idents.i18n =
-                                                                new_i18n_ident.clone();
+                                                        // `t` is dropped: the `_: $__` binding
+                                                        // pushed below is called directly
+                                                        return None;
+                                                    }
 
-                                                            ObjectPatProp::KeyValue(
-                                                                KeyValuePatProp {
-                                                                    value: Box::new(Pat::Ident(
-                                                                        new_i18n_ident.into(),
-                                                                    )),
-                                                                    key: PropName::Ident(
-                                                                        quote_ident!("i18n"),
-                                                                    ),
-                                                                },
-                                                            )
-                                                        })
-                                                        .unwrap_or(prop)
+                                                    Some(prop)
                                                 })
                                                 .collect();
 

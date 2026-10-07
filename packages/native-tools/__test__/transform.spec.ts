@@ -119,8 +119,8 @@ const App = ({ name }: { name: string }) => {
             message: "Hello"
         };
         const App = ({ name })=>{
-            const { i18n: $__i18n, _: $__ } = $_useLingui();
-            return <div title={$__i18n._(/*i18n*/ {
+            const { _: $__ } = $_useLingui();
+            return <div title={$__(/*i18n*/ {
                 id: "MHrjPM",
                 message: "Title"
             })}><Trans_ {.../*i18n*/ {
