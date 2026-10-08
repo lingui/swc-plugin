@@ -1084,7 +1084,7 @@ dependencies = [
 
 [[package]]
 name = "lingui_extractor"
-version = "6.7.0"
+version = "6.7.1"
 dependencies = [
  "data-encoding",
  "lingui_macro",
@@ -1098,7 +1098,7 @@ dependencies = [
 
 [[package]]
 name = "lingui_macro"
-version = "6.7.0"
+version = "6.7.1"
 dependencies = [
  "data-encoding",
  "insta",
