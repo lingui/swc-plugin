@@ -1,4 +1,6 @@
-import {extractMessages, extractMessagesFromFiles} from '../src-js/index'
+import {createSwcExtractor, extractMessages, extractMessagesFromFiles} from '../src-js/index'
+import {makeConfig} from '@lingui/conf'
+import type {ExtractedMessage, ExtractorType, LinguiConfigNormalized} from '@lingui/conf'
 import {describe, expect, test} from 'vitest'
 import path from 'path'
 
@@ -159,3 +161,34 @@ describe('extractMessagesFromFiles', () => {
   })
 })
 
+describe('createSwcExtractor', () => {
+  const code = `
+  import {t} from '@lingui/core/macro';
+  import {t as customT} from '@my/macro';
+  t\`From default package\`;
+  customT\`From custom package\`;
+  `
+
+  async function extract(extractor: ExtractorType, linguiConfig: LinguiConfigNormalized) {
+    const messages: ExtractedMessage[] = []
+    await extractor.extract('test.js', code, (msg) => messages.push(msg), {linguiConfig})
+    return messages.map((msg) => msg.message)
+  }
+
+  test('reads macro options from the Lingui config', async () => {
+    const linguiConfig = makeConfig(
+      {locales: ['en'], macro: {corePackage: ['@my/macro']}},
+      {skipValidation: true},
+    )
+
+    expect(await extract(createSwcExtractor(), linguiConfig)).toEqual(['From custom package'])
+  })
+
+  test('explicit macro options take precedence over the Lingui config', async () => {
+    const linguiConfig = makeConfig({locales: ['en']}, {skipValidation: true})
+
+    const extractor = createSwcExtractor({macro: {corePackage: ['@my/macro']}})
+
+    expect(await extract(extractor, linguiConfig)).toEqual(['From custom package'])
+  })
+})
