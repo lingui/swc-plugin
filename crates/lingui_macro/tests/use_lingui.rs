@@ -168,3 +168,15 @@ function MyComponent() {
 }
      "#
 );
+
+to!(
+    support_passing_t_in_shorthand_object_property,
+    r#"
+import { useLingui } from '@lingui/react/macro';
+
+function useGreeting(format) {
+  const { t } = useLingui();
+  return format({ t });
+}
+     "#
+);
