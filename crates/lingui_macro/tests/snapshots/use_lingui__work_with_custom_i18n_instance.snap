@@ -4,17 +4,22 @@ source: crates/lingui_macro/tests/use_lingui.rs
 import { useLingui } from '@lingui/react/macro';
 
 function MyComponent() {
-  const { t: _ } = useLingui();
-  const a = _`Text`;
+  const { t, i18n } = useLingui();
+  const a = t`Text`;
+  const b = t(i18n)({ message: "With custom i18n" });
 }
 
 ↓ ↓ ↓ ↓ ↓ ↓
 
 import { useLingui as $_useLingui } from "@lingui/react";
 function MyComponent() {
-    const { _: $__ } = $_useLingui();
+    const { i18n, _: $__ } = $_useLingui();
     const a = $__(/*i18n*/ {
         id: "xeiujy",
         message: "Text"
+    });
+    const b = i18n._(/*i18n*/ {
+        id: "f0HTH9",
+        message: "With custom i18n"
     });
 }

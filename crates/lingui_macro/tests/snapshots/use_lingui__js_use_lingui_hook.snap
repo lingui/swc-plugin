@@ -19,8 +19,8 @@ const bla1 = ()=>{
     console.log();
 };
 function bla() {
-    const { i18n: $__i18n, i18n, _: $__ } = $_useLingui();
-    $__i18n._(/*i18n*/ {
+    const { i18n, _: $__ } = $_useLingui();
+    $__(/*i18n*/ {
         id: "EsCV2T",
         message: "Refresh inbox"
     });

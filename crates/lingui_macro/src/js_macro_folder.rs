@@ -107,18 +107,31 @@ where
         args: Vec<ExprOrSpread>,
         span: Span,
     ) -> CallExpr {
-        CallExpr {
-            span,
-            callee: Expr::Member(MemberExpr {
+        let callee = if let Some(obj) = callee_obj {
+            // `t(customI18n)` — call `._` on the passed i18n object
+            Expr::Member(MemberExpr {
                 span: DUMMY_SP,
-                obj: callee_obj.unwrap_or_else(|| {
-                    self.ctx.should_add_18n_import = true;
-
-                    Box::new(self.ctx.runtime_idents.i18n.clone().into())
-                }),
+                obj,
                 prop: MemberProp::Ident(IdentName::new("_".into(), DUMMY_SP)),
             })
-            .as_callee(),
+            .as_callee()
+        } else if let Some(t_ident) = &self.ctx.runtime_idents.use_lingui_t {
+            // `_` destructured from `useLingui()` is the translator itself
+            Callee::Expr(Box::new(Expr::Ident(t_ident.clone())))
+        } else {
+            self.ctx.should_add_18n_import = true;
+
+            Expr::Member(MemberExpr {
+                span: DUMMY_SP,
+                obj: Box::new(self.ctx.runtime_idents.i18n.clone().into()),
+                prop: MemberProp::Ident(IdentName::new("_".into(), DUMMY_SP)),
+            })
+            .as_callee()
+        };
+
+        CallExpr {
+            span,
+            callee,
             args,
             type_args: None,
             ctxt: SyntaxContext::empty(),
