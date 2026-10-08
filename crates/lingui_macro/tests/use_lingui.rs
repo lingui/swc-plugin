@@ -155,3 +155,16 @@ const MyComponent = () => {
 }
      "#
 );
+
+to!(
+    work_with_custom_i18n_instance,
+    r#"
+import { useLingui } from '@lingui/react/macro';
+
+function MyComponent() {
+  const { t, i18n } = useLingui();
+  const a = t`Text`;
+  const b = t(i18n)({ message: "With custom i18n" });
+}
+     "#
+);
