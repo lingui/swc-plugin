@@ -50,6 +50,21 @@ impl Fold for IdentReplacer {
 
         n
     }
+
+    /// In a shorthand property `{ t }` the same identifier is both the key
+    /// and the value. Expand it to `{ t: $__ }` so the key is preserved.
+    fn fold_prop(&mut self, n: Prop) -> Prop {
+        if let Prop::Shorthand(ident) = &n {
+            if ident.to_id() == self.from {
+                return Prop::KeyValue(KeyValueProp {
+                    key: PropName::Ident(IdentName::new(ident.sym.clone(), ident.span)),
+                    value: Box::new(Expr::Ident(self.to.clone())),
+                });
+            }
+        }
+
+        n.fold_children_with(self)
+    }
 }
 
 pub struct LinguiMacroFolder<C>

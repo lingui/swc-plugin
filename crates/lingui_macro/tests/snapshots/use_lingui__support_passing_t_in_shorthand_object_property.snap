@@ -1,0 +1,19 @@
+---
+source: crates/lingui_macro/tests/use_lingui.rs
+---
+import { useLingui } from '@lingui/react/macro';
+
+function useGreeting(format) {
+  const { t } = useLingui();
+  return format({ t });
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+function useGreeting(format) {
+    const { _: $__ } = $_useLingui();
+    return format({
+        t: $__
+    });
+}
