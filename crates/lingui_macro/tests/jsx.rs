@@ -152,6 +152,15 @@ to!(
 );
 
 to!(
+    jsx_macros_inside_expression_are_transformed,
+    r#"
+        import { Trans } from "@lingui/react/macro";
+        <Trans>Hello, {props.world ? <Trans>world</Trans> : <Trans>guys</Trans>}</Trans>;
+        <Trans>Hello, {props.world && <Trans>world</Trans>}</Trans>;
+     "#
+);
+
+to!(
     elements_without_children,
     r#"
         import { Trans } from "@lingui/react/macro";
