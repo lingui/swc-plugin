@@ -255,8 +255,13 @@ where
                 let tokens = tokenize_tpl(&mut macro_ctx, &tagged_tpl.tpl);
                 let tpl_span = tagged_tpl.tpl.span();
                 let expr_span = expr.span();
+                // Placeholder expressions are copied verbatim into the `values`
+                // of the produced call, so keep folding them to transform a
+                // nested `t` there too. Only the call's children are folded, so
+                // the produced call itself is not processed again.
                 return Expr::Call(
-                    self.create_i18n_fn_call_from_tokens(callee, tokens, tpl_span, expr_span),
+                    self.create_i18n_fn_call_from_tokens(callee, tokens, tpl_span, expr_span)
+                        .fold_children_with(self),
                 );
             }
         }
@@ -308,7 +313,9 @@ where
                 let descriptor =
                     self.update_msg_descriptor_props(msg_dscrpt_expr, msg_dscrpt_expr_span);
 
-                return self.create_i18n_fn_call(callee, vec![descriptor.as_arg()], span);
+                return self
+                    .create_i18n_fn_call(callee, vec![descriptor.as_arg()], span)
+                    .fold_children_with(self);
             }
         }
 
@@ -317,12 +324,9 @@ where
         if let Some(tokens) = try_tokenize_call_expr_as_choice_cmp(&mut macro_ctx, &expr) {
             let msg_dscrptr_span = expr.args.first().map(|arg| arg.span()).unwrap_or(DUMMY_SP);
 
-            return self.create_i18n_fn_call_from_tokens(
-                None,
-                tokens,
-                msg_dscrptr_span,
-                expr.span(),
-            );
+            return self
+                .create_i18n_fn_call_from_tokens(None, tokens, msg_dscrptr_span, expr.span())
+                .fold_children_with(self);
         }
 
         expr.fold_children_with(self)
