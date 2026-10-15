@@ -180,3 +180,40 @@ function useGreeting(format) {
 }
      "#
 );
+
+to!(
+    js_use_lingui_nested_t_in_placeholder,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+
+export function Label({ device }) {
+  const { t } = useLingui();
+  return t`Calibrated for ${device || t`Microphone`}`;
+}
+     "#
+);
+
+to!(
+    js_use_lingui_nested_t_next_to_plural_placeholder,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+export function Label({ n, box }) {
+  const { t } = useLingui();
+  return t`${plural(n, { one: '# item', other: '# items' })} in ${box || t`Box`}`;
+}
+     "#
+);
+
+to!(
+    js_use_lingui_nested_t_in_descriptor_placeholder,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+
+export function Label({ device }) {
+  const { t } = useLingui();
+  return t({ message: `Calibrated for ${device || t`Microphone`}` });
+}
+     "#
+);

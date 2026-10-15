@@ -1,0 +1,28 @@
+---
+source: crates/lingui_macro/tests/use_lingui.rs
+---
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+export function Label({ n, box }) {
+  const { t } = useLingui();
+  return t`${plural(n, { one: '# item', other: '# items' })} in ${box || t`Box`}`;
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+export function Label({ n, box }) {
+    const { _: $__ } = $_useLingui();
+    return $__(/*i18n*/ {
+        id: "4h7WfN",
+        message: "{n, plural, one {# item} other {# items}} in {0}",
+        values: {
+            n: n,
+            0: box || $__(/*i18n*/ {
+                id: "VjN_k6",
+                message: "Box"
+            })
+        }
+    });
+}

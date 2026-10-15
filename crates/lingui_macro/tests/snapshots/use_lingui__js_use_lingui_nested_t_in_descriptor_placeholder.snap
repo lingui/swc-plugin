@@ -1,0 +1,26 @@
+---
+source: crates/lingui_macro/tests/use_lingui.rs
+---
+import { useLingui } from "@lingui/react/macro";
+
+export function Label({ device }) {
+  const { t } = useLingui();
+  return t({ message: `Calibrated for ${device || t`Microphone`}` });
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+export function Label({ device }) {
+    const { _: $__ } = $_useLingui();
+    return $__(/*i18n*/ {
+        id: "4SC7zv",
+        message: "Calibrated for {0}",
+        values: {
+            0: device || $__(/*i18n*/ {
+                id: "1iY5xv",
+                message: "Microphone"
+            })
+        }
+    });
+}
