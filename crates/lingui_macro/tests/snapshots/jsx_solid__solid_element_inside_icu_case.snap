@@ -1,0 +1,23 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_runtime: solid
+---
+import { Trans, Plural } from "@lingui/react/macro";
+<Trans>
+  <Plural value={count} one={<a href="/one">one</a>} other="many" />
+</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "uzhsc8",
+    values: {
+        count: count
+    },
+    components: {
+        0: (_props)=><a href="/one" {..._props}/>
+    },
+    message: "{count, plural, one {<0>one</0>} other {many}}"
+}}/>;

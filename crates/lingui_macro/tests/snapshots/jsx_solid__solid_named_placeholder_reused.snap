@@ -1,0 +1,21 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_placeholder_attribute: _t
+  jsx_runtime: solid
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  <a _t="link" href="/a">first</a> and <a _t="link" href="/a">second</a>
+</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "ZdbFpf",
+    components: {
+        link: (_props)=><a href="/a" {..._props}/>
+    },
+    message: "<link>first</link> and <link>second</link>"
+}}/>;

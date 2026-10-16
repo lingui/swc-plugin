@@ -29,6 +29,14 @@ impl DescriptorFields {
     }
 }
 
+#[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Copy, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum JsxRuntime {
+    #[default]
+    React,
+    Solid,
+}
+
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LinguiJsOptions {
@@ -50,6 +58,8 @@ pub struct LinguiJsOptions {
     pub jsx_placeholder_attribute: Option<String>,
     #[serde(default)]
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
+    #[serde(default)]
+    pub jsx_runtime: Option<JsxRuntime>,
 }
 
 #[derive(Deserialize, Serialize, Debug, PartialEq, Clone, Default)]
@@ -123,6 +133,7 @@ impl LinguiJsOptions {
             id_prefix_leader: self.id_prefix_leader.clone(),
             jsx_placeholder_attribute: self.jsx_placeholder_attribute.clone(),
             jsx_placeholder_defaults: self.jsx_placeholder_defaults.clone(),
+            jsx_runtime: self.jsx_runtime.unwrap_or_default(),
             macro_packages: MacroPackagesConfig {
                 core: self
                     .core_package
@@ -184,6 +195,8 @@ pub struct LinguiOptions {
     #[serde(skip_serializing_if = "is_default")]
     pub jsx_placeholder_defaults: Option<HashMap<String, String>>,
     #[serde(skip_serializing_if = "is_default")]
+    pub jsx_runtime: JsxRuntime,
+    #[serde(skip_serializing_if = "is_default")]
     pub macro_packages: MacroPackagesConfig,
     #[serde(skip_serializing_if = "is_default")]
     pub runtime_modules: RuntimeModulesConfigMapNormalized,
@@ -202,6 +215,7 @@ impl Default for LinguiOptions {
             id_prefix_leader: None,
             jsx_placeholder_attribute: None,
             jsx_placeholder_defaults: None,
+            jsx_runtime: JsxRuntime::default(),
             macro_packages: Default::default(),
             runtime_modules: Default::default(),
         }
@@ -249,6 +263,7 @@ mod lib_tests {
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+                jsx_runtime: None,
                 use_jsdoc_i18n_comment: None,
             }
         )
@@ -281,6 +296,7 @@ mod lib_tests {
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+                jsx_runtime: None,
                 use_jsdoc_i18n_comment: None,
                 core_package: None,
                 jsx_package: None,
@@ -314,6 +330,7 @@ mod lib_tests {
                 id_prefix_leader: None,
                 jsx_placeholder_attribute: None,
                 jsx_placeholder_defaults: None,
+                jsx_runtime: None,
                 use_jsdoc_i18n_comment: None,
             }
         )
@@ -512,6 +529,40 @@ mod lib_tests {
 
         let options = config.into_options("production");
         assert!(!options.use_lingui_v5_id_generation);
+    }
+
+    #[test]
+    fn test_jsx_runtime_config() {
+        let config =
+            serde_json::from_str::<LinguiJsOptions>(r#"{ "jsxRuntime": "solid" }"#).unwrap();
+        assert_eq!(config.jsx_runtime, Some(JsxRuntime::Solid));
+        assert_eq!(
+            config.into_options("development").jsx_runtime,
+            JsxRuntime::Solid
+        );
+
+        let config =
+            serde_json::from_str::<LinguiJsOptions>(r#"{ "jsxRuntime": "react" }"#).unwrap();
+        assert_eq!(
+            config.into_options("development").jsx_runtime,
+            JsxRuntime::React
+        );
+    }
+
+    #[test]
+    fn test_jsx_runtime_default() {
+        let config = serde_json::from_str::<LinguiJsOptions>(r#"{}"#).unwrap();
+        assert_eq!(config.jsx_runtime, None);
+        assert_eq!(
+            config.into_options("development").jsx_runtime,
+            JsxRuntime::React
+        );
+    }
+
+    #[test]
+    fn test_jsx_runtime_invalid() {
+        let result = serde_json::from_str::<LinguiJsOptions>(r#"{ "jsxRuntime": "vue" }"#);
+        assert!(result.is_err());
     }
 
     #[test]

@@ -137,6 +137,10 @@ The `macro` options are documented in the [`@lingui/swc-plugin` README](https://
 
 The parser syntax (ECMAScript / TypeScript) and JSX support are inferred from the filename, and decorators are enabled. When you pass `parser`, it is used as-is (only `jsx` / `tsx` is still OR-ed in from the filename), so remember to set `decorators: true` yourself if you need them.
 
+#### `jsxRuntime: "solid"`
+
+Set `macro.jsxRuntime` to `"solid"` to emit every `<Trans>` component as `(_props) => <el {...attrs} {..._props}/>`, as `@lingui/solid` requires (it renders them via `createComponent`). The default is `"react"`. Use `defineConfig` from `@lingui/solid/config`, which sets `jsxPackage`, `jsxRuntime` and the Solid runtime modules. See the [Lingui Solid tutorial](https://lingui.dev/tutorials/solid).
+
 #### `descriptorFields: "auto"`
 
 When `macro.descriptorFields` is not set (or is `"auto"`), it resolves from `process.env.NODE_ENV`: `"id-only"` in `production`, `"all"` otherwise — the same behavior as the Babel macro plugin. Set it explicitly to make the output independent of the environment.
