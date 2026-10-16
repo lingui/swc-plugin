@@ -1,0 +1,18 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_runtime: solid
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Hello<br />world</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "QlRYmp",
+    components: {
+        0: (_props)=><br {..._props}/>
+    },
+    message: "Hello<0/>world"
+}}/>;

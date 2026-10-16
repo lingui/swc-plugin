@@ -1,0 +1,22 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_runtime: solid
+---
+import { Trans } from "@lingui/react/macro";
+function C(_props) {
+  return <Trans>Hello <a href={_props.href}>docs</a>.</Trans>;
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+function C(_props) {
+    return <Trans_ {.../*i18n*/ {
+        id: "lqG909",
+        components: {
+            0: (_props1)=><a href={_props.href} {..._props1}/>
+        },
+        message: "Hello <0>docs</0>."
+    }}/>;
+}

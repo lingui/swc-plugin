@@ -1,0 +1,25 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_runtime: solid
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>
+  <p>Hello <a href="/u"><em>{name}</em></a></p>
+</Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "EaSyqu",
+    values: {
+        name: name
+    },
+    components: {
+        0: (_props)=><p {..._props}/>,
+        1: (_props)=><a href="/u" {..._props}/>,
+        2: (_props)=><em {..._props}/>
+    },
+    message: "<0>Hello <1><2>{name}</2></1></0>"
+}}/>;

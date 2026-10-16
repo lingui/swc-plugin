@@ -1,0 +1,16 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_placeholder_attribute: _t
+  jsx_runtime: solid
+---
+import { Trans } from "@lingui/react/macro";
+<Trans><a _t="link" href="/a">one</a> and <a _t="link" href="/b">two</a></Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+error: Multiple distinct JSX elements with the same placeholder name (`link`). Differentiate them by adding/modifying the `_t` attribute (e.g. `<element _t="newName" />`).
+ --> input.tsx:2:43
+  |
+2 | <Trans><a _t="link" href="/a">one</a> and <a _t="link" href="/b">two</a></Trans>;
+  |                                           ^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,10 +1,13 @@
 use crate::ast_utils::{
     get_jsx_attr, get_jsx_attr_value_as_string, is_jsx_elements_equal, omit_jsx_attrs,
 };
-use crate::options::LinguiOptions;
+use crate::options::{JsxRuntime, LinguiOptions};
 use crate::tokens::{CaseOrOffset, MsgArg, MsgToken};
 use std::collections::HashSet;
-use swc_core::{common::DUMMY_SP, ecma::ast::*};
+use swc_core::{
+    common::DUMMY_SP,
+    ecma::{ast::*, utils::private_ident},
+};
 
 fn is_numeric(s: &str) -> bool {
     !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())
@@ -240,6 +243,7 @@ impl<'a> MessageBuilder<'a> {
                     });
                 }
             } else {
+                // todo: cloning the whole opening element just to compare duplicates later is wasteful
                 self.elements_tracking.push((n.clone(), el.clone()));
             }
 
@@ -259,16 +263,44 @@ impl<'a> MessageBuilder<'a> {
         }
 
         if !self.components.iter().any(|c| c.placeholder == name) {
-            // todo: it looks very dirty and bad to cloning this jsx values
             self.components.push(ValueWithPlaceholder {
                 placeholder: name.clone(),
-                value: Box::new(Expr::JSXElement(Box::new(JSXElement {
-                    opening: el,
-                    closing: None,
-                    children: vec![],
-                    span: DUMMY_SP,
-                }))),
+                value: self.component_value(el),
             });
+        }
+    }
+
+    /// Builds the value stored in `components` for a JSX element.
+    /// For Solid it is wrapped as `(_props) => <el ...attrs {..._props}/>`,
+    /// since the runtime renders it via `createComponent(element, { children })`.
+    fn component_value(&self, el: JSXOpeningElement) -> Box<Expr> {
+        let element = |opening| {
+            Box::new(Expr::JSXElement(Box::new(JSXElement {
+                opening,
+                closing: None,
+                children: vec![],
+                span: DUMMY_SP,
+            })))
+        };
+
+        match self.options.jsx_runtime {
+            JsxRuntime::React => element(el),
+            JsxRuntime::Solid => {
+                let props = private_ident!("_props");
+                let mut opening = el;
+                opening
+                    .attrs
+                    .push(JSXAttrOrSpread::SpreadElement(SpreadElement {
+                        dot3_token: DUMMY_SP,
+                        expr: Box::new(Expr::Ident(props.clone())),
+                    }));
+
+                Box::new(Expr::Arrow(ArrowExpr {
+                    params: vec![Pat::Ident(props.into())],
+                    body: Box::new(ArrowFunctionBody::Expr(element(opening))),
+                    ..Default::default()
+                }))
+            }
         }
     }
 

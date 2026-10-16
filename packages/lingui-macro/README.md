@@ -165,6 +165,12 @@ Sets the JSX attribute name used to provide explicit placeholder names inside `<
 
 Defines default placeholder names for JSX tags when no explicit placeholder attribute is present.
 
+### `jsxRuntime`
+
+Accepts `"react"` (default) or `"solid"`. With `"solid"`, every JSX element inside `<Trans>` is emitted as `(_props) => <el {...attrs} {..._props}/>`, which `@lingui/solid` renders via `createComponent`. `t`, `msg`, `defineMessage` and `useLingui` are not affected.
+
+Use `defineConfig` from `@lingui/solid/config`, which sets `jsxPackage`, `jsxRuntime` and the Solid runtime modules. See the [Lingui Solid tutorial](https://lingui.dev/tutorials/solid).
+
 ### `runtimeModules`
 
 Overrides the runtime imports used by the plugin. Unlike [the Babel macro configuration](https://lingui.dev/ref/conf#runtimeconfigmodule), this option must be passed as an object.

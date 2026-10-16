@@ -12,6 +12,12 @@ export type LinguiMacroOptions = {
   jsxPlaceholderAttribute?: string
   /** Default placeholder names for JSX tags when no explicit placeholder attribute is present. */
   jsxPlaceholderDefaults?: Record<string, string>
+  /**
+   * Controls which JSX runtime semantics the Lingui JSX macro emits.
+   * - `"react"` (default) — `<Trans>` components are emitted as plain JSX elements.
+   * - `"solid"` — every component is emitted as `(_props) => <el {...attrs} {..._props}/>`, as required by `@lingui/solid`.
+   */
+  jsxRuntime?: 'react' | 'solid'
   /** Overrides the runtime imports used by the plugin. Unlike the Babel macro configuration, must be passed as an object. */
   runtimeModules?: {
     i18n?: RuntimeModuleConfig
@@ -65,6 +71,8 @@ export function mapOptions(linguiConfig: LinguiConfigNormalized, overrides?: Dee
     jsxPlaceholderAttribute: linguiConfig.macro.jsxPlaceholderAttribute,
     jsxPlaceholderDefaults: linguiConfig.macro.jsxPlaceholderDefaults,
     idPrefixLeader: linguiConfig.macro.idPrefixLeader,
+    // older @lingui/conf versions lack the key in their types but pass the value through
+    jsxRuntime: (linguiConfig.macro as {jsxRuntime?: 'react' | 'solid'}).jsxRuntime,
     ...overrides,
     runtimeModules: {
       ...linguiConfig.runtimeConfigModule,
