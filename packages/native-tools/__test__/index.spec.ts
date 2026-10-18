@@ -191,4 +191,42 @@ describe('createSwcExtractor', () => {
 
     expect(await extract(extractor, linguiConfig)).toEqual(['From custom package'])
   })
+
+  describe('source maps', () => {
+    const linguiConfig = makeConfig({locales: ['en']}, {skipValidation: true})
+
+    // Generated line 2 maps to line 10, column 2 (0-based: 9, 2) of App.vue
+    const sourceMaps = {
+      version: 3,
+      sources: ['/project/src/App.vue'],
+      names: [],
+      mappings: 'AAAA;AASE',
+    }
+
+    const compiled = `import {t} from '@lingui/core/macro';\nt\`Hello\`;\n`
+
+    async function extractOrigins(code: string, sourceMaps?: unknown) {
+      const messages: ExtractedMessage[] = []
+      await createSwcExtractor().extract('App.vue.js', code, (msg) => messages.push(msg), {
+        linguiConfig,
+        sourceMaps,
+      })
+      return messages.map((msg) => msg.origin)
+    }
+
+    test('maps origins through ctx.sourceMaps', async () => {
+      expect(await extractOrigins(compiled)).toEqual([['App.vue.js', 2, 2]])
+      expect(await extractOrigins(compiled, sourceMaps)).toEqual([['/project/src/App.vue', 10, 3]])
+    })
+
+    test('ctx.sourceMaps takes precedence over an inline source map', async () => {
+      const inlineMap = {...sourceMaps, sources: ['/project/src/Other.vue']}
+      const code =
+        compiled +
+        `//# sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(inlineMap)).toString('base64')}\n`
+
+      expect(await extractOrigins(code)).toEqual([['/project/src/Other.vue', 10, 3]])
+      expect(await extractOrigins(code, sourceMaps)).toEqual([['/project/src/App.vue', 10, 3]])
+    })
+  })
 })

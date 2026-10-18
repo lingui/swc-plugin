@@ -46,6 +46,8 @@ export default defineConfig({
 > **Note**
 > For the best performance, disable multithreading on the Lingui CLI side with `lingui extract --workers 1`. The native extractor processes files in parallel itself.
 
+Other extractors can wrap it, for example to extract from compiled `.vue` files. When a wrapper passes a source map in `ctx.sourceMaps`, message origins point to the original file and line.
+
 `createSwcExtractor()` accepts optional extractor options:
 
 ```ts

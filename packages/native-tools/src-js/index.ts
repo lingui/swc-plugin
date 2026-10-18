@@ -183,6 +183,12 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
     },
 
     async extract(filename, code, onMessageExtracted, ctx) {
+      if (ctx.sourceMaps) {
+        // The native extractor reads only the last inline source map comment,
+        // so the appended map takes precedence over one already in the code (as in the Babel extractor)
+        code += `\n//# sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(ctx.sourceMaps)).toString('base64')}`
+      }
+
       const {messages} = await extractMessages(code, filename, {
         ...options,
         macro: mapOptions(ctx.linguiConfig, options.macro),
