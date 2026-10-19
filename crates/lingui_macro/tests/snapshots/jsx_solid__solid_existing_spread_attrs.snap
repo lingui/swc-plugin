@@ -1,0 +1,18 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_runtime: solid
+---
+import { Trans } from "@lingui/react/macro";
+<Trans>Go <a {...rest} href="/x">there</a></Trans>;
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { Trans as Trans_ } from "@lingui/react";
+<Trans_ {.../*i18n*/ {
+    id: "-WFUoK",
+    components: {
+        0: (_props)=><a {...rest} href="/x" {..._props}/>
+    },
+    message: "Go <0>there</0>"
+}}/>;

@@ -38,6 +38,54 @@ const App = () => <Trans>Hello world</Trans>;
     expect(result.map).toBeDefined()
   })
 
+  test('transforms nested elements in Trans into components', async () => {
+    const code = `
+import { Trans } from '@lingui/react/macro';
+const App = () => <Trans>Hello <a href="/docs">docs</a>.</Trans>;
+`
+    const result = await transform(code, 'app.tsx')
+
+    expect(result.code).toMatchInlineSnapshot(`
+      "import { Trans as Trans_ } from "@lingui/react";
+      const App = ()=><Trans_ {.../*i18n*/ {
+              id: "lqG909",
+              components: {
+                  0: <a href="/docs"/>
+              },
+              message: "Hello <0>docs</0>."
+          }}/>;
+      "
+    `)
+    expect(result.map).toBeDefined()
+  })
+
+  test('emits Solid components with macro.jsxRuntime "solid"', async () => {
+    const code = `
+import { Trans } from '@lingui/solid/macro';
+const App = () => <Trans>Hello <a href="/docs">docs</a>.</Trans>;
+`
+    const result = await transform(code, 'app.tsx', {
+      macro: {
+        jsxRuntime: 'solid',
+        jsxPackage: ['@lingui/solid/macro'],
+        runtimeModules: {Trans: ['@lingui/solid', 'Trans']},
+      },
+    })
+
+    expect(result.code).toMatchInlineSnapshot(`
+      "import { Trans as Trans_ } from "@lingui/solid";
+      const App = ()=><Trans_ {.../*i18n*/ {
+              id: "lqG909",
+              components: {
+                  0: (_props)=><a href="/docs" {..._props}/>
+              },
+              message: "Hello <0>docs</0>."
+          }}/>;
+      "
+    `)
+    expect(result.map).toBeDefined()
+  })
+
   test('keeps non-lingui code unchanged', async () => {
     const code = `
 import { useState } from 'react';

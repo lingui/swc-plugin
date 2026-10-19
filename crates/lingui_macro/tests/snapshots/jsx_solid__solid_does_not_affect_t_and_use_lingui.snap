@@ -1,0 +1,34 @@
+---
+source: crates/lingui_macro/tests/jsx_solid.rs
+info:
+  jsx_runtime: solid
+---
+import { t } from "@lingui/core/macro";
+import { useLingui } from "@lingui/react/macro";
+const a = t`Hello ${name}`;
+function C() {
+  const { t } = useLingui();
+  return t`Hi ${name}`;
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+import { i18n as $_i18n } from "@lingui/core";
+const a = $_i18n._(/*i18n*/ {
+    id: "OVaF9k",
+    message: "Hello {name}",
+    values: {
+        name: name
+    }
+});
+function C() {
+    const { _: $__ } = $_useLingui();
+    return $__(/*i18n*/ {
+        id: "Kxwgoy",
+        message: "Hi {name}",
+        values: {
+            name: name
+        }
+    });
+}

@@ -27,6 +27,7 @@ describe("linguiMacroSwcPlugin", () => {
             "jsxPlaceholderDefaults": {
               "a": "link",
             },
+            "jsxRuntime": undefined,
             "runtimeModules": {
               "Trans": [
                 "@acme/react",
@@ -67,6 +68,7 @@ describe("linguiMacroSwcPlugin", () => {
             "a": "anchor",
             "strong": "bold",
           },
+          "jsxRuntime": undefined,
           "runtimeModules": {
             "Trans": [
               "@custom/react",
@@ -84,6 +86,12 @@ describe("linguiMacroSwcPlugin", () => {
         },
       ]
     `)
+  })
+
+  it("forwards macro.jsxRuntime from the config", () => {
+    const [, options] = linguiMacroSwcPlugin({}, {configPath: resolve(fixturesDir, "solid.config.js")})
+
+    expect(options).toMatchObject({jsxRuntime: "solid"})
   })
 
   it("merges overrides over mapped config", () => {
@@ -115,6 +123,7 @@ describe("linguiMacroSwcPlugin", () => {
             "a": "anchor",
             "strong": "bold",
           },
+          "jsxRuntime": undefined,
           "runtimeModules": {
             "Trans": [
               "@override/react",
@@ -171,6 +180,7 @@ describe('mapOptions', () => {
           "a": "anchor",
           "strong": "bold",
         },
+        "jsxRuntime": undefined,
         "runtimeModules": {
           "Trans": [
             "@custom/react",

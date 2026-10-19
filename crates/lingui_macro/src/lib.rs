@@ -588,8 +588,8 @@ where
 }
 
 pub use self::options::{
-    DescriptorFields, LinguiJsOptions, LinguiOptions, MacroPackagesConfig, RuntimeModulesConfigMap,
-    RuntimeModulesConfigMapNormalized,
+    DescriptorFields, JsxRuntime, LinguiJsOptions, LinguiOptions, MacroPackagesConfig,
+    RuntimeModulesConfigMap, RuntimeModulesConfigMapNormalized,
 };
 
 #[plugin_transform]
