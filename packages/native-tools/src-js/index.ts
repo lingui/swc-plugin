@@ -184,8 +184,8 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
 
     async extract(filename, code, onMessageExtracted, ctx) {
       if (ctx.sourceMaps) {
-        // The native extractor reads only the last inline source map comment,
-        // so the appended map takes precedence over one already in the code (as in the Babel extractor)
+        // Map origins through `ctx.sourceMaps`, as the Babel extractor does.
+        // The native extractor reads source maps only from an inline comment, so pass the map that way.
         code += `\n//# sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(ctx.sourceMaps)).toString('base64')}`
       }
 
