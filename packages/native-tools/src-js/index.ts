@@ -183,6 +183,12 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
     },
 
     async extract(filename, code, onMessageExtracted, ctx) {
+      if (ctx.sourceMaps) {
+        // Map origins through `ctx.sourceMaps`, as the Babel extractor does.
+        // The native extractor reads source maps only from an inline comment, so pass the map that way.
+        code += `\n//# sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(ctx.sourceMaps)).toString('base64')}`
+      }
+
       const {messages} = await extractMessages(code, filename, {
         ...options,
         macro: mapOptions(ctx.linguiConfig, options.macro),
