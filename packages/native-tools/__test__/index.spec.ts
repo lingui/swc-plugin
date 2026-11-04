@@ -192,6 +192,16 @@ describe('createSwcExtractor', () => {
     expect(await extract(extractor, linguiConfig)).toEqual(['From custom package'])
   })
 
+  test('extracts with a jsxRuntime the native macro does not implement', async () => {
+    // `@lingui/vue/config` sets `jsxRuntime: "vue"`
+    const linguiConfig = makeConfig(
+      {locales: ['en'], macro: {jsxRuntime: 'vue'} as LinguiConfigNormalized['macro']},
+      {skipValidation: true},
+    )
+
+    expect(await extract(createSwcExtractor(), linguiConfig)).toEqual(['From default package'])
+  })
+
   describe('source maps', () => {
     const linguiConfig = makeConfig({locales: ['en']}, {skipValidation: true})
 
