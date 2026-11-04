@@ -189,10 +189,10 @@ export function createSwcExtractor(options: ExtractorOptions = {}): ExtractorTyp
         code += `\n//# sourceMappingURL=data:application/json;base64,${Buffer.from(JSON.stringify(ctx.sourceMaps)).toString('base64')}`
       }
 
-      const {messages} = await extractMessages(code, filename, {
-        ...options,
-        macro: mapOptions(ctx.linguiConfig, options.macro),
-      })
+      // `jsxRuntime` doesn't affect extracted messages, and the native side rejects values it doesn't know, e.g. "vue".
+      const {jsxRuntime: _jsxRuntime, ...macro} = mapOptions(ctx.linguiConfig, options.macro)
+
+      const {messages} = await extractMessages(code, filename, {...options, macro})
 
       messages.forEach((msg) => {
         onMessageExtracted(mapMessage(msg))
