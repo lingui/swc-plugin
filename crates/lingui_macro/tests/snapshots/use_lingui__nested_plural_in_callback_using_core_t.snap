@@ -1,0 +1,17 @@
+---
+source: crates/lingui_macro/tests/use_lingui.rs
+---
+import { t, plural } from "@lingui/core/macro";
+
+const Component = wrap(() => t`Selected ${plural(count, { one: '# item', other: '# items' })}`);
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { i18n as $_i18n } from "@lingui/core";
+const Component = wrap(()=>$_i18n._(/*i18n*/ {
+        id: "oDeoLE",
+        message: "Selected {count, plural, one {# item} other {# items}}",
+        values: {
+            count: count
+        }
+    }));

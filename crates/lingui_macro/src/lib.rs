@@ -1,10 +1,8 @@
 use std::collections::HashSet;
 use swc_core::common::sync::Lrc;
-use swc_core::common::{SourceMapper, Span, Spanned, SyntaxContext, DUMMY_SP};
+use swc_core::common::{SourceMapper, Span, Spanned, DUMMY_SP};
 
 use swc_core::common::comments::*;
-use swc_core::ecma::utils::private_ident;
-use swc_core::plugin::errors::HANDLER;
 use swc_core::{
     ecma::{
         ast::*,
@@ -269,142 +267,6 @@ where
             },
         }
     }
-
-    pub fn handle_use_lingui(&mut self, n: FunctionBody) -> FunctionBody {
-        let mut ctx = self.ctx.clone();
-
-        let mut ident_replacer: Option<IdentReplacer> = None;
-
-        let stmts: Vec<Stmt> = n
-            .stmts
-            .into_iter()
-            .map(|stmt| match stmt {
-                Stmt::Decl(Decl::Var(var_decl)) => {
-                    let decl = *var_decl;
-
-                    let underscore_ident = private_ident!("$__");
-                    let decls: Vec<VarDeclarator> = decl
-                        .decls
-                        .into_iter()
-                        .map(|declarator| {
-                            if let Some(init) = &declarator.init {
-                                let expr = init.as_ref();
-
-                                if let Expr::Call(call) = &expr {
-                                    if match_callee_name(call, |n| {
-                                        self.ctx.is_lingui_ident("useLingui", n)
-                                    })
-                                    .is_some()
-                                    {
-                                        self.ctx.should_add_uselingui_import = true;
-
-                                        if let Pat::Object(obj_pat) = declarator.name {
-                                            let mut new_props: Vec<ObjectPatProp> = obj_pat
-                                                .props
-                                                .into_iter()
-                                                .filter_map(|prop| {
-                                                    if let Some(ident) =
-                                                        get_local_ident_from_object_pat_prop(
-                                                            &prop, "t",
-                                                        )
-                                                    {
-                                                        ctx.register_reference(
-                                                            &"t".into(),
-                                                            &ident.to_id(),
-                                                        );
-
-                                                        ident_replacer = Some(IdentReplacer {
-                                                            from: ident.to_id(),
-                                                            to: underscore_ident.clone(),
-                                                        });
-
-                                                        ctx.runtime_idents.use_lingui_t =
-                                                            Some(underscore_ident.clone());
-
-                                                        // `t` is dropped: the `_: $__` binding
-                                                        // pushed below is called directly
-                                                        return None;
-                                                    }
-
-                                                    Some(prop)
-                                                })
-                                                .collect();
-
-                                            new_props.push(ObjectPatProp::KeyValue(
-                                                KeyValuePatProp {
-                                                    value: Box::new(Pat::Ident(
-                                                        underscore_ident.clone().into(),
-                                                    )),
-                                                    key: PropName::Ident(quote_ident!("_")),
-                                                },
-                                            ));
-
-                                            return VarDeclarator {
-                                                init: Some(Box::new(Expr::Call(CallExpr {
-                                                    callee: Callee::Expr(Box::new(Expr::Ident(
-                                                        ctx.runtime_idents
-                                                            .use_lingui
-                                                            .clone()
-                                                            .into(),
-                                                    ))),
-                                                    ..call.clone()
-                                                }))),
-
-                                                definite: true,
-                                                span: declarator.span,
-                                                name: Pat::Object(ObjectPat {
-                                                    optional: false,
-                                                    type_ann: None,
-                                                    span: DUMMY_SP,
-                                                    props: new_props,
-                                                }),
-                                            };
-                                        } else {
-                                            HANDLER.with(|h| {
-                                                h.struct_span_warn(decl.span, "Unsupported Syntax")
-                                                        .note(
-r#"You have to destructure `t` when using the `useLingui` macro, i.e:
- const { t } = useLingui()
- or
- const { t: _ } = useLingui()"#)
-                                                        .emit()
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-
-                            declarator
-                        })
-                        .collect();
-
-                    Stmt::Decl(Decl::Var(Box::new(VarDecl {
-                        span: decl.span,
-                        decls,
-                        declare: false,
-                        kind: decl.kind,
-                        ctxt: SyntaxContext::empty(),
-                    })))
-                }
-                _ => stmt,
-            })
-            .collect();
-
-        let mut block = FunctionBody {
-            span: n.span,
-            stmts,
-        };
-
-        // use lingui matched above
-        if let Some(mut replacer) = ident_replacer {
-            block = block
-                .fold_children_with(&mut JsMacroFolder::new(&mut ctx, &self.comments))
-                // replace other
-                .fold_children_with(&mut replacer);
-        }
-
-        block.fold_children_with(self)
-    }
 }
 
 impl<C> Fold for LinguiMacroFolder<C>
@@ -491,44 +353,14 @@ where
 
         node
     }
-    fn fold_arrow_expr(&mut self, n: ArrowExpr) -> ArrowExpr {
-        // If no package that we care about is imported, skip the following
-        // transformation logic.
+    fn fold_function(&mut self, function: Function) -> Function {
         if !self.has_lingui_macro_imports {
-            return n;
+            return function;
         }
 
-        let mut func = n;
-
-        if let ArrowFunctionBody::FunctionBody(body) = *func.body {
-            func = ArrowExpr {
-                body: Box::new(ArrowFunctionBody::FunctionBody(
-                    self.handle_use_lingui(body),
-                )),
-                ..func
-            }
-        }
-
-        func.fold_children_with(self)
-    }
-
-    fn fold_function(&mut self, n: Function) -> Function {
-        // If no package that we care about is imported, skip the following
-        // transformation logic.
-        if !self.has_lingui_macro_imports {
-            return n;
-        }
-
-        let mut func = n;
-
-        if let Some(body) = func.body {
-            func = Function {
-                body: Some(self.handle_use_lingui(body)),
-                ..func
-            };
-        }
-
-        func.fold_children_with(self)
+        JsMacroFolder::new(&mut self.ctx, &self.comments)
+            .fold_function(function)
+            .fold_children_with(self)
     }
 
     fn fold_expr(&mut self, expr: Expr) -> Expr {
@@ -536,10 +368,6 @@ where
         // transformation logic.
         if !self.has_lingui_macro_imports {
             return expr;
-        }
-
-        if let Expr::Arrow(arrow_expr) = expr {
-            return Expr::Arrow(self.fold_arrow_expr(arrow_expr));
         }
 
         let mut folder = JsMacroFolder::new(&mut self.ctx, &self.comments);

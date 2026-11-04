@@ -1,0 +1,24 @@
+---
+source: crates/lingui_macro/tests/use_lingui.rs
+---
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+function Component() {
+  const { t } = useLingui();
+  return wrap(() => t`Selected ${plural(count, { one: '# item', other: '# items' })}`);
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+function Component() {
+    const { _: $__ } = $_useLingui();
+    return wrap(()=>$__(/*i18n*/ {
+            id: "oDeoLE",
+            message: "Selected {count, plural, one {# item} other {# items}}",
+            values: {
+                count: count
+            }
+        }));
+}

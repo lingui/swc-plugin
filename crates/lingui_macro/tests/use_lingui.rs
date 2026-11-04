@@ -217,3 +217,109 @@ export function Label({ device }) {
 }
      "#
 );
+
+to!(
+    nested_plural_in_forward_ref,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+const Component = forwardRef(() => {
+  const { t } = useLingui();
+  return t`Selected ${plural(count, { one: '# item', other: '# items' })}`;
+});
+    "#
+);
+
+to!(
+    nested_plural_in_memo,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+const Component = memo(() => {
+  const { t } = useLingui();
+  return t`Selected ${plural(count, { one: '# item', other: '# items' })}`;
+});
+    "#
+);
+
+to!(
+    nested_plural_in_function_expression,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+const Component = function () {
+  const { t } = useLingui();
+  return t`Selected ${plural(count, { one: '# item', other: '# items' })}`;
+};
+    "#
+);
+
+to!(
+    nested_plural_in_wrapped_function_expression,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+const Component = wrap(function Component() {
+  const { t } = useLingui();
+  return t`Selected ${plural(count, { one: '# item', other: '# items' })}`;
+});
+    "#
+);
+
+to!(
+    nested_plural_in_object_method,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+const obj = {
+  Component() {
+    const { t } = useLingui();
+    return t`Selected ${plural(count, { one: '# item', other: '# items' })}`;
+  }
+};
+    "#
+);
+
+to!(
+    nested_plural_in_nested_hook,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+function Outer() {
+  const { t } = useLingui();
+  const label = t`Outer`;
+  return wrap(() => {
+    const { t } = useLingui();
+    return t`Selected ${plural(count, { one: '# item', other: '# items' })}`;
+  });
+}
+    "#
+);
+
+to!(
+    nested_plural_in_callback_using_outer_t,
+    r#"
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+function Component() {
+  const { t } = useLingui();
+  return wrap(() => t`Selected ${plural(count, { one: '# item', other: '# items' })}`);
+}
+    "#
+);
+
+to!(
+    nested_plural_in_callback_using_core_t,
+    r#"
+import { t, plural } from "@lingui/core/macro";
+
+const Component = wrap(() => t`Selected ${plural(count, { one: '# item', other: '# items' })}`);
+    "#
+);

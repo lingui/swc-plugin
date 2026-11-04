@@ -1,0 +1,35 @@
+---
+source: crates/lingui_macro/tests/use_lingui.rs
+---
+import { useLingui } from "@lingui/react/macro";
+import { plural } from "@lingui/core/macro";
+
+function Outer() {
+  const { t } = useLingui();
+  const label = t`Outer`;
+  return wrap(() => {
+    const { t } = useLingui();
+    return t`Selected ${plural(count, { one: '# item', other: '# items' })}`;
+  });
+}
+
+↓ ↓ ↓ ↓ ↓ ↓
+
+import { useLingui as $_useLingui } from "@lingui/react";
+function Outer() {
+    const { _: $__ } = $_useLingui();
+    const label = $__(/*i18n*/ {
+        id: "wVGQ6j",
+        message: "Outer"
+    });
+    return wrap(()=>{
+        const { _: $__ } = $_useLingui();
+        return $__(/*i18n*/ {
+            id: "oDeoLE",
+            message: "Selected {count, plural, one {# item} other {# items}}",
+            values: {
+                count: count
+            }
+        });
+    });
+}
